@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>dd.qrPay</string>
+	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Qr Pay</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>kk</string>
+		<string>ru</string>
+	</array>
+	<key>CFBundleName</key>
+	<string>qr_pay_app</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>We use Apple Pay for payments</string>
+	<key>NSApplePayUsageDescription</key>
+	<string>We use Apple Pay for payments</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Пожалуйста, разрешите приложению доступ к камере, чтобы вы смогли отсканировать Qr-код, чтобы просмотреть подробную информацию</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Запрос доступа к сохраненным картам</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Пожалуйста, разрешите приложению Qr Pay доступ к местоположению при открытии, чтобы выбрать адрес.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Этому приложению необходим доступ к местоположению, чтобы выбрать точный адрес.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Этому приложению необходим доступ к местоположению при открытии, чтобы выбрать точный адрес.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Пожалуйста, разрешите приложению Qr Pay доступ к аудио</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Пожалуйста, разрешите приложению Qr Pay доступ к местоположению при открытии, чтобы выбрать точный адрес.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Пожалуйста, разрешите приложению Qr Pay доступ к фотографиям и медиа, чтобы загружать изображения на ваш профиль</string>
+	<key>NSUserNotificationAlertStyle</key>
+	<string>alert</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+</dict>
+</plist>

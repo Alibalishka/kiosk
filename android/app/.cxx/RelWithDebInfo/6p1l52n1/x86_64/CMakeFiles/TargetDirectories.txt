@@ -1,0 +1,2 @@
+/Users/alishka/Desktop/qr_pay_app/android/app/.cxx/RelWithDebInfo/6p1l52n1/x86_64/CMakeFiles/edit_cache.dir
+/Users/alishka/Desktop/qr_pay_app/android/app/.cxx/RelWithDebInfo/6p1l52n1/x86_64/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,2 @@
+/Users/alishka/Desktop/qr_pay_app/android/app/.cxx/RelWithDebInfo/6p1l52n1/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/alishka/Desktop/qr_pay_app/android/app/.cxx/RelWithDebInfo/6p1l52n1/armeabi-v7a/CMakeFiles/rebuild_cache.dir
