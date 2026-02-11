@@ -9,11 +9,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.SystemClock
+import android.util.Log
 
 class AppUpdatedReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
+    Log.i("AppUpdatedReceiver", "MY_PACKAGE_REPLACED received, restoring kiosk...")
 
-    // 1) DeviceOwner-логика (как у тебя)
+    // 1) Восстанавливаем DPC-политики (Device Owner)
     try {
       val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
       val admin = ComponentName(context, DeviceAdminReceiver::class.java)
@@ -30,8 +32,8 @@ class AppUpdatedReceiver : BroadcastReceiver() {
 
       dpm.setLockTaskPackages(admin, arrayOf(context.packageName))
       dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_NONE)
-    } catch (_: Throwable) {
-      // не DO — ок, продолжим
+    } catch (e: Throwable) {
+      Log.w("AppUpdatedReceiver", "DPC restore failed: ${e.message}")
     }
 
     // 2) Intent на запуск
@@ -41,39 +43,45 @@ class AppUpdatedReceiver : BroadcastReceiver() {
       addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     }
 
-    // 3) Попытка открыть сразу (иногда проходит)
-    runCatching { context.startActivity(launch) }
-
-    // 4) Фолбэк: отложенный запуск через PendingIntent + НЕ exact alarm
-    val pi = PendingIntent.getActivity(
-      context,
-      3001,
-      launch,
-      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
-    val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    val triggerAt = SystemClock.elapsedRealtime() + 1200L
-
-    // на всякий случай убираем старый
-    runCatching { am.cancel(pi) }
-
-    // НЕ требует SCHEDULE_EXACT_ALARM и не падает
+    // 3) Попытка открыть сразу
     runCatching {
-      am.setAndAllowWhileIdle(
-        AlarmManager.ELAPSED_REALTIME_WAKEUP,
-        triggerAt,
-        pi
-      )
+      context.startActivity(launch)
+      Log.i("AppUpdatedReceiver", "Immediate startActivity OK")
     }.onFailure {
-      // совсем крайний случай
+      Log.w("AppUpdatedReceiver", "Immediate startActivity failed: ${it.message}")
+    }
+
+    // 4) Несколько отложенных fallback-ов через AlarmManager (1с, 3с, 6с)
+    //    Разные requestCode чтобы не перезаписывать друг друга.
+    val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val delays = longArrayOf(1000L, 3000L, 6000L)
+
+    for ((idx, delay) in delays.withIndex()) {
+      val pi = PendingIntent.getActivity(
+        context,
+        3001 + idx,
+        launch,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+      )
+
       runCatching {
-        am.set(
+        am.setAndAllowWhileIdle(
           AlarmManager.ELAPSED_REALTIME_WAKEUP,
-          triggerAt,
+          SystemClock.elapsedRealtime() + delay,
           pi
         )
+      }.onFailure {
+        // совсем крайний случай
+        runCatching {
+          am.set(
+            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            SystemClock.elapsedRealtime() + delay,
+            pi
+          )
+        }
       }
     }
+
+    Log.i("AppUpdatedReceiver", "Scheduled ${delays.size} fallback alarms")
   }
 }

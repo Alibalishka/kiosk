@@ -36,6 +36,7 @@ import 'package:qr_pay_app/src/features/home/widgets/shimmer_qr_menu.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/language_bloc/language_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/language.dart';
 import 'package:sizer/sizer.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class QrMenuPage extends StatefulWidget {
   const QrMenuPage({
@@ -53,6 +54,18 @@ class QrMenuPageState extends State<QrMenuPage>
     with ViewModelMixin<QrMenuPage, QrMenuVm> {
   @override
   QrMenuVm get viewModel => widget.viewModel;
+
+  String? _appVersion;
+
+  @override
+  void initState() {
+    super.initState();
+    try {
+      _appVersion = sl<PackageInfo>().version;
+    } catch (_) {
+      _appVersion = null;
+    }
+  }
 
   @override
   void dispose() {
@@ -607,6 +620,19 @@ class QrMenuPageState extends State<QrMenuPage>
                 items: viewModel.kioskService.screenSavers?.data ?? [],
                 // banner: viewModel.kioskService!.currentScreenSaver!,
                 onTap: viewModel.kioskService.onUserInteraction,
+              ),
+            ),
+
+          if (_appVersion != null)
+            Positioned(
+              right: 12,
+              bottom: 8,
+              child: Text(
+                'v$_appVersion',
+                style: AppTextStyles.bodyS.copyWith(
+                  decoration: TextDecoration.none,
+                  color: AppColors.semanticFgDefault.withOpacity(0.6),
+                ),
               ),
             ),
         ],

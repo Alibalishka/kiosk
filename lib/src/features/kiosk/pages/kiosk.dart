@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
+import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -92,7 +93,7 @@ class _KioskRegisterState extends State<KioskRegister>
 
     setState(() => _otaRunning = true);
     try {
-      await downloadAndInstallOta();
+      await sl<OtaUpdateService>().downloadAndInstall();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Обновление запущено…')),

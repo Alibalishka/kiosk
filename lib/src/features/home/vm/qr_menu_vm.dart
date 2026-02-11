@@ -81,7 +81,9 @@ class QrMenuVm extends ViewModel {
   PaymentMethod paymentMethodData = PaymentMethod();
   TextEditingController nameController = TextEditingController();
 
+  /// Флаг, что мы уже запрашиваем / скачиваем OTA (анти-спам)
   bool otaChecking = false;
+
   String? lastServerVersionTried;
 
   @override
@@ -138,13 +140,12 @@ class QrMenuVm extends ViewModel {
       final cmp = compareSemver(current, serverVersion);
       // cmp < 0 => текущая меньше => надо обновиться
       if (cmp < 0) {
+        log('[OTA] current=$current server=$serverVersion -> starting update');
+        await sl<OtaUpdateService>().downloadAndInstall();
         lastServerVersionTried = serverVersion;
-
-        // можно показать лёгкий toast/snack, но ты просил “тихо” — поэтому без UI
-        await downloadAndInstallOta();
       }
-    } catch (_) {
-      // ничего не делаем, чтобы не мешать киоску
+    } catch (e) {
+      log('[OTA] update failed: $e');
     } finally {
       otaChecking = false;
     }

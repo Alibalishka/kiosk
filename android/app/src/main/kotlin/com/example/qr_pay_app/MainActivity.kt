@@ -147,6 +147,25 @@ class MainActivity : FlutterActivity() {
             result.success(true)
           }
 
+          "getInstallResult" -> {
+            val prefs = getSharedPreferences("ota_prefs", MODE_PRIVATE)
+            val ts = prefs.getLong("install_timestamp", 0)
+            if (ts > 0 && System.currentTimeMillis() - ts < 120_000) {
+              val map = hashMapOf<String, Any?>(
+                "status" to prefs.getInt("install_status", -1),
+                "message" to (prefs.getString("install_message", "") ?: "")
+              )
+              // Очищаем после чтения (одноразовое)
+              prefs.edit().remove("install_timestamp")
+                .remove("install_status")
+                .remove("install_message")
+                .apply()
+              result.success(map)
+            } else {
+              result.success(null)
+            }
+          }
+
           else -> result.notImplemented()
         }
       }
@@ -155,6 +174,13 @@ class MainActivity : FlutterActivity() {
   override fun onResume() {
     requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     super.onResume()
+
+    // Максимальная яркость для киоска (только для нашего окна)
+    runCatching {
+      val lp = window.attributes
+      lp.screenBrightness = 1.0f // 1.0f = 100%
+      window.attributes = lp
+    }
 
     // ✅ Если включили “режим выхода” — не включаем киоск обратно
     if (isKioskDisabled()) {
@@ -266,8 +292,12 @@ class MainActivity : FlutterActivity() {
       this,
       sessionId,
       intent,
-      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
     )
+
+    // Выходим из lock task перед установкой, чтобы PackageInstaller
+    // не был заблокирован. AppUpdatedReceiver вернёт lock task после обновления.
+    try { stopLockTask() } catch (_: Throwable) {}
 
     session.commit(pending.intentSender)
     session.close()
