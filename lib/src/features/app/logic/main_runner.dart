@@ -37,7 +37,7 @@ mixin MainRunner {
       () => Logger.runLogging(
         () async {
           WidgetsFlutterBinding.ensureInitialized();
-           //   await Firebase.initializeApp(
+          //   await Firebase.initializeApp(
           //     options: DefaultFirebaseOptions.currentPlatform,
           //   );
 
@@ -51,7 +51,7 @@ mixin MainRunner {
           // }
 
           // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
-          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
           await SystemChrome.setPreferredOrientations(
               [DeviceOrientation.portraitUp]);
 

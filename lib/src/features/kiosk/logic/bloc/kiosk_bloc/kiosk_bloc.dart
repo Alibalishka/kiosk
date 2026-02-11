@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/requests/menu_checkout.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_status_request.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kaspi_status_response.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_status.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/screen_savers_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/tech_work_response.dart';
 import 'package:qr_pay_app/src/features/qr/logic/models/responses/pay_model.dart';
@@ -77,7 +78,8 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
       final result = await _kioskRepository.sendStatusKiosk(
           body: event.body, deviceId: event.deviceId);
       result.when(
-        success: (reponse) => emit(const KioskState.successKioskStatus()),
+        success: (response) =>
+            emit(KioskState.successKioskStatus(response: response)),
         failure: (error) => emit(KioskState.failed(
           message: error.msg ?? 'Ошибка загурзки данных',
           errorCode: error.errorCode,

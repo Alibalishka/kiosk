@@ -1,14 +1,8 @@
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter_launcher_icons/xml_templates.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
-import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
-import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
 import 'package:qr_pay_app/src/features/home/widgets/ad_fulll_screen.dart';
 import 'package:qr_pay_app/src/features/home/widgets/category_header.dart';
@@ -16,8 +10,6 @@ import 'package:qr_pay_app/src/features/home/widgets/grid_menu.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_category_tabs.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_header.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
-import 'package:qr_pay_app/src/features/kiosk/logic/model/response/screen_savers_response.dart';
-import 'package:qr_pay_app/src/features/kiosk/vm/kiosk_vm.dart';
 import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -44,7 +36,6 @@ import 'package:qr_pay_app/src/features/home/widgets/shimmer_qr_menu.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/language_bloc/language_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/language.dart';
 import 'package:sizer/sizer.dart';
-import 'package:video_player/video_player.dart';
 
 class QrMenuPage extends StatefulWidget {
   const QrMenuPage({
@@ -301,14 +292,17 @@ class QrMenuPageState extends State<QrMenuPage>
                         viewModel.kioskService.updateToken(context, response),
                     successScreenSavers: (response) =>
                         viewModel.kioskService.saveScreenSavers(response),
-                    successKioskStatus: () {
+                    successKioskStatus: (response) {
+                      final serverVersion = response.data?.version;
+                      viewModel.checkAndUpdateIfNeeded(serverVersion);
+                      return null;
+
                       // if (context.router.currentPath == 'kiosk-tech-work') {
                       //   context.read<QrMenuVm>().clearBasket();
                       //   context.read<QrMenuVm>().fetchMenu();
                       //   context.router.popUntil((route) =>
                       //       route.settings.name == QrMenuProviderRoute.name);
                       // }
-                      return null;
                     },
                     successTechWork: (response) {
                       if ((response.data?.active ?? false) == true) {
@@ -378,7 +372,7 @@ class QrMenuPageState extends State<QrMenuPage>
                           child: NotificationListener<ScrollNotification>(
                             onNotification: (notification) {
                               // любой скролл = взаимодействие
-                              viewModel.kioskService!.onUserInteraction();
+                              viewModel.kioskService.onUserInteraction();
                               return false;
                             },
                             child: CustomScrollView(

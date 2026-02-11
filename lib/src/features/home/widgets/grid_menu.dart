@@ -33,7 +33,7 @@ class GridMenuWidget extends StatelessWidget {
                 crossAxisCellCount: 1,
                 child: SizedBox(
                   height: viewModel.isTablet
-                      ? (Platform.isIOS ? 50.1.sh : 47.5.sh)
+                      ? (Platform.isIOS ? 50.1.sh : 44.5.sh)
                       : context.isDesktop
                           ? 500 / 1.3
                           : context.mediaQuery.size.width / 1.16,

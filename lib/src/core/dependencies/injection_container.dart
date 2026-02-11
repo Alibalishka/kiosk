@@ -1,4 +1,5 @@
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:qr_pay_app/src/core/server/dio_settings.dart';
 import 'package:qr_pay_app/src/core/server/interceptors/refresh.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/screen_saver_cache.dart';
@@ -90,6 +91,7 @@ Future<void> initGetIt() async {
       () => SharedPrefsKTokenStorage(preferences: sl<SharedPreferences>()));
   sl.registerLazySingleton<HostStorage>(
       () => SharedPrefsHostStorage(preferences: sl<SharedPreferences>()));
+  sl.registerLazySingleton<DioSettings>(() => DioSettings());
 
   /// BLoCs
   sl.registerFactory<AuthBloc>(

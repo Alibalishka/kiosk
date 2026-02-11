@@ -5,8 +5,6 @@ import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
-
-
 class QrMenuCategoryTabs extends StatelessWidget
     implements PreferredSizeWidget {
   final QrMenuVm viewModel;

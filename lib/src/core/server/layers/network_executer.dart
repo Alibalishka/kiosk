@@ -55,8 +55,8 @@ class NetworkExecuter {
           route: route,
           options: options,
           dio: sl<HostStorage>().hasHost()
-              ? DioSettings().dioKiosk
-              : DioSettings().dio,
+              ? sl<DioSettings>().dioKiosk
+              : sl<DioSettings>().dio,
         );
         if (responseType != null) {
           final data = _decoder.decode<K, T>(

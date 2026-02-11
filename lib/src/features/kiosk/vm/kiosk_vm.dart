@@ -16,53 +16,94 @@ import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_respons
 import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
 
+import 'dart:async';
+import 'dart:developer';
+import 'dart:io';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:flutter/material.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+
 class KioskVm extends ViewModel {
   final BuildContext context;
-
   KioskVm({required this.context});
 
-  TextEditingController kioskNameController = TextEditingController();
-  KioskBloc kioskBloc = KioskBloc(kioskRepository: sl<KioskRepository>());
+  final kioskNameController = TextEditingController();
+  final kioskBloc = KioskBloc(kioskRepository: sl<KioskRepository>());
+
   final deviceInfo = DeviceInfoPlugin();
   String deviceId = '';
   String model = '';
 
-  // @override
-  // void init() async {
-  //   super.init();
-  //   // await initDeviceInfo();
-  //   // checkKiosk();
-  //   // kioskBloc = KioskBloc(kioskRepository: sl<KioskRepository>());
-  //   // if (sl<HostStorage>().hasHost()) {
-  //   //   kioskBloc.add(KioskEvent.checkKiosk(deviceId: deviceId));
-  //   // }
-  // }
+  // ✅ интернет состояние
+  final ValueNotifier<bool> hasInternet = ValueNotifier<bool>(false);
+  StreamSubscription? _connSub;
+  Timer? _debounce;
+
+  bool _deviceInfoReady = false;
+  bool _initFlowDone = false; // чтобы init flow не запускался 100 раз
+
+  // 1) Это вызываем из initState
+  Future<void> initAndWatchInternet() async {
+    // первое состояние
+    await _updateInternetNow();
+
+    // слушаем изменения сети
+    _connSub = Connectivity().onConnectivityChanged.listen((_) {
+      // небольшая задержка, чтобы сеть успела подняться
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 800), () async {
+        await _updateInternetNow();
+        // если интернет появился — попробуем выполнить init flow
+        if (hasInternet.value) {
+          await runInitFlowIfPossible();
+        }
+      });
+    });
+
+    // запускаем init flow сразу, если уже есть интернет
+    if (hasInternet.value) {
+      await runInitFlowIfPossible();
+    }
+  }
+
+  Future<void> _updateInternetNow() async {
+    // connectivity показывает “есть ли сеть”, но не гарантирует интернет.
+    final ok = await InternetConnectionChecker.instance.hasConnection;
+    hasInternet.value = ok;
+    log('Internet: $ok');
+  }
+
+  // 2) Инициализация как у тебя в initState, но “умная”
+  Future<void> runInitFlowIfPossible() async {
+    if (_initFlowDone) return; // уже делали (в этой сессии)
+    if (!hasInternet.value) return;
+
+    // device info можно получить и без интернета, но делаем аккуратно один раз
+    if (!_deviceInfoReady) {
+      await initDeviceInfo();
+      _deviceInfoReady = true;
+    }
+
+    // checkKiosk делаем только если есть host (как у тебя)
+    await checkKiosk();
+
+    _initFlowDone = true;
+  }
 
   Future<void> checkKiosk() async {
     log('Check kiosk');
+    if (!hasInternet.value) return; // ✅ важное: без интернета не шлём
+
     if (sl<HostStorage>().hasHost()) {
       kioskBloc.add(KioskEvent.checkKiosk(deviceId: deviceId));
     }
   }
 
-  // Future<void> initDeviceInfo() async {
-  //   if (Platform.isAndroid) {
-  //     final androidInfo = await deviceInfo.androidInfo;
-  //     deviceId = androidInfo.id;
-  //     model = androidInfo.model;
-  //   } else if (Platform.isIOS) {
-  //     final iosInfo = await deviceInfo.iosInfo;
-  //     deviceId = iosInfo.identifierForVendor ?? '';
-  //     model = iosInfo.name;
-  //   }
-  //   log('Device ID: $deviceId');
-  //   log('Device Model: $model');
-  // }
   Future<void> initDeviceInfo() async {
-    // ✅ 1) стабильный уникальный id приложения (UUID)
     deviceId = await const DeviceIdService().getOrCreate();
 
-    // ✅ 2) model оставляем как было (для UI/аналитики)
     if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
       model = androidInfo.model;
@@ -75,14 +116,12 @@ class KioskVm extends ViewModel {
     log('Device Model: $model');
   }
 
-  void initData(KioskResponse response, bool save) {
-    // List<String> parts = kioskNameController.text.split('_');
-    // log(kioskNameController.text);
+  Future<void> initData(KioskResponse response, bool save) async {
+    log('Init Data: ${response.data?.token}');
     if (save) {
-      sl<KTokenStorage>().saveToken(response.data?.token ?? '');
+      await sl<KTokenStorage>().saveToken(response.data?.token ?? '');
     }
 
-    // sl<HostStorage>().saveHost(parts[0]);
     context.router.replaceAll([
       QrMenuProviderRoute(
         menuId: response.data!.connection!.itemId!,
@@ -95,30 +134,36 @@ class KioskVm extends ViewModel {
     kioskNameController.clear();
     sl<KTokenStorage>().deleteToken();
     sl<HostStorage>().deleteHost();
+    // разрешаем повторный init flow (если вернутся на этот экран)
+    _initFlowDone = false;
   }
 
-// sandyq_E1IM3U
-// sandyq_0IAPTR
-// MNCDCQ
-// sandyq_NU0WRC
-// LWJH4E
   Future<void> register() async {
-    // sl<KTokenStorage>().deleteToken();
-    // sl<HostStorage>().deleteHost();
-    if (kioskNameController.text.contains('_')) {
-      List<String> parts = kioskNameController.text.split('_');
-      await sl<HostStorage>().saveHost(
-        // 'sandyq'
-        parts[0],
+    // ✅ не шлём запросы без интернета
+    if (!hasInternet.value) {
+      showTopSnackBar(
+        Overlay.of(context),
+        const CustomSnackBar.error(
+          textAlign: TextAlign.start,
+          message: 'Нет интернета. Подключите Wi-Fi.',
+        ),
+        dismissType: DismissType.onSwipe,
       );
+      return;
+    }
+
+    final text = kioskNameController.text.trim();
+
+    if (text.contains('_')) {
+      final parts = text.split('_');
+      await sl<HostStorage>().saveHost(parts[0]);
+
       kioskBloc.add(
         KioskEvent.register(
           body: KioskRequest(
             deviceId: deviceId,
             model: model,
-            connectionCode:
-                // 'PI3JVP',
-                parts[1],
+            connectionCode: parts[1],
           ),
         ),
       );
@@ -132,5 +177,12 @@ class KioskVm extends ViewModel {
         dismissType: DismissType.onSwipe,
       );
     }
+  }
+
+  void disposeVm() {
+    _debounce?.cancel();
+    _connSub?.cancel();
+    hasInternet.dispose();
+    kioskNameController.dispose();
   }
 }

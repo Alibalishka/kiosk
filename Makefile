@@ -88,6 +88,17 @@ generate-f:
 	@flutter pub run easy_localization:generate -f keys -o localization_keys.g.dart -S assets/translations/ -O lib/src/core/resources/
 
 
+set-device-admin:
+	@echo "* Назначь Device Owner *"
+	@adb shell dpm set-device-owner "dd.qrPay/.DeviceAdminReceiver"
+
+list-device-admin:
+	@echo "* Список Device Owner *"
+	@adb shell dpm list-owners
+
+
+
+
 
 
 

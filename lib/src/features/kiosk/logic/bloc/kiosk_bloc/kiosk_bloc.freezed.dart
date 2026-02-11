@@ -1258,7 +1258,7 @@ mixin _$KioskState {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -1274,7 +1274,7 @@ mixin _$KioskState {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -1289,7 +1289,7 @@ mixin _$KioskState {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -1407,7 +1407,7 @@ class _$InitialImpl implements _Initial {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -1426,7 +1426,7 @@ class _$InitialImpl implements _Initial {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -1444,7 +1444,7 @@ class _$InitialImpl implements _Initial {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -1564,7 +1564,7 @@ class _$LoadingImpl implements _Loading {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -1583,7 +1583,7 @@ class _$LoadingImpl implements _Loading {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -1601,7 +1601,7 @@ class _$LoadingImpl implements _Loading {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -1721,7 +1721,7 @@ class _$LoadingPayImpl implements _LoadingPay {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -1740,7 +1740,7 @@ class _$LoadingPayImpl implements _LoadingPay {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -1758,7 +1758,7 @@ class _$LoadingPayImpl implements _LoadingPay {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -1842,6 +1842,8 @@ abstract class _$$SuccessKioskStatusImplCopyWith<$Res> {
   factory _$$SuccessKioskStatusImplCopyWith(_$SuccessKioskStatusImpl value,
           $Res Function(_$SuccessKioskStatusImpl) then) =
       __$$SuccessKioskStatusImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({KioskStatus response});
 }
 
 /// @nodoc
@@ -1851,26 +1853,52 @@ class __$$SuccessKioskStatusImplCopyWithImpl<$Res>
   __$$SuccessKioskStatusImplCopyWithImpl(_$SuccessKioskStatusImpl _value,
       $Res Function(_$SuccessKioskStatusImpl) _then)
       : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? response = null,
+  }) {
+    return _then(_$SuccessKioskStatusImpl(
+      response: null == response
+          ? _value.response
+          : response // ignore: cast_nullable_to_non_nullable
+              as KioskStatus,
+    ));
+  }
 }
 
 /// @nodoc
 
 class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
-  const _$SuccessKioskStatusImpl();
+  const _$SuccessKioskStatusImpl({required this.response});
+
+  @override
+  final KioskStatus response;
 
   @override
   String toString() {
-    return 'KioskState.successKioskStatus()';
+    return 'KioskState.successKioskStatus(response: $response)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$SuccessKioskStatusImpl);
+        (other.runtimeType == runtimeType &&
+            other is _$SuccessKioskStatusImpl &&
+            (identical(other.response, response) ||
+                other.response == response));
   }
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode => Object.hash(runtimeType, response);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SuccessKioskStatusImplCopyWith<_$SuccessKioskStatusImpl> get copyWith =>
+      __$$SuccessKioskStatusImplCopyWithImpl<_$SuccessKioskStatusImpl>(
+          this, _$identity);
 
   @override
   @optionalTypeArgs
@@ -1878,7 +1906,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -1888,7 +1916,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     required TResult Function(TechWorkResponse response) successTechWork,
     required TResult Function(String message, int? errorCode) failed,
   }) {
-    return successKioskStatus();
+    return successKioskStatus(response);
   }
 
   @override
@@ -1897,7 +1925,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -1906,7 +1934,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     TResult? Function(TechWorkResponse response)? successTechWork,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
-    return successKioskStatus?.call();
+    return successKioskStatus?.call(response);
   }
 
   @override
@@ -1915,7 +1943,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -1926,7 +1954,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     required TResult orElse(),
   }) {
     if (successKioskStatus != null) {
-      return successKioskStatus();
+      return successKioskStatus(response);
     }
     return orElse();
   }
@@ -1991,7 +2019,13 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
 }
 
 abstract class _SuccessKioskStatus implements KioskState {
-  const factory _SuccessKioskStatus() = _$SuccessKioskStatusImpl;
+  const factory _SuccessKioskStatus({required final KioskStatus response}) =
+      _$SuccessKioskStatusImpl;
+
+  KioskStatus get response;
+  @JsonKey(ignore: true)
+  _$$SuccessKioskStatusImplCopyWith<_$SuccessKioskStatusImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -2062,7 +2096,7 @@ class _$SuccessImpl implements _Success {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -2081,7 +2115,7 @@ class _$SuccessImpl implements _Success {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -2099,7 +2133,7 @@ class _$SuccessImpl implements _Success {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -2253,7 +2287,7 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -2272,7 +2306,7 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -2290,7 +2324,7 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -2444,7 +2478,7 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -2463,7 +2497,7 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -2481,7 +2515,7 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -2634,7 +2668,7 @@ class _$SuccessPayImpl implements _SuccessPay {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -2653,7 +2687,7 @@ class _$SuccessPayImpl implements _SuccessPay {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -2671,7 +2705,7 @@ class _$SuccessPayImpl implements _SuccessPay {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -2825,7 +2859,7 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -2844,7 +2878,7 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -2862,7 +2896,7 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -3017,7 +3051,7 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -3036,7 +3070,7 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -3054,7 +3088,7 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,
@@ -3216,7 +3250,7 @@ class _$FailedImpl implements _Failed {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function() loadingPay,
-    required TResult Function() successKioskStatus,
+    required TResult Function(KioskStatus response) successKioskStatus,
     required TResult Function(KioskResponse response) success,
     required TResult Function(KioskResponse response) checkKioskSuccess,
     required TResult Function(PayModel response) successPayData,
@@ -3235,7 +3269,7 @@ class _$FailedImpl implements _Failed {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function()? loadingPay,
-    TResult? Function()? successKioskStatus,
+    TResult? Function(KioskStatus response)? successKioskStatus,
     TResult? Function(KioskResponse response)? success,
     TResult? Function(KioskResponse response)? checkKioskSuccess,
     TResult? Function(PayModel response)? successPayData,
@@ -3253,7 +3287,7 @@ class _$FailedImpl implements _Failed {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function()? loadingPay,
-    TResult Function()? successKioskStatus,
+    TResult Function(KioskStatus response)? successKioskStatus,
     TResult Function(KioskResponse response)? success,
     TResult Function(KioskResponse response)? checkKioskSuccess,
     TResult Function(PayModel response)? successPayData,

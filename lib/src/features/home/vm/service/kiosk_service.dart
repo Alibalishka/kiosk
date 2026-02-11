@@ -86,10 +86,35 @@ class KioskService {
     // ✅ важно: заранее получить UUID (чтобы таймеры не гоняли async)
     await _ensureDeviceId();
 
+    // ✅ ждём реальный интернет (DNS), а не просто наличие интерфейса wifi
+    await _waitForInternet();
+
     sendStatusKioskPeriodically();
     fetchScreenSavers();
     _startIdleTimer();
     sendTechWork();
+  }
+
+  /// Ждёт реального интернет-соединения (DNS lookup) перед стартом таймеров.
+  /// После перезагрузки устройства WiFi-интерфейс поднимается быстро,
+  /// а DNS-резолвинг может быть недоступен ещё несколько секунд.
+  Future<void> _waitForInternet({
+    Duration timeout = const Duration(seconds: 60),
+    Duration checkInterval = const Duration(seconds: 2),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      try {
+        final result = await InternetAddress.lookup('google.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          return; // DNS работает — интернет есть
+        }
+      } catch (_) {
+        // DNS ещё не работает — ждём
+      }
+      await Future<void>.delayed(checkInterval);
+    }
+    // timeout — стартуем таймеры всё равно, retry interceptor подхватит
   }
 
   /// вызывать из dispose VM
@@ -117,7 +142,7 @@ class KioskService {
   void sendStatusKioskPeriodically() {
     _statusTimer?.cancel();
     sendStatusKiosk();
-    _statusTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+    _statusTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       sendStatusKiosk();
     });
   }

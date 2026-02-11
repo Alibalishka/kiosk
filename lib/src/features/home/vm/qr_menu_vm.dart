@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
+import 'package:qr_pay_app/src/core/utils/version_compare.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/basket_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/kiosk_service.dart';
@@ -12,6 +14,7 @@ import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/scroll_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/video_service.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_response.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/ota_update.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/responses/payment_method.dart';
 import 'package:qr_pay_app/src/features/profile/logic/repository/auth_repository.dart';
@@ -78,6 +81,9 @@ class QrMenuVm extends ViewModel {
   PaymentMethod paymentMethodData = PaymentMethod();
   TextEditingController nameController = TextEditingController();
 
+  bool otaChecking = false;
+  String? lastServerVersionTried;
+
   @override
   void init() {
     super.init();
@@ -115,6 +121,33 @@ class QrMenuVm extends ViewModel {
 
     kioskService.dispose();
     super.dispose();
+  }
+
+  Future<void> checkAndUpdateIfNeeded(String? serverVersion) async {
+    if (serverVersion == null || serverVersion.trim().isEmpty) return;
+    if (otaChecking) return;
+
+    // анти-спам: если уже пытались обновиться на эту версию — не повторяем
+    if (lastServerVersionTried == serverVersion) return;
+
+    otaChecking = true;
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final current = info.version; // например "2.7.5"
+
+      final cmp = compareSemver(current, serverVersion);
+      // cmp < 0 => текущая меньше => надо обновиться
+      if (cmp < 0) {
+        lastServerVersionTried = serverVersion;
+
+        // можно показать лёгкий toast/snack, но ты просил “тихо” — поэтому без UI
+        await downloadAndInstallOta();
+      }
+    } catch (_) {
+      // ничего не делаем, чтобы не мешать киоску
+    } finally {
+      otaChecking = false;
+    }
   }
 
   bool get adVisible =>

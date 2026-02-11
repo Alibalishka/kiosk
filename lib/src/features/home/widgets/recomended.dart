@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
@@ -8,6 +10,7 @@ import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_mode
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
 import 'package:sizer/sizer.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class RecomendedWidget extends StatelessWidget {
   const RecomendedWidget({
@@ -21,6 +24,7 @@ class RecomendedWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    int count = 0;
     return Padding(
       padding: const EdgeInsets.only(bottom: 78),
       child: Padding(
@@ -28,16 +32,29 @@ class RecomendedWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primitiveNeutralwarm0.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Рекомендуем',
-                style: AppTextStyles.bodyS.copyWith(
-                  fontSize: viewModel.isTablet ? 14.sp : null,
+            GestureDetector(
+              onTap: () {
+                count++;
+                count == 10
+                    ? Navigator.of(context)
+                        .push(MaterialPageRoute(
+                          builder: (context) =>
+                              TalkerScreen(talker: sl<Talker>()),
+                        ))
+                        .then((_) => count = 0)
+                    : null;
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primitiveNeutralwarm0.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Рекомендуем',
+                  style: AppTextStyles.bodyS.copyWith(
+                    fontSize: viewModel.isTablet ? 14.sp : null,
+                  ),
                 ),
               ),
             ),

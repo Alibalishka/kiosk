@@ -5,7 +5,8 @@ class KioskState with _$KioskState {
   const factory KioskState.initial() = _Initial;
   const factory KioskState.loading() = _Loading;
   const factory KioskState.loadingPay() = _LoadingPay;
-  const factory KioskState.successKioskStatus() = _SuccessKioskStatus;
+  const factory KioskState.successKioskStatus({required KioskStatus response}) =
+      _SuccessKioskStatus;
   const factory KioskState.success({required KioskResponse response}) =
       _Success;
   const factory KioskState.checkKioskSuccess(

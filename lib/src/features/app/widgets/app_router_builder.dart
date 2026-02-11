@@ -74,9 +74,10 @@ class _AppRouterBuilderState extends State<AppRouterBuilder> {
         router.defaultRouteParser(),
         router.delegate(
           initialRoutes: <PageRouteInfo>[
-            sl<KTokenStorage>().hasToken()
-                ? const KioskProviderRoute()
-                : const AppIndexScreenRoute()
+            const KioskProviderRoute()
+            // sl<KTokenStorage>().hasToken()
+            //     ? const KioskProviderRoute()
+            //     : const AppIndexScreenRoute()
           ],
           placeholder: (BuildContext context) =>
               const Scaffold(body: Loading()),

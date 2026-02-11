@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -47,10 +48,16 @@ class HomeAppBar extends StatelessWidget {
                     //   AppWebpImages.logo,
                     //   height: 20,
                     // ),
-                    Text(
-                      'Qr Pay',
-                      style: AppTextStyles.headingH2.copyWith(
-                        fontWeight: FontWeight.w900,
+                    GestureDetector(
+                      onTap: () async {
+                        const _dpc = MethodChannel('dpc');
+                        await _dpc.invokeMethod('clearDeviceOwner');
+                      },
+                      child: Text(
+                        'Qr Pay',
+                        style: AppTextStyles.headingH2.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
                     // выбор города

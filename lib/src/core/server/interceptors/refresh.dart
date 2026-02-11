@@ -26,8 +26,9 @@ class KioskAuthInterceptor extends Interceptor {
         baseUrl: _dio.options.baseUrl,
         headers: {
           'accept': 'application/json',
-          'authorization':
-              'Bearer ${sl<KTokenStorage>().getToken() ?? ''}', // 👈 добавили токен
+          if (sl<HostStorage>().hasHost())
+            'Host': '${sl<HostStorage>().getHost()}.dev.qrpay.kz',
+          // authorization ставится динамически в onRequest _refreshDio не используется напрямую
         },
         validateStatus: (_) => true,
       ),
@@ -35,6 +36,19 @@ class KioskAuthInterceptor extends Interceptor {
   }
 
   static const _retryKey = '__retry__';
+
+  /// Динамически подставляем актуальный токен из KTokenStorage
+  /// на каждый исходящий запрос (вместо статического значения в BaseOptions).
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final token = sl<KTokenStorage>().getToken();
+    if (token != null && token.isNotEmpty) {
+      options.headers['authorization'] = 'Bearer $token';
+    } else {
+      options.headers.remove('authorization');
+    }
+    handler.next(options);
+  }
 
   @override
   Future onError(DioException err, ErrorInterceptorHandler handler) async {
@@ -83,6 +97,12 @@ DATA: ${req.data}
 
   Future<String?> _refreshToken() async {
     try {
+      // Подставляем актуальный токен перед refresh-запросом
+      final currentToken = sl<KTokenStorage>().getToken();
+      if (currentToken != null && currentToken.isNotEmpty) {
+        _refreshDio.options.headers['authorization'] = 'Bearer $currentToken';
+      }
+
       log('''
 ------ 🔁 REFRESH TOKEN REQUEST ------
 POST /auth/refresh

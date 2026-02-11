@@ -6,6 +6,7 @@ import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_request
 import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_status_request.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kaspi_status_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_response.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_status.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/screen_savers_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/tech_work_response.dart';
 import 'package:qr_pay_app/src/features/qr/logic/models/responses/pay_model.dart';
@@ -13,7 +14,7 @@ import 'package:qr_pay_app/src/features/qr/logic/models/responses/pay_model.dart
 abstract class KioskRepository {
   Future<Result<KioskResponse>> register({required KioskRequest body});
   Future<Result<KioskResponse>> checkKiosk({required String deviceId});
-  Future<Result<void>> sendStatusKiosk({
+  Future<Result<KioskStatus>> sendStatusKiosk({
     required KioskStatusRequest body,
     required String deviceId,
   });
@@ -46,12 +47,13 @@ class KioskRepositoryImpl implements KioskRepository {
   }
 
   @override
-  Future<Result<void>> sendStatusKiosk({
+  Future<Result<KioskStatus>> sendStatusKiosk({
     required KioskStatusRequest body,
     required String deviceId,
   }) async {
     return await client.execute(
       route: KioskApi.sendStatusKiosk(body: body, deviceId: deviceId),
+      responseType: KioskStatus(),
     );
   }
 
