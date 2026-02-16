@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
@@ -51,7 +53,7 @@ class QrMenuPage extends StatefulWidget {
 }
 
 class QrMenuPageState extends State<QrMenuPage>
-    with ViewModelMixin<QrMenuPage, QrMenuVm> {
+    with ViewModelMixin<QrMenuPage, QrMenuVm>, SingleTickerProviderStateMixin {
   @override
   QrMenuVm get viewModel => widget.viewModel;
 
@@ -342,6 +344,7 @@ class QrMenuPageState extends State<QrMenuPage>
                         sl<HostStorage>().deleteHost();
                         context.router.replaceAll([const KioskProviderRoute()]);
                       } else {
+                        log('errorCode: $errorCode');
                         if (context.router.currentPath != 'kiosk-tech-work') {
                           context.router.push(
                             KioskTechWorkPageRoute(code: errorCode.toString()),

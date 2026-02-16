@@ -26,7 +26,10 @@ abstract class HomeRepository {
     required ReviewRequest body,
     required int id,
   });
-  Future<Result<QrMenuModel>> fetchQrMenu({required int id});
+  Future<Result<QrMenuModel>> fetchQrMenu({
+    required int id,
+    required String type,
+  });
 }
 
 class HomeRepositoryImpl implements HomeRepository {
@@ -93,9 +96,12 @@ class HomeRepositoryImpl implements HomeRepository {
       client.execute(route: HomeApi.sendReview(body: body, id: id));
 
   @override
-  Future<Result<QrMenuModel>> fetchQrMenu({required int id}) async =>
+  Future<Result<QrMenuModel>> fetchQrMenu({
+    required int id,
+    required String type,
+  }) async =>
       client.execute(
-        route: HomeApi.fetchQrMenu(id: id),
+        route: HomeApi.fetchQrMenu(id: id, type: type),
         responseType: QrMenuModel(),
       );
 }

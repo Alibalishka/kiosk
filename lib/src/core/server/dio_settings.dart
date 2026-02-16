@@ -192,7 +192,8 @@ class DioSettings {
       BaseOptions(
         // baseUrl: 'https://${sl<HostStorage>().getHost()}.finsider.asia/api',
         // baseUrl: 'https://aidos.finsider.asia/api',
-        baseUrl: 'https://${sl<HostStorage>().getHost()}.dev.qrpay.kz/api',
+        // baseUrl: 'https://${sl<HostStorage>().getHost()}.dev.qrpay.kz/api',
+        baseUrl: 'https://${sl<HostStorage>().getHost()}.admin.qrpay.kz/api',
         headers: <String, String>{
           'accept': 'application/json',
           "content-type": "application/json",
@@ -208,15 +209,15 @@ class DioSettings {
     dioKiosk.interceptors.addAll([
       RetryOnConnectionErrorInterceptor(dio: dioKiosk),
       KioskAuthInterceptor(dioKiosk),
-      TalkerDioLogger(
-        talker: sl<Talker>(),
-        settings: const TalkerDioLoggerSettings(
-          printRequestHeaders: true,
-          printResponseHeaders: true,
-          printRequestData: true,
-          printResponseData: true,
-        ),
-      ),
+      // TalkerDioLogger(
+      //   talker: sl<Talker>(),
+      //   settings: const TalkerDioLoggerSettings(
+      //     printRequestHeaders: true,
+      //     printResponseHeaders: true,
+      //     printRequestData: true,
+      //     printResponseData: true,
+      //   ),
+      // ),
     ]);
   }
 }

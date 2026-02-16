@@ -42,8 +42,10 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
       final result = await _kioskRepository.register(body: event.body);
       result.when(
         success: (reponse) => emit(KioskState.success(response: reponse)),
-        failure: (error) => emit(
-            KioskState.failed(message: error.msg ?? 'Ошибка загурзки данных')),
+        failure: (error) => emit(KioskState.failed(
+          message: error.msg ?? 'Ошибка загурзки данных',
+          errorCode: error.errorCode,
+        )),
       );
     } on Object {
       emit(const KioskState.failed());
@@ -61,8 +63,10 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
       result.when(
         success: (reponse) =>
             emit(KioskState.checkKioskSuccess(response: reponse)),
-        failure: (error) => emit(
-            KioskState.failed(message: error.msg ?? 'Ошибка загурзки данных')),
+        failure: (error) => emit(KioskState.failed(
+          message: error.msg ?? 'Ошибка загурзки данных',
+          errorCode: error.errorCode,
+        )),
       );
     } on Object {
       emit(const KioskState.failed());
@@ -136,8 +140,10 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
       result.when(
         success: (reponse) =>
             emit(KioskState.successScreenSavers(response: reponse)),
-        failure: (error) => emit(
-            KioskState.failed(message: error.msg ?? 'Ошибка загурзки данных')),
+        failure: (error) => emit(KioskState.failed(
+          message: error.msg ?? 'Ошибка загурзки данных',
+          errorCode: error.errorCode,
+        )),
       );
     } on Object {
       emit(const KioskState.failed());
@@ -153,8 +159,10 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
       result.when(
         success: (reponse) =>
             emit(KioskState.successTechWork(response: reponse)),
-        failure: (error) => emit(
-            KioskState.failed(message: error.msg ?? 'Ошибка загурзки данных')),
+        failure: (error) => emit(KioskState.failed(
+          message: error.msg ?? 'Ошибка загурзки данных',
+          errorCode: error.errorCode,
+        )),
       );
     } on Object {
       emit(const KioskState.failed());

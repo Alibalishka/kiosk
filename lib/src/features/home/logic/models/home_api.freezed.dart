@@ -26,7 +26,7 @@ mixin _$HomeApi {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -39,7 +39,7 @@ mixin _$HomeApi {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -52,7 +52,7 @@ mixin _$HomeApi {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -162,7 +162,7 @@ class _$FetchNewsImpl extends _FetchNews {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
     return fetchNews();
   }
@@ -178,7 +178,7 @@ class _$FetchNewsImpl extends _FetchNews {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
     return fetchNews?.call();
   }
@@ -194,7 +194,7 @@ class _$FetchNewsImpl extends _FetchNews {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (fetchNews != null) {
@@ -308,7 +308,7 @@ class _$FetchItemsImpl extends _FetchItems {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
     return fetchItems();
   }
@@ -324,7 +324,7 @@ class _$FetchItemsImpl extends _FetchItems {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
     return fetchItems?.call();
   }
@@ -340,7 +340,7 @@ class _$FetchItemsImpl extends _FetchItems {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (fetchItems != null) {
@@ -454,7 +454,7 @@ class _$FetchCityImpl extends _FetchCity {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
     return fetchCity();
   }
@@ -470,7 +470,7 @@ class _$FetchCityImpl extends _FetchCity {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
     return fetchCity?.call();
   }
@@ -486,7 +486,7 @@ class _$FetchCityImpl extends _FetchCity {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (fetchCity != null) {
@@ -629,7 +629,7 @@ class _$FetchSubscriptionItemsImpl extends _FetchSubscriptionItems {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
     return fetchSubscriptionItems(id);
   }
@@ -645,7 +645,7 @@ class _$FetchSubscriptionItemsImpl extends _FetchSubscriptionItems {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
     return fetchSubscriptionItems?.call(id);
   }
@@ -661,7 +661,7 @@ class _$FetchSubscriptionItemsImpl extends _FetchSubscriptionItems {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (fetchSubscriptionItems != null) {
@@ -819,7 +819,7 @@ class _$FetchFreeItemsImpl extends _FetchFreeItems {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
     return fetchFreeItems(idSubscription, idItem);
   }
@@ -835,7 +835,7 @@ class _$FetchFreeItemsImpl extends _FetchFreeItems {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
     return fetchFreeItems?.call(idSubscription, idItem);
   }
@@ -851,7 +851,7 @@ class _$FetchFreeItemsImpl extends _FetchFreeItems {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (fetchFreeItems != null) {
@@ -1000,7 +1000,7 @@ class _$OrderSubscriptionImpl extends _OrderSubscription {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
     return orderSubscription(body);
   }
@@ -1016,7 +1016,7 @@ class _$OrderSubscriptionImpl extends _OrderSubscription {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
     return orderSubscription?.call(body);
   }
@@ -1032,7 +1032,7 @@ class _$OrderSubscriptionImpl extends _OrderSubscription {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (orderSubscription != null) {
@@ -1152,7 +1152,7 @@ class _$FetchRatingsImpl extends _FetchRatings {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
     return fetchRatings();
   }
@@ -1168,7 +1168,7 @@ class _$FetchRatingsImpl extends _FetchRatings {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
     return fetchRatings?.call();
   }
@@ -1184,7 +1184,7 @@ class _$FetchRatingsImpl extends _FetchRatings {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (fetchRatings != null) {
@@ -1332,7 +1332,7 @@ class _$SendReviewImpl extends _SendReview {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
     return sendReview(body, id);
   }
@@ -1348,7 +1348,7 @@ class _$SendReviewImpl extends _SendReview {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
     return sendReview?.call(body, id);
   }
@@ -1364,7 +1364,7 @@ class _$SendReviewImpl extends _SendReview {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (sendReview != null) {
@@ -1446,7 +1446,7 @@ abstract class _$$FetchQrMenuImplCopyWith<$Res> {
           _$FetchQrMenuImpl value, $Res Function(_$FetchQrMenuImpl) then) =
       __$$FetchQrMenuImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({int id});
+  $Res call({int id, String type});
 }
 
 /// @nodoc
@@ -1461,12 +1461,17 @@ class __$$FetchQrMenuImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? type = null,
   }) {
     return _then(_$FetchQrMenuImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -1474,14 +1479,16 @@ class __$$FetchQrMenuImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$FetchQrMenuImpl extends _FetchQrMenu {
-  const _$FetchQrMenuImpl({required this.id}) : super._();
+  const _$FetchQrMenuImpl({required this.id, required this.type}) : super._();
 
   @override
   final int id;
+  @override
+  final String type;
 
   @override
   String toString() {
-    return 'HomeApi.fetchQrMenu(id: $id)';
+    return 'HomeApi.fetchQrMenu(id: $id, type: $type)';
   }
 
   @override
@@ -1489,11 +1496,12 @@ class _$FetchQrMenuImpl extends _FetchQrMenu {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$FetchQrMenuImpl &&
-            (identical(other.id, id) || other.id == id));
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.type, type) || other.type == type));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id);
+  int get hashCode => Object.hash(runtimeType, id, type);
 
   @JsonKey(ignore: true)
   @override
@@ -1512,9 +1520,9 @@ class _$FetchQrMenuImpl extends _FetchQrMenu {
     required TResult Function(BonusRequest body) orderSubscription,
     required TResult Function() fetchRatings,
     required TResult Function(ReviewRequest body, int id) sendReview,
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
-    return fetchQrMenu(id);
+    return fetchQrMenu(id, type);
   }
 
   @override
@@ -1528,9 +1536,9 @@ class _$FetchQrMenuImpl extends _FetchQrMenu {
     TResult? Function(BonusRequest body)? orderSubscription,
     TResult? Function()? fetchRatings,
     TResult? Function(ReviewRequest body, int id)? sendReview,
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
-    return fetchQrMenu?.call(id);
+    return fetchQrMenu?.call(id, type);
   }
 
   @override
@@ -1544,11 +1552,11 @@ class _$FetchQrMenuImpl extends _FetchQrMenu {
     TResult Function(BonusRequest body)? orderSubscription,
     TResult Function()? fetchRatings,
     TResult Function(ReviewRequest body, int id)? sendReview,
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (fetchQrMenu != null) {
-      return fetchQrMenu(id);
+      return fetchQrMenu(id, type);
     }
     return orElse();
   }
@@ -1608,10 +1616,12 @@ class _$FetchQrMenuImpl extends _FetchQrMenu {
 }
 
 abstract class _FetchQrMenu extends HomeApi {
-  const factory _FetchQrMenu({required final int id}) = _$FetchQrMenuImpl;
+  const factory _FetchQrMenu(
+      {required final int id, required final String type}) = _$FetchQrMenuImpl;
   const _FetchQrMenu._() : super._();
 
   int get id;
+  String get type;
   @JsonKey(ignore: true)
   _$$FetchQrMenuImplCopyWith<_$FetchQrMenuImpl> get copyWith =>
       throw _privateConstructorUsedError;

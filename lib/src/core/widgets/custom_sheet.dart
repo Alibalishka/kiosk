@@ -27,59 +27,98 @@ import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 //     }
 //   });
 // }
-Future<void> showCustomSheet(
+// =======================================
+// Future<void> showCustomSheet(
+//   BuildContext context, {
+//   required Widget child,
+//   Color? backgroundColor,
+//   VoidCallback? onClose,
+//   bool fullscreen = true,
+// }) {
+//   return showModalBottomSheet(
+//     context: context,
+//     isScrollControlled: true,
+//     isDismissible: true,
+//     enableDrag: true,
+//     backgroundColor: Colors.transparent,
+//     elevation: 0,
+//     constraints: const BoxConstraints(maxWidth: double.infinity),
+//     builder: (sheetContext) {
+//       final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
+//       final fullHeight = MediaQuery.sizeOf(sheetContext).height;
+//       return Padding(
+//         padding: EdgeInsets.only(bottom: bottomInset),
+//         child: DecoratedBox(
+//           decoration: BoxDecoration(
+//             color: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
+//             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+//           ),
+//           child: ClipRRect(
+//             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+//             child: SizedBox(height: fullHeight, child: child),
+//           ),
+//         ),
+//       );
+//     },
+//   ).whenComplete(() {
+//     onClose?.call();
+//   });
+// }
+Future<T?> showCustomSheet<T>(
   BuildContext context, {
   required Widget child,
   Color? backgroundColor,
   VoidCallback? onClose,
   bool fullscreen = true,
+
+  // ✅ для быстрой анимации
+  TickerProvider? vsync,
+  Duration openDuration = const Duration(milliseconds: 140),
+  Duration closeDuration = const Duration(milliseconds: 120),
 }) {
-  return showModalBottomSheet(
+  final bg = backgroundColor ?? Theme.of(context).scaffoldBackgroundColor;
+
+  final AnimationController? controller = vsync == null
+      ? null
+      : AnimationController(
+          vsync: vsync,
+          duration: openDuration,
+          reverseDuration: closeDuration,
+        );
+
+  return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
-    isDismissible: true,
-    enableDrag: true,
-
-    // ❗ УБРАЛИ useRootNavigator
-    // useRootNavigator: true,
-
-    backgroundColor: Colors.transparent,
+    useSafeArea: false,
+    backgroundColor: bg,
     elevation: 0,
-
-    constraints: const BoxConstraints(
-      maxWidth: double.infinity,
+    clipBehavior: Clip.hardEdge,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
+    constraints: const BoxConstraints(maxWidth: double.infinity),
+    transitionAnimationController: controller, // ✅ скорость
+    builder: (ctx) {
+      final bottom = MediaQuery.of(ctx).viewInsets.bottom;
 
-    builder: (sheetContext) {
-      final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
-      final height = MediaQuery.of(sheetContext).size.height;
+      return child;
 
-      return AnimatedPadding(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        padding: EdgeInsets.only(bottom: bottomInset),
-        child: SizedBox(
-          height: fullscreen ? height : null,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color:
-                  backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: fullscreen
-                  ? BorderRadius.zero
-                  : const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: SafeArea(
-              top: fullscreen,
-              child: child,
-            ),
-          ),
-        ),
-      );
+      // return AnimatedPadding(
+      //   duration: const Duration(milliseconds: 120),
+      //   curve: Curves.easeOut,
+      //   padding: EdgeInsets.only(bottom: bottom),
+      //   child: fullscreen
+      //       ? SizedBox.expand(child: child)
+      //       : FractionallySizedBox(heightFactor: 0.92, child: child),
+      // );
     },
   ).whenComplete(() {
+    controller?.dispose(); // ✅ не забываем
     onClose?.call();
   });
 }
+
+// =======================================
 
 // void showCupertinoSheet(
 //   BuildContext context, {

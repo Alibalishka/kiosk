@@ -17,19 +17,20 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$QrMenuEvent {
   int get id => throw _privateConstructorUsedError;
+  String get type => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -61,7 +62,7 @@ abstract class $QrMenuEventCopyWith<$Res> {
           QrMenuEvent value, $Res Function(QrMenuEvent) then) =
       _$QrMenuEventCopyWithImpl<$Res, QrMenuEvent>;
   @useResult
-  $Res call({int id});
+  $Res call({int id, String type});
 }
 
 /// @nodoc
@@ -78,12 +79,17 @@ class _$QrMenuEventCopyWithImpl<$Res, $Val extends QrMenuEvent>
   @override
   $Res call({
     Object? id = null,
+    Object? type = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -96,7 +102,7 @@ abstract class _$$FetchQrMenuImplCopyWith<$Res>
       __$$FetchQrMenuImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id});
+  $Res call({int id, String type});
 }
 
 /// @nodoc
@@ -111,12 +117,17 @@ class __$$FetchQrMenuImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? type = null,
   }) {
     return _then(_$FetchQrMenuImpl(
       null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
+      null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -124,14 +135,16 @@ class __$$FetchQrMenuImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$FetchQrMenuImpl implements _FetchQrMenu {
-  const _$FetchQrMenuImpl(this.id);
+  const _$FetchQrMenuImpl(this.id, this.type);
 
   @override
   final int id;
+  @override
+  final String type;
 
   @override
   String toString() {
-    return 'QrMenuEvent.fetchQrMenu(id: $id)';
+    return 'QrMenuEvent.fetchQrMenu(id: $id, type: $type)';
   }
 
   @override
@@ -139,11 +152,12 @@ class _$FetchQrMenuImpl implements _FetchQrMenu {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$FetchQrMenuImpl &&
-            (identical(other.id, id) || other.id == id));
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.type, type) || other.type == type));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id);
+  int get hashCode => Object.hash(runtimeType, id, type);
 
   @JsonKey(ignore: true)
   @override
@@ -154,27 +168,27 @@ class _$FetchQrMenuImpl implements _FetchQrMenu {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(int id) fetchQrMenu,
+    required TResult Function(int id, String type) fetchQrMenu,
   }) {
-    return fetchQrMenu(id);
+    return fetchQrMenu(id, type);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(int id)? fetchQrMenu,
+    TResult? Function(int id, String type)? fetchQrMenu,
   }) {
-    return fetchQrMenu?.call(id);
+    return fetchQrMenu?.call(id, type);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(int id)? fetchQrMenu,
+    TResult Function(int id, String type)? fetchQrMenu,
     required TResult orElse(),
   }) {
     if (fetchQrMenu != null) {
-      return fetchQrMenu(id);
+      return fetchQrMenu(id, type);
     }
     return orElse();
   }
@@ -209,10 +223,13 @@ class _$FetchQrMenuImpl implements _FetchQrMenu {
 }
 
 abstract class _FetchQrMenu implements QrMenuEvent {
-  const factory _FetchQrMenu(final int id) = _$FetchQrMenuImpl;
+  const factory _FetchQrMenu(final int id, final String type) =
+      _$FetchQrMenuImpl;
 
   @override
   int get id;
+  @override
+  String get type;
   @override
   @JsonKey(ignore: true)
   _$$FetchQrMenuImplCopyWith<_$FetchQrMenuImpl> get copyWith =>

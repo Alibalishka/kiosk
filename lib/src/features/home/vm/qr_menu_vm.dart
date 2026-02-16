@@ -20,6 +20,7 @@ import 'package:qr_pay_app/src/features/profile/logic/model/responses/payment_me
 import 'package:qr_pay_app/src/features/profile/logic/repository/auth_repository.dart';
 import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:qr_pay_app/src/core/base/view_model.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
@@ -32,6 +33,7 @@ import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dar
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/logic/repository/home_repository.dart';
 import 'package:qr_pay_app/src/features/home/vm/detail_vm.dart';
+import 'package:video_player/video_player.dart';
 import 'package:vibration/vibration.dart';
 import 'package:vibration/vibration_presets.dart';
 
@@ -77,6 +79,10 @@ class QrMenuVm extends ViewModel {
   bool isKioskMode = false;
   bool isTechWork = false;
   bool _adWasVisible = false;
+
+  /// Кэш предзагруженных видео для ProductPage (по item.id). Таймеры очистки через 2 мин.
+  final Map<int, VideoPlayerController> _videoControllerCache = {};
+  final Map<int, Timer> _videoCacheTimers = {};
 
   PaymentMethod paymentMethodData = PaymentMethod();
   TextEditingController nameController = TextEditingController();
@@ -170,11 +176,11 @@ class QrMenuVm extends ViewModel {
   }
 
   void fetchMenu() {
-    bloc.add(QrMenuEvent.fetchQrMenu(menuId!));
+    bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
     // _menuTimer?.cancel();
     if (isKioskMode) {
       _menuTimer = Timer.periodic(const Duration(hours: 10), (_) {
-        bloc.add(QrMenuEvent.fetchQrMenu(menuId!));
+        bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
       });
     }
   }
@@ -203,8 +209,101 @@ class QrMenuVm extends ViewModel {
     if (context.mounted) {
       scrollService.syncWithMenu(context, menuData, isGridView, isTablet);
     }
+    // Начинаем заранее прогревать картинки блюд в кэше,
+    // чтобы ProductPage открывался без задержек по сети.
+    // ignore: unawaited_futures
+    _precacheMenuImages(menuData);
+
     if (detailVm != null) detailVm?.syncMenu(menuData);
     notifyListeners();
+  }
+
+  /// Предзагружает основные изображения блюд в кэш (DefaultCacheManager),
+  /// чтобы при открытии ProductPage картинка бралась локально.
+  Future<void> _precacheMenuImages(QrMenuModel menu) async {
+    final cache = DefaultCacheManager();
+    final urls = <String>{};
+
+    void collectFromItems(List<Items>? items) {
+      if (items == null) return;
+      for (final item in items) {
+        final images = item.image;
+        if (images == null || images.isEmpty) continue;
+
+        final img = images.first;
+        final url = img.file ?? img.path ?? img.image;
+        if (url != null && url.isNotEmpty) {
+          urls.add(url);
+        }
+        final previewUrl = img.filePreview;
+        if (previewUrl != null && previewUrl.isNotEmpty) {
+          urls.add(previewUrl);
+        }
+      }
+    }
+
+    // Топовые подборки
+    collectFromItems(menu.featured);
+    collectFromItems(menu.recommend);
+
+    // Категории
+    for (final cat in menu.data ?? const <QrMenuDatum>[]) {
+      collectFromItems(cat.items);
+      collectFromItems(cat.featured);
+      collectFromItems(cat.recommend);
+    }
+
+    for (final url in urls) {
+      try {
+        await cache.getSingleFile(url);
+      } catch (_) {
+        // тихо игнорируем ошибки предзагрузки
+      }
+    }
+  }
+
+  /// Предзагрузка видео для item (по тапу). Контроллер кладётся в кэш по item.id.
+  void preloadVideoForItem(Items item) {
+    final id = item.id;
+    if (id == null) return;
+    if (_videoControllerCache.containsKey(id)) return;
+    final images = item.image;
+    if (images == null || images.isEmpty) return;
+    final file = images.first.file;
+    if (file == null || file.isEmpty) return;
+    if (!file.toLowerCase().contains('.mp4')) return;
+    try {
+      final ctrl = VideoPlayerController.networkUrl(Uri.parse(file));
+      ctrl.initialize().then((_) async {
+        if (_videoControllerCache.containsKey(id)) {
+          await ctrl.dispose();
+          return;
+        }
+        await ctrl.setVolume(0.0);
+        await ctrl.setLooping(true);
+        _videoControllerCache[id] = ctrl;
+        notifyListeners();
+      }).catchError((_) {
+        ctrl.dispose();
+      });
+    } catch (_) {}
+  }
+
+  /// Возвращает предзагруженный контроллер для item (если есть). Не удаляет из кэша.
+  VideoPlayerController? getCachedVideoController(int? itemId) {
+    if (itemId == null) return null;
+    return _videoControllerCache[itemId];
+  }
+
+  /// Вызвать при закрытии ProductPage: запускает таймер 2 мин, после чего контроллер удаляется и диспозится.
+  void returnVideoController(int? itemId) {
+    if (itemId == null) return;
+    _videoCacheTimers[itemId]?.cancel();
+    _videoCacheTimers[itemId] = Timer(const Duration(minutes: 2), () {
+      final ctrl = _videoControllerCache.remove(itemId);
+      _videoCacheTimers.remove(itemId);
+      ctrl?.dispose();
+    });
   }
 
   void savePaymentMethod(PaymentMethod paymentMethod) {

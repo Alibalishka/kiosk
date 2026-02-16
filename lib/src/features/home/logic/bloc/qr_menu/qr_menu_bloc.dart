@@ -23,7 +23,10 @@ class QrMenuBloc extends Bloc<QrMenuEvent, QrMenuState> {
   ) async {
     emit(const QrMenuState.loading());
     try {
-      final result = await _homeRepository.fetchQrMenu(id: event.id);
+      final result = await _homeRepository.fetchQrMenu(
+        id: event.id,
+        type: event.type,
+      );
       result.when(
         success: (response) => emit(QrMenuState.success(qrMenuModel: response)),
         failure: (error) => emit(

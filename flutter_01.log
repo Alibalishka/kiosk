@@ -1,0 +1,64 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter run --profile
+
+## exception
+
+String: failed to connect to http://127.0.0.1:52552/96-QCKFqJIA=/ DartDevelopmentServiceException: WebSocketChannelException: HttpException: Connection closed before full header was received, uri = http://127.0.0.1:52552/96-QCKFqJIA=/ws
+
+```
+```
+
+## flutter doctor
+
+```
+[32m[✓][39m Flutter (Channel stable, 3.38.3, on macOS 15.6 24G84 darwin-arm64, locale ru-KZ) [198ms]
+    [32m•[39m Flutter version 3.38.3 on channel stable at /Users/alishka/Development/flutter
+    [32m•[39m Upstream repository https://github.com/flutter/flutter.git
+    [32m•[39m Framework revision 19074d12f7 (3 months ago), 2025-11-20 17:53:13 -0500
+    [32m•[39m Engine revision 13e658725d
+    [32m•[39m Dart version 3.10.1
+    [32m•[39m DevTools version 2.51.1
+    [32m•[39m Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, no-enable-windows-desktop, enable-android, enable-ios,
+      cli-animations, enable-native-assets, omit-legacy-version-file, enable-lldb-debugging
+
+[32m[✓][39m Android toolchain - develop for Android devices (Android SDK version 36.0.0) [1 978ms]
+    [32m•[39m Android SDK at /Users/alishka/Library/Android/sdk
+    [32m•[39m Emulator version 35.5.10.0 (build_id 13402964) (CL:N/A)
+    [32m•[39m Platform android-36, build-tools 36.0.0
+    [32m•[39m Java binary at: /Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/java
+      This is the JDK bundled with the latest Android Studio installation on this machine.
+      To manually set the JDK path, use: `flutter config --jdk-dir="path/to/jdk"`.
+    [32m•[39m Java version OpenJDK Runtime Environment (build 21.0.6+-13368085-b895.109)
+    [32m•[39m All Android licenses accepted.
+
+[32m[✓][39m Xcode - develop for iOS and macOS (Xcode 16.3) [868ms]
+    [32m•[39m Xcode at /Applications/Xcode.app/Contents/Developer
+    [32m•[39m Build 16E140
+    [32m•[39m CocoaPods version 1.16.2
+
+[32m[✓][39m Chrome - develop for the web [1ms]
+    [32m•[39m Chrome at /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+
+[32m[✓][39m Connected device (5 available) [5,8s]
+    [32m•[39m T65 EEA (mobile)           • 8776BACGAB00305500                   • android-arm64  • Android 16 (API 36)
+    [32m•[39m Spider (wireless) (mobile) • 00008120-001104292208201E            • ios            • iOS 18.5 22F76
+    [32m•[39m iPhone 16 Pro (mobile)     • 89F121EB-5F4B-4D25-B3F4-AAA800928FB6 • ios            • com.apple.CoreSimulator.SimRuntime.iOS-18-2
+      (simulator)
+    [32m•[39m macOS (desktop)            • macos                                • darwin-arm64   • macOS 15.6 24G84 darwin-arm64
+    [32m•[39m Chrome (web)               • chrome                               • web-javascript • Google Chrome 144.0.7559.133
+    [33m![39m Error: Browsing on the local area network for iPhone (Dana). Ensure the device is unlocked and attached with a cable or associated with the
+      same local area network as this Mac.
+      The device must be opted into Developer Mode to connect wirelessly. (code -27)
+    [33m![39m Error: Browsing on the local area network for iPhone madi. Ensure the device is unlocked and attached with a cable or associated with the
+      same local area network as this Mac.
+      The device must be opted into Developer Mode to connect wirelessly. (code -27)
+
+[32m[✓][39m Network resources [803ms]
+    [32m•[39m All expected network resources are available.
+
+[32m•[39m No issues found!
+```

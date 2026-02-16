@@ -38,7 +38,10 @@ abstract class HomeApi extends BaseClientGenerator with _$HomeApi {
   }) = _SendReview;
 
   //Меню
-  const factory HomeApi.fetchQrMenu({required int id}) = _FetchQrMenu;
+  const factory HomeApi.fetchQrMenu({
+    required int id,
+    required String type,
+  }) = _FetchQrMenu;
 
   @override
   dynamic get body => whenOrNull(
@@ -66,9 +69,11 @@ abstract class HomeApi extends BaseClientGenerator with _$HomeApi {
         orderSubscription: (_) => '/orders/subscription-checkout',
         fetchRatings: () => '/ratings',
         sendReview: (_, id) => '/items/$id/reviews',
-        fetchQrMenu: (id) => '/items/$id/menu',
+        fetchQrMenu: (id, _) => '/items/$id/menu',
       );
 
   @override
-  Map<String, dynamic>? get queryParameters => whenOrNull();
+  Map<String, dynamic>? get queryParameters => whenOrNull(
+        fetchQrMenu: (_, type) => {'filters[type]': type},
+      );
 }

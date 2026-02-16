@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,7 @@ class InRestaurantContent extends StatefulWidget {
   State<InRestaurantContent> createState() => _InRestaurantContentState();
 }
 
-class _InRestaurantContentState extends State<InRestaurantContent> {
+class _InRestaurantContentState extends State<InRestaurantContent> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Consumer<QrMenuVm>(
@@ -369,36 +370,32 @@ class ItemRecomended extends StatelessWidget {
   final Items? item;
   final Widget? bottom;
 
+
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<QrMenuVm>(context, listen: false);
     return GestureDetector(
-      // onTap: () =>
-      //  showCupertinoModalBottomSheet(
-      //   expand: false,
-      //   context: context,
-      //   backgroundColor: Colors.transparent,
-      //   builder: (context) => ProductPage(
-      //     item: item!,
-      //     // isSubscription: viewModel.isSubscription,
-      //     // isMenuPage: true,
-      //   ),
-      // ),
-      // onTap: () => showCupertinoDepthSheet(
-      //   context,
-      //   child: ProductPage(item: item!),
-      //   onClose: () {
-      //     viewModel.videoService.videoPlayerController?.play();
-      //   },
-      // ),
-
-      onTap: () => showCustomSheet(
-        context,
-        child: ProductPage(item: item!),
-        onClose: () {
-          viewModel.videoService.videoPlayerController?.play();
-        },
-      ),
+      onTap: () {
+        final url = item?.image?.first.filePreview ??
+            item?.image?.first.file ??
+            item?.image?.first.path ??
+            '';
+        if (url.isNotEmpty) {
+          DefaultCacheManager().getSingleFile(url);
+        }
+        viewModel.preloadVideoForItem(item!);
+        showCustomSheet(
+          context,
+          child: ProductPage(
+            item: item!,
+            preloadedVideo: viewModel.getCachedVideoController(item!.id),
+          ),
+          onClose: () {
+            viewModel.videoService.videoPlayerController?.play();
+            viewModel.returnVideoController(item!.id);
+          },
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),

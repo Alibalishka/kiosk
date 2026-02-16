@@ -24,7 +24,6 @@ class RecomendedWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int count = 0;
     return Padding(
       padding: const EdgeInsets.only(bottom: 78),
       child: Padding(
@@ -32,29 +31,16 @@ class RecomendedWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            GestureDetector(
-              onTap: () {
-                count++;
-                count == 10
-                    ? Navigator.of(context)
-                        .push(MaterialPageRoute(
-                          builder: (context) =>
-                              TalkerScreen(talker: sl<Talker>()),
-                        ))
-                        .then((_) => count = 0)
-                    : null;
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primitiveNeutralwarm0.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Рекомендуем',
-                  style: AppTextStyles.bodyS.copyWith(
-                    fontSize: viewModel.isTablet ? 14.sp : null,
-                  ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primitiveNeutralwarm0.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Рекомендуем',
+                style: AppTextStyles.bodyS.copyWith(
+                  fontSize: viewModel.isTablet ? 14.sp : null,
                 ),
               ),
             ),

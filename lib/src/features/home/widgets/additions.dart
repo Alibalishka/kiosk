@@ -41,59 +41,54 @@ class AdditionsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<QrMenuVm>(context, listen: false);
 
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      separatorBuilder: (context, index) => const ColumnSpacer(2.4),
-      itemCount: modifierData.length,
-      itemBuilder: (context, index) {
-        final modifier = modifierData[index];
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              modifier.name ?? '',
-              style: AppTextStyles.headingH3.copyWith(
-                fontSize: viewModel.isTablet ? 16.sp : null,
-                color: AppComponents.blockBlocktitleHeadingColorDefault,
-              ),
-            ),
-            if (_buildRangeText(modifier).isNotEmpty) ...[
-              const ColumnSpacer(0.6),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < modifierData.length; i++) ...[
+          if (i > 0) const ColumnSpacer(2.4),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Text(
-                _buildRangeText(modifier),
-                style: AppTextStyles.bodyM.copyWith(
-                  fontSize: viewModel.isTablet ? 14.sp : null,
-                  color: AppComponents.blockBlocktitleHeadingColorDefault
-                      .withOpacity(0.7),
+                modifierData[i].name ?? '',
+                style: AppTextStyles.headingH3.copyWith(
+                  fontSize: viewModel.isTablet ? 16.sp : null,
+                  color: AppComponents.blockBlocktitleHeadingColorDefault,
                 ),
               ),
+              if (_buildRangeText(modifierData[i]).isNotEmpty) ...[
+                const ColumnSpacer(0.6),
+                Text(
+                  _buildRangeText(modifierData[i]),
+                  style: AppTextStyles.bodyM.copyWith(
+                    fontSize: viewModel.isTablet ? 14.sp : null,
+                    color: AppComponents.blockBlocktitleHeadingColorDefault
+                        .withOpacity(0.7),
+                  ),
+                ),
+              ],
+              const ColumnSpacer(2),
+              Modifiers(
+                items: modifierData[i].items,
+                min: modifierData[i].min ?? 0,
+                max: modifierData[i].max ?? 1,
+                onChanged: (items) {
+                  final m = Modifier(
+                    id: modifierData[i].id,
+                    name: modifierData[i].name,
+                    min: modifierData[i].min,
+                    max: modifierData[i].max,
+                    iikoId: modifierData[i].iikoId,
+                    items: List.from(items ?? []),
+                  );
+                  viewModel.saveModifier(m);
+                  onChanged?.call();
+                },
+              ),
             ],
-            const ColumnSpacer(2),
-            Modifiers(
-              items: modifier.items,
-              min: modifier.min ?? 0,
-              max: modifier.max ?? 1,
-              onChanged: (items) {
-                // здесь остаётся старая логика – на вход придёт список Items,
-                // где товар повторяется столько раз, сколько выбрано qty
-                final m = Modifier(
-                  id: modifier.id,
-                  name: modifier.name,
-                  min: modifier.min,
-                  max: modifier.max,
-                  iikoId: modifier.iikoId,
-                  items: List.from(items ?? []),
-                );
-                viewModel.saveModifier(m);
-
-                onChanged?.call();
-              },
-            ),
-          ],
-        );
-      },
+          ),
+        ],
+      ],
     );
   }
 }

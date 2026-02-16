@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
@@ -22,7 +23,6 @@ class ItemMenu extends StatelessWidget {
 
   final Items item;
   final QrMenuVm viewModel;
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -79,14 +79,19 @@ class ItemMenu extends StatelessWidget {
             // const RowSpacer(2),
             Flexible(
               child: GestureDetector(
-                onTap: () => showCustomSheet(
+                onTap: () => Navigator.push(
                   context,
-                  child: ProductPage(
-                    item: item,
-                    // isSubscription: viewModel.isSubscription,
-                    // isMenuPage: true,
-                  ),
+                  MaterialPageRoute(
+                      builder: (context) => ProductPage(item: item)),
                 ),
+                //  showCustomSheet(
+                //   context,
+                //   child: ProductPage(
+                //     item: item,
+                //     // isSubscription: viewModel.isSubscription,
+                //     // isMenuPage: true,
+                //   ),
+                // ),
                 child: Container(
                   color: AppColors.none,
                   child: Stack(

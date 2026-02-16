@@ -30,7 +30,9 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class TabletCheckoutPage extends StatelessWidget {
-  const TabletCheckoutPage({super.key});
+  const TabletCheckoutPage({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

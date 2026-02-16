@@ -39,8 +39,7 @@ class OtaStatus {
 // ─────────────────── OtaUpdateService ───────────────────
 
 class OtaUpdateService {
-  final ValueNotifier<OtaStatus> status =
-      ValueNotifier(const OtaStatus.idle());
+  final ValueNotifier<OtaStatus> status = ValueNotifier(const OtaStatus.idle());
 
   bool _busy = false;
 
@@ -52,7 +51,7 @@ class OtaUpdateService {
 
     status.value = const OtaStatus.downloading(0);
 
-    const url = 'https://sandyq.dev.qrpay.kz/ota.apk';
+    const url = 'https://kiosk.admin.qrpay.kz/ota.apk';
 
     final dir = await getTemporaryDirectory();
     final filePath = p.join(dir.path, 'ota.apk');
@@ -92,8 +91,7 @@ class OtaUpdateService {
       await _pollInstallResult();
     } on DioException catch (e) {
       debugPrint('OTA DioException: type=${e.type} msg=${e.message}');
-      debugPrint(
-          'OTA response: ${e.response?.statusCode} ${e.response?.data}');
+      debugPrint('OTA response: ${e.response?.statusCode} ${e.response?.data}');
       rethrow;
     } on PlatformException catch (e) {
       debugPrint('OTA PlatformException: code=${e.code} msg=${e.message}');

@@ -29,7 +29,7 @@ class TakeAwayContent extends StatefulWidget {
   State<TakeAwayContent> createState() => _TakeAwayContentState();
 }
 
-class _TakeAwayContentState extends State<TakeAwayContent> {
+class _TakeAwayContentState extends State<TakeAwayContent> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Consumer<QrMenuVm>(
