@@ -338,7 +338,8 @@ class QrMenuPageState extends State<QrMenuPage>
                       return null;
                     },
                     failed: (_, errorCode) {
-                      if (errorCode == 422 || errorCode == 401) {
+                      // if (errorCode == 422 || errorCode == 401)
+                      if (errorCode == 422) {
                         viewModel.kioskService.stopSendingStatusKiosk();
                         sl<KTokenStorage>().deleteToken();
                         sl<HostStorage>().deleteHost();
@@ -528,7 +529,7 @@ class QrMenuPageState extends State<QrMenuPage>
                                     if (viewModel.isKioskMode)
                                       GestureDetector(
                                         onTap: () {
-                                          viewModel.kioskService!
+                                          viewModel.kioskService
                                               .onUserInteraction();
                                           showLanguagePopup(context);
                                         },

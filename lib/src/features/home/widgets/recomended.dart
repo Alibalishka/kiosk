@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
@@ -5,6 +6,7 @@ import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
+import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
@@ -38,7 +40,7 @@ class RecomendedWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'Рекомендуем',
+                LocaleKeys.recommend.tr(),
                 style: AppTextStyles.bodyS.copyWith(
                   fontSize: viewModel.isTablet ? 14.sp : null,
                 ),

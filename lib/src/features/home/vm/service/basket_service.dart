@@ -61,7 +61,7 @@ class BasketService {
             CustomSnackBar.error(
               textAlign: TextAlign.start,
               message:
-                  '${selectedModifiers[i].name}, выберите минимум $minRequired опций',
+                  '${selectedModifiers[i].name}, ${LocaleKeys.minimumOptions.tr()} $minRequired ${LocaleKeys.options.tr()}',
             ),
             dismissType: DismissType.onSwipe,
           );
@@ -74,7 +74,7 @@ class BasketService {
             CustomSnackBar.error(
               textAlign: TextAlign.start,
               message:
-                  '${selectedModifiers[i].name}, можно выбрать максимум $maxAllowed опций',
+                  '${selectedModifiers[i].name}, ${LocaleKeys.maximumOptions.tr()} $maxAllowed ${LocaleKeys.options.tr()}',
             ),
             dismissType: DismissType.onSwipe,
           );
@@ -82,7 +82,6 @@ class BasketService {
         }
         return false;
       }
-
     }
 
     Items item = data.copyWith(

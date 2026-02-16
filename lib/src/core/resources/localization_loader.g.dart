@@ -274,7 +274,11 @@ class CodegenLoader extends AssetLoader{
   "nameRequired": "Бұл сіздің тапсырысыңыздың жоғалып кетпеуі үшін қажет. Сіз лақап атты пайдалана аласыз.",
   "yourOrderNumber": "Сіздің тапсырыс нөміріңіз",
   "scanAndPayDescription": "Ыңғайлы болу үшін суретке түсіріп, тапсырысыңызды алу аймағына өтіңіз",
-  "checkWithOrder": "Чекті тапсырысыңызбен бірге аласыз"
+  "checkWithOrder": "Чекті тапсырысыңызбен бірге аласыз",
+  "recommend": "Ұсынамыз",
+  "minimumOptions": "минимум таңдау керек",
+  "options": "опцияны",
+  "maximumOptions": "максимум таңдауга болады"
 };
 static const Map<String,dynamic> _ru_RU = {
   "selectCity": "Выберите город",
@@ -537,7 +541,11 @@ static const Map<String,dynamic> _ru_RU = {
   "nameRequired": "Это нужно, чтобы ваш заказ не потерялся. Можете использовать никнейм.",
   "yourOrderNumber": "Ваш номер заказа",
   "scanAndPayDescription": "Сделайте фото для удобства и пройдите в зону выдачи за своим заказом",
-  "checkWithOrder": "Чек вы получите вместе с заказом"
+  "checkWithOrder": "Чек вы получите вместе с заказом",
+  "recommend": "Рекомендуем",
+  "minimumOptions": "выберите минимум",
+  "options": "опций",
+  "maximumOptions": "можно выбрать максимум"
 };
 static const Map<String,dynamic> _en_US = {
   "selectCity": "Select a city",
@@ -799,7 +807,11 @@ static const Map<String,dynamic> _en_US = {
   "nameRequired": "This is needed so that your order doesn't get lost. You can use a nickname.",
   "yourOrderNumber": "Your order number",
   "scanAndPayDescription": "Take a photo for convenience and proceed to the pickup area for your order",
-  "checkWithOrder": "You will receive the receipt together with your order"
+  "checkWithOrder": "You will receive the receipt together with your order",
+  "recommend": "Recommend",
+  "minimumOptions": "select minimum",
+  "options": "options",
+  "maximumOptions": "select maximum"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"kk_KK": _kk_KK, "ru_RU": _ru_RU, "en_US": _en_US};
 }

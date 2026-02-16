@@ -263,5 +263,9 @@ abstract class  LocaleKeys {
   static const yourOrderNumber = 'yourOrderNumber';
   static const scanAndPayDescription = 'scanAndPayDescription';
   static const checkWithOrder = 'checkWithOrder';
+  static const recommend = 'recommend';
+  static const minimumOptions = 'minimumOptions';
+  static const options = 'options';
+  static const maximumOptions = 'maximumOptions';
 
 }

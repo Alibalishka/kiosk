@@ -87,6 +87,7 @@ class _AddButton extends StatelessWidget {
             //   BlendMode.srcIn,
             // ),
             color: AppComponents.buttongroupButtonWhiteIconColorDefault,
+            height: 14.sp,
           ),
         ),
       ),

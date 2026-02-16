@@ -1,4 +1,5 @@
 {
+
     "selectCity": "Select a city",
     "allCities": "All cities",
     "readMore": "More details",
@@ -235,8 +236,8 @@
     "gram100": "per 100 gr. of the dish",
     "dish": "dishes for",
     "payment": "Pay",
-    "networkError":"Network error",
-    "networkErrorDescription":"Unstable connection. Try again.",
+    "networkError": "Network error",
+    "networkErrorDescription": "Unstable connection. Try again.",
     "minCountSubscription": "The maximum number of promotional items is 1",
     "noInternetConnection": "No internet connection",
     "checkConnection": "Check your connection and try again",
@@ -258,5 +259,9 @@
     "nameRequired": "This is needed so that your order doesn't get lost. You can use a nickname.",
     "yourOrderNumber": "Your order number",
     "scanAndPayDescription": "Take a photo for convenience and proceed to the pickup area for your order",
-    "checkWithOrder": "You will receive the receipt together with your order"
+    "checkWithOrder": "You will receive the receipt together with your order",
+    "recommend": "Recommend",
+    "minimumOptions" : "select minimum",
+    "options" : "options",
+    "maximumOptions" : "select maximum"
 }

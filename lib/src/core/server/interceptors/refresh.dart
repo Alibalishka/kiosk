@@ -3,18 +3,10 @@ import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/widgets.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dart:developer';
-import 'package:dio/dio.dart';
-
-import 'dart:developer';
-import 'package:dio/dio.dart';
 
 class KioskAuthInterceptor extends Interceptor {
   final Dio _dio;
@@ -39,6 +31,7 @@ class KioskAuthInterceptor extends Interceptor {
 
   /// Динамически подставляем актуальный токен из KTokenStorage
   /// на каждый исходящий запрос (вместо статического значения в BaseOptions).
+  /// Также динамически обновляем Accept-Language из SharedPreferences.
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final token = sl<KTokenStorage>().getToken();
@@ -47,6 +40,11 @@ class KioskAuthInterceptor extends Interceptor {
     } else {
       options.headers.remove('authorization');
     }
+    
+    // Динамически обновляем Accept-Language из SharedPreferences
+    final locale = sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
+    options.headers['Accept-Language'] = locale;
+    
     handler.next(options);
   }
 
@@ -102,6 +100,10 @@ DATA: ${req.data}
       if (currentToken != null && currentToken.isNotEmpty) {
         _refreshDio.options.headers['authorization'] = 'Bearer $currentToken';
       }
+      
+      // Обновляем Accept-Language для refresh-запроса
+      final locale = sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
+      _refreshDio.options.headers['Accept-Language'] = locale;
 
       log('''
 ------ 🔁 REFRESH TOKEN REQUEST ------
@@ -164,7 +166,7 @@ class KioskAuthManager {
     hostStorage.deleteHost();
 
     Future.microtask(() {
-      router.replaceAll([const AppIndexScreenRoute()]);
+      router.replaceAll([const KioskProviderRoute()]);
     });
   }
 
