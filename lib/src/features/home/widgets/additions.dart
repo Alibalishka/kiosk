@@ -52,7 +52,8 @@ class AdditionsWidget extends StatelessWidget {
               Text(
                 modifierData[i].name ?? '',
                 style: AppTextStyles.headingH3.copyWith(
-                  fontSize: viewModel.isTablet ? 16.sp : null,
+                  // fontSize: viewModel.isTablet ? 16.sp : null,
+                  fontSize: 16.sp,
                   color: AppComponents.blockBlocktitleHeadingColorDefault,
                 ),
               ),
@@ -61,7 +62,8 @@ class AdditionsWidget extends StatelessWidget {
                 Text(
                   _buildRangeText(modifierData[i]),
                   style: AppTextStyles.bodyM.copyWith(
-                    fontSize: viewModel.isTablet ? 14.sp : null,
+                    // fontSize: viewModel.isTablet ? 14.sp : null,
+                    fontSize: 14.sp,
                     color: AppComponents.blockBlocktitleHeadingColorDefault
                         .withOpacity(0.7),
                   ),

@@ -1,11 +1,6 @@
-import 'package:auto_route/auto_route.dart';
-import 'package:lottie/lottie.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
-import 'package:qr_pay_app/src/core/resources/app_lottie.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
-import 'package:qr_pay_app/src/features/app/router/app_router.dart';
-import 'package:qr_pay_app/src/features/home/logic/models/requests/menu_checkout.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_catalog.dart';
@@ -42,7 +37,8 @@ class CategoryHeaderWidget extends StatelessWidget {
                 child: Text(
                   title ?? '',
                   style: AppTextStyles.headingH3.copyWith(
-                    fontSize: viewModel.isTablet ? 16.sp : null,
+                    // fontSize: viewModel.isTablet ? 16.sp : null,
+                    fontSize: 16.sp,
                     color: AppColors.semanticFgDefault,
                   ),
                 ),
@@ -57,7 +53,8 @@ class CategoryHeaderWidget extends StatelessWidget {
                     title ?? '',
                     style: AppTextStyles.headingH3.copyWith(
                       color: AppColors.semanticFgDefault,
-                      fontSize: viewModel.isTablet ? 16.sp : null,
+                      //  fontSize: viewModel.isTablet ? 16.sp : null,
+                      fontSize: 16.sp,
                     ),
                   ),
                 ),

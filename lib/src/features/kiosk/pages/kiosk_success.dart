@@ -7,7 +7,9 @@ import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
+import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
+import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/history_order_bloc/history_order_bloc.dart';
@@ -100,8 +102,21 @@ class _KioskSuccessPageState extends State<KioskSuccessPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<HistoryOrderBloc, HistoryOrderState>(
+      body: BlocConsumer<HistoryOrderBloc, HistoryOrderState>(
         bloc: bloc,
+        listener: (context, state) => state.maybeWhen(
+          orElse: () => null,
+          failed: (error) {
+            showTopSnackBar(
+              Overlay.of(context),
+              CustomSnackBar.error(
+                textAlign: TextAlign.start,
+                message: error,
+              ),
+            );
+            return null;
+          },
+        ),
         builder: (context, state) => state.maybeWhen(
           orElse: () => const SizedBox.shrink(),
           loading: () => const Align(

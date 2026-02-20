@@ -268,7 +268,8 @@ class QrMenuPageState extends State<QrMenuPage>
                             Text(
                               LocaleKeys.order.tr(),
                               style: AppTextStyles.bodyLStrong.copyWith(
-                                fontSize: viewModel.isTablet ? 15.sp : null,
+                                fontSize: 15.sp,
+                                // fontSize:  viewModel.isTablet ? 15.sp : null,
                                 color: AppComponents
                                     .buttongroupButtonPrimaryTextColorDefault,
                               ),
@@ -278,7 +279,8 @@ class QrMenuPageState extends State<QrMenuPage>
                                 ' ${priceFormat(viewModel.getTotalPrice().toInt().toString())} ₸',
                               ),
                               style: AppTextStyles.bodyLStrong.copyWith(
-                                fontSize: viewModel.isTablet ? 15.sp : null,
+                                fontSize: 15.sp,
+                                // fontSize: viewModel.isTablet ? 15.sp : null,
                                 color: AppComponents
                                     .buttongroupButtonPrimaryTextColorDefault,
                               ),
@@ -361,8 +363,11 @@ class QrMenuPageState extends State<QrMenuPage>
                 bloc: viewModel.bloc,
                 listener: (context, state) => state.maybeWhen(
                   orElse: () => null,
-                  failed: (error, _) {
-                    context.router.pop();
+                  failed: (error, errorCode) {
+                    // На экране меню киоска не делаем pop — только показываем ошибку
+                    if (context.router.currentPath != 'qr-menu') {
+                      context.router.pop();
+                    }
                     showTopSnackBar(
                       Overlay.of(context),
                       CustomSnackBar.error(
@@ -371,6 +376,12 @@ class QrMenuPageState extends State<QrMenuPage>
                       ),
                       dismissType: DismissType.onSwipe,
                     );
+
+                    if (context.router.currentPath != 'kiosk-tech-work') {
+                      context.router.push(
+                        KioskTechWorkPageRoute(code: 'menu$errorCode'),
+                      );
+                    }
                     return null;
                   },
                   success: (responseData) => viewModel.syncData(responseData),
@@ -392,141 +403,188 @@ class QrMenuPageState extends State<QrMenuPage>
                               viewModel.kioskService.onUserInteraction();
                               return false;
                             },
-                            child: CustomScrollView(
-                              // controller:
-                              //     viewModel.scrollService.scrollController,
-                              physics: viewModel.isKioskMode
-                                  ? const ClampingScrollPhysics()
-                                  : null,
-                              controller:
-                                  viewModel.scrollService.scrollController,
-
-                              slivers: [
-                                SliverAppBar(
-                                  pinned: true,
-                                  floating: false,
-                                  stretch: true,
-                                  elevation: 0,
-                                  scrolledUnderElevation: 0,
-                                  shadowColor: Colors.transparent,
-                                  shape: const Border(
-                                    bottom: BorderSide(
-                                      color: AppComponents
-                                          .buttongroupButtonWhiteBgColorDefault,
-                                      width: 0,
-                                    ),
-                                  ),
-                                  expandedHeight: (viewModel.menuData?.recommend
-                                              ?.isNotEmpty ??
-                                          false)
-                                      ? (viewModel.isTablet
-                                          ? context.mediaQuery.size.width / 1.3
-                                          : 450)
-                                      : null,
-                                  surfaceTintColor: Colors.transparent,
-                                  backgroundColor: AppColors.semanticBgSurface1,
-                                  title: AnimatedOpacity(
-                                    duration: const Duration(milliseconds: 500),
-                                    opacity: viewModel.isAtStart ? 0 : 1,
-                                    child: Text(
-                                      viewModel.detailVm?.data.data?.name ??
-                                          'Меню',
-                                      style: AppTextStyles.headingH3.copyWith(
-                                        color: AppColors.semanticFgDefault,
+                            child: RefreshIndicator(
+                              onRefresh: () => viewModel.refreshMenu(),
+                              edgeOffset: 25,
+                              color: AppColors.semanticFgDefault,
+                              backgroundColor: AppColors.semanticBgSurface1,
+                              strokeWidth: 2,
+                              elevation: 0,
+                              child: CustomScrollView(
+                                physics: viewModel.isKioskMode
+                                    ? const AlwaysScrollableScrollPhysics(
+                                        parent: ClampingScrollPhysics(),
+                                      )
+                                    : const AlwaysScrollableScrollPhysics(),
+                                controller:
+                                    viewModel.scrollService.scrollController,
+                                slivers: [
+                                  SliverAppBar(
+                                    pinned: true,
+                                    floating: false,
+                                    stretch: true,
+                                    elevation: 0,
+                                    scrolledUnderElevation: 0,
+                                    shadowColor: Colors.transparent,
+                                    shape: const Border(
+                                      bottom: BorderSide(
+                                        color: AppComponents
+                                            .buttongroupButtonWhiteBgColorDefault,
+                                        width: 0,
                                       ),
                                     ),
-                                  ),
-                                  leading: viewModel.isTablet
-                                      ? viewModel.isKioskMode
-                                          ? InkWell(
-                                              radius: 100,
-                                              focusColor: AppColors.none,
-                                              splashColor: AppColors.none,
-                                              highlightColor: AppColors.none,
-                                              borderRadius:
-                                                  const BorderRadius.all(
-                                                Radius.circular(100),
-                                              ),
-                                              onTap: () {
-                                                viewModel.kioskService!
-                                                    .onUserInteraction();
-                                                viewModel.switchView();
-                                              },
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 16),
-                                                child: SvgPicture.asset(
-                                                  viewModel.isGridView
-                                                      ? AppSvgImages.list
-                                                      : AppSvgImages.gridview,
-                                                  color: AppColors
-                                                      .primitiveNeutralcold1000,
-                                                ),
-                                              ),
-                                            )
-                                          : null
-                                      : InkWell(
-                                          radius: 100,
-                                          focusColor: AppColors.none,
-                                          splashColor: AppColors.none,
-                                          highlightColor: AppColors.none,
-                                          borderRadius: const BorderRadius.all(
-                                            Radius.circular(100),
-                                          ),
-                                          onTap: () {
-                                            viewModel.kioskService!
-                                                .onUserInteraction();
-                                            viewModel.basketService.basket
-                                                    .isEmpty
-                                                ? context.router.pop()
-                                                : showCustomSheet(
-                                                    context,
-                                                    child:
-                                                        const FlowInterruption(),
-                                                  );
-                                          },
-                                          child: Container(
-                                            margin:
-                                                const EdgeInsets.only(left: 16),
-                                            height: 40,
-                                            width: 40,
-                                            decoration: const BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: AppComponents
-                                                  .buttongroupButtonWhiteBgColorDefault,
-                                            ),
-                                            child: Center(
-                                              child: SvgPicture.asset(
-                                                AppSvgImages.arrowLeft,
-                                              ),
-                                            ),
-                                          ),
+                                    expandedHeight: (viewModel.menuData
+                                                ?.recommend?.isNotEmpty ??
+                                            false)
+                                        ? context.mediaQuery.size.width / 1.3
+                                        : null,
+                                    // expandedHeight: (viewModel.menuData?.recommend
+                                    //             ?.isNotEmpty ??
+                                    //         false)
+                                    //     ? (viewModel.isTablet
+                                    //         ? context.mediaQuery.size.width / 1.3
+                                    //         : 450)
+                                    //     : null,
+                                    surfaceTintColor: Colors.transparent,
+                                    backgroundColor:
+                                        AppColors.semanticBgSurface1,
+                                    title: AnimatedOpacity(
+                                      duration:
+                                          const Duration(milliseconds: 500),
+                                      opacity: viewModel.isAtStart ? 0 : 1,
+                                      child: Text(
+                                        viewModel.detailVm?.data.data?.name ??
+                                            'Меню',
+                                        style: AppTextStyles.headingH3.copyWith(
+                                          color: AppColors.semanticFgDefault,
                                         ),
-                                  actions: [
-                                    if (!viewModel.isTablet)
-                                      GestureDetector(
-                                        onTap: () {
-                                          viewModel.kioskService!
-                                              .onUserInteraction();
-                                          viewModel.switchView();
-                                        },
+                                      ),
+                                    ),
+                                    leading: GestureDetector(
+                                      onTap: () {
+                                        viewModel.kioskService
+                                            .onUserInteraction();
+                                        viewModel.switchView();
+                                      },
+                                      child: SizedBox(
+                                        height: 100,
+                                        width: 100,
+                                        // focusColor: AppColors.none,
+                                        // splashColor: AppColors.none,
+                                        // highlightColor: AppColors.none,
+
+                                        // borderRadius: const BorderRadius.all(
+                                        //   Radius.circular(100),
+                                        // ),
+                                        // onTap: () {
+                                        //   viewModel.kioskService
+                                        //       .onUserInteraction();
+                                        //   viewModel.switchView();
+                                        // },
                                         child: Padding(
                                           padding:
-                                              const EdgeInsets.only(right: 16),
-                                          child: SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: SvgPicture.asset(
-                                              viewModel.isGridView
-                                                  ? AppSvgImages.list
-                                                  : AppSvgImages.gridview,
-                                              color: AppColors
-                                                  .primitiveNeutralcold1000,
-                                            ),
+                                              const EdgeInsets.only(left: 16),
+                                          child: SvgPicture.asset(
+                                            viewModel.isGridView
+                                                ? AppSvgImages.list
+                                                : AppSvgImages.gridview,
+                                            color: AppColors
+                                                .primitiveNeutralcold1000,
                                           ),
                                         ),
                                       ),
-                                    if (viewModel.isKioskMode)
+                                    ),
+                                    // leading: viewModel.isTablet
+                                    //     ? viewModel.isKioskMode
+                                    //         ? InkWell(
+                                    //             radius: 100,
+                                    //             focusColor: AppColors.none,
+                                    //             splashColor: AppColors.none,
+                                    //             highlightColor: AppColors.none,
+                                    //             borderRadius:
+                                    //                 const BorderRadius.all(
+                                    //               Radius.circular(100),
+                                    //             ),
+                                    //             onTap: () {
+                                    //               viewModel.kioskService!
+                                    //                   .onUserInteraction();
+                                    //               viewModel.switchView();
+                                    //             },
+                                    //             child: Padding(
+                                    //               padding: const EdgeInsets.only(
+                                    //                   left: 16),
+                                    //               child: SvgPicture.asset(
+                                    //                 viewModel.isGridView
+                                    //                     ? AppSvgImages.list
+                                    //                     : AppSvgImages.gridview,
+                                    //                 color: AppColors
+                                    //                     .primitiveNeutralcold1000,
+                                    //               ),
+                                    //             ),
+                                    //           )
+                                    //         : null
+                                    //     : InkWell(
+                                    //         radius: 100,
+                                    //         focusColor: AppColors.none,
+                                    //         splashColor: AppColors.none,
+                                    //         highlightColor: AppColors.none,
+                                    //         borderRadius: const BorderRadius.all(
+                                    //           Radius.circular(100),
+                                    //         ),
+                                    //         onTap: () {
+                                    //           viewModel.kioskService!
+                                    //               .onUserInteraction();
+                                    //           viewModel.basketService.basket
+                                    //                   .isEmpty
+                                    //               ? context.router.pop()
+                                    //               : showCustomSheet(
+                                    //                   context,
+                                    //                   child:
+                                    //                       const FlowInterruption(),
+                                    //                 );
+                                    //         },
+                                    //         child: Container(
+                                    //           margin:
+                                    //               const EdgeInsets.only(left: 16),
+                                    //           height: 40,
+                                    //           width: 40,
+                                    //           decoration: const BoxDecoration(
+                                    //             shape: BoxShape.circle,
+                                    //             color: AppComponents
+                                    //                 .buttongroupButtonWhiteBgColorDefault,
+                                    //           ),
+                                    //           child: Center(
+                                    //             child: SvgPicture.asset(
+                                    //               AppSvgImages.arrowLeft,
+                                    //             ),
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    actions: [
+                                      // if (!viewModel.isTablet)
+                                      //   GestureDetector(
+                                      //     onTap: () {
+                                      //       viewModel.kioskService!
+                                      //           .onUserInteraction();
+                                      //       viewModel.switchView();
+                                      //     },
+                                      //     child: Padding(
+                                      //       padding:
+                                      //           const EdgeInsets.only(right: 16),
+                                      //       child: SizedBox(
+                                      //         width: 24,
+                                      //         height: 24,
+                                      //         child: SvgPicture.asset(
+                                      //           viewModel.isGridView
+                                      //               ? AppSvgImages.list
+                                      //               : AppSvgImages.gridview,
+                                      //           color: AppColors
+                                      //               .primitiveNeutralcold1000,
+                                      //         ),
+                                      //       ),
+                                      //     ),
+                                      //   ),
+                                      // if (viewModel.isKioskMode)
                                       GestureDetector(
                                         onTap: () {
                                           viewModel.kioskService
@@ -545,67 +603,69 @@ class QrMenuPageState extends State<QrMenuPage>
                                           ),
                                         ),
                                       ),
-                                  ],
-                                  flexibleSpace: (viewModel.menuData?.recommend
-                                              ?.isNotEmpty ??
-                                          false)
-                                      ? FlexibleSpaceBar(
-                                          titlePadding: EdgeInsets.zero,
-                                          collapseMode: CollapseMode.parallax,
-                                          background: RepaintBoundary(
-                                            child: QrMenuHeaderBackground(
-                                              viewModel: viewModel,
-                                              context: context,
+                                    ],
+                                    flexibleSpace: (viewModel.menuData
+                                                ?.recommend?.isNotEmpty ??
+                                            false)
+                                        ? FlexibleSpaceBar(
+                                            titlePadding: EdgeInsets.zero,
+                                            collapseMode: CollapseMode.parallax,
+                                            background: RepaintBoundary(
+                                              child: QrMenuHeaderBackground(
+                                                viewModel: viewModel,
+                                                context: context,
+                                              ),
                                             ),
-                                          ),
-                                        )
-                                      : null,
-                                  // (viewModel.menuData?.recommend
-                                  //             ?.isNotEmpty ??
-                                  //         false)
-                                  //     ? QrMenuHeaderBackground(
-                                  //         viewModel: viewModel,
-                                  //         context: context,
-                                  //       )
-                                  //     : null,
-                                  bottom:
-                                      QrMenuCategoryTabs(viewModel: viewModel),
-                                ),
-                                SliverList(
-                                  delegate: SliverChildBuilderDelegate(
-                                    (context, index) {
-                                      final item =
-                                          viewModel.flattenedItems[index];
-
-                                      if (item is CategoryTitle) {
-                                        return CategoryHeaderWidget(
-                                          title: item.title,
-                                          recommend: item.recommend,
-                                          items: item.items,
-                                          viewModel: viewModel,
-                                        );
-                                      } else if (item is GridMenuItems) {
-                                        return GridMenuWidget(
-                                          items: item.items,
-                                          viewModel: viewModel,
-                                        );
-                                      } else if (item is SingleMenuItem) {
-                                        return ItemMenu(
-                                          key: ValueKey(item.item.id),
-                                          item: item.item,
-                                          viewModel: viewModel,
-                                        );
-                                      }
-
-                                      return const SizedBox.shrink();
-                                    },
-                                    childCount: viewModel.flattenedItems.length,
+                                          )
+                                        : null,
+                                    // (viewModel.menuData?.recommend
+                                    //             ?.isNotEmpty ??
+                                    //         false)
+                                    //     ? QrMenuHeaderBackground(
+                                    //         viewModel: viewModel,
+                                    //         context: context,
+                                    //       )
+                                    //     : null,
+                                    bottom: QrMenuCategoryTabs(
+                                        viewModel: viewModel),
                                   ),
-                                ),
-                                const SliverToBoxAdapter(
-                                  child: ColumnSpacer(5),
-                                ),
-                              ],
+                                  SliverList(
+                                    delegate: SliverChildBuilderDelegate(
+                                      (context, index) {
+                                        final item =
+                                            viewModel.flattenedItems[index];
+
+                                        if (item is CategoryTitle) {
+                                          return CategoryHeaderWidget(
+                                            title: item.title,
+                                            recommend: item.recommend,
+                                            items: item.items,
+                                            viewModel: viewModel,
+                                          );
+                                        } else if (item is GridMenuItems) {
+                                          return GridMenuWidget(
+                                            items: item.items,
+                                            viewModel: viewModel,
+                                          );
+                                        } else if (item is SingleMenuItem) {
+                                          return ItemMenu(
+                                            key: ValueKey(item.item.id),
+                                            item: item.item,
+                                            viewModel: viewModel,
+                                          );
+                                        }
+
+                                        return const SizedBox.shrink();
+                                      },
+                                      childCount:
+                                          viewModel.flattenedItems.length,
+                                    ),
+                                  ),
+                                  const SliverToBoxAdapter(
+                                    child: ColumnSpacer(5),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         )

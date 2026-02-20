@@ -29,8 +29,8 @@ class ItemCheckout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<QrMenuVm>(context);
-    final isTablet = viewModel.isTablet;
-
+    // final isTablet = viewModel.isTablet;
+    final bool isTablet = true;
     return Padding(
       padding: AppPaddings.horizontal16,
       child: Row(
@@ -83,7 +83,8 @@ class ItemCheckout extends StatelessWidget {
             Text(
               item.name ?? '',
               style: AppTextStyles.headingH4.copyWith(
-                fontSize: viewModel.isTablet ? 16.sp : null,
+                // fontSize: viewModel.isTablet ? 16.sp : null,
+                fontSize: 16.sp,
                 color: AppComponents.listitemBodytextColorDefault,
               ),
               maxLines: 2,
@@ -95,7 +96,8 @@ class ItemCheckout extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodyM.copyWith(
-                fontSize: viewModel.isTablet ? 14.sp : null,
+                // fontSize: viewModel.isTablet ? 14.sp : null,
+                fontSize: 14.sp,
                 color: AppColors.semanticFgSoft,
               ),
             ),
@@ -115,7 +117,8 @@ class ItemCheckout extends StatelessWidget {
                 Text(
                   '${priceFormat(item.price.toString())} ₸',
                   style: AppTextStyles.bodyL.copyWith(
-                    fontSize: viewModel.isTablet ? 16.sp : null,
+                    // fontSize: viewModel.isTablet ? 16.sp : null,
+                    fontSize: 16.sp,
                     color: AppComponents
                         .productcardorderContentTextcontentProducttitleColorDefault,
                   ),

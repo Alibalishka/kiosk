@@ -37,8 +37,7 @@ class ItemCatalog extends StatelessWidget {
 
     final mainItem = item![0];
 
-    return viewModel.isTablet
-        ? Row(
+    return  Row(
             children: [
               Expanded(
                 flex: 2,
@@ -63,11 +62,40 @@ class ItemCatalog extends StatelessWidget {
                   ),
                 ),
             ],
-          )
-        : _ItemCard(
-            viewModel: viewModel,
-            item: mainItem,
           );
+
+
+    // return viewModel.isTablet
+    //     ? Row(
+    //         children: [
+    //           Expanded(
+    //             flex: 2,
+    //             child: _ItemCard(
+    //               viewModel: viewModel,
+    //               item: mainItem,
+    //             ),
+    //           ),
+    //           const RowSpacer(1.2),
+    //           if (items?.isNotEmpty ?? false)
+    //             Expanded(
+    //               flex: 1,
+    //               child: SizedBox(
+    //                 height: 475,
+    //                 child: ItemRecomended(
+    //                   item: items![0],
+    //                   bottom: BasketBtn(
+    //                     viewModel: viewModel,
+    //                     item: items![0],
+    //                   ),
+    //                 ),
+    //               ),
+    //             ),
+    //         ],
+    //       )
+    //     : _ItemCard(
+    //         viewModel: viewModel,
+    //         item: mainItem,
+    //       );
   }
 }
 
@@ -92,10 +120,12 @@ class _ItemCard extends StatelessWidget {
             child: ProductPage(item: item),
           ),
           child: Container(
-            height: viewModel.isTablet ? 475 : 430,
-            width: viewModel.isTablet
-                ? context.mediaQuery.size.width / 1.64
-                : null,
+            // height: viewModel.isTablet ? 475 : 430,
+            height: 475,
+            // width: viewModel.isTablet
+            //     ? context.mediaQuery.size.width / 1.64
+            //     : null,
+            width: context.mediaQuery.size.width / 1.64,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.semanticBgSurface2,
@@ -105,14 +135,17 @@ class _ItemCard extends StatelessWidget {
               children: [
                 item.image?.isNotEmpty == true
                     ? SafeNetworkImage(
-                        height: viewModel.isTablet ? 305 : 260,
-                        width: viewModel.isTablet ? 305 : 260,
+                        // height: viewModel.isTablet ? 305 : 260,
+                        height: 305,
+                        // width: viewModel.isTablet ? 305 : 260,
+                        width: 305,
                         imageUrl: item.image!.first.path ??
                             item.image!.first.file ??
                             '',
                         placeholder: const SizedBox.shrink(),
                         imageBuilder: (context, imageProvider) => Container(
-                          height: viewModel.isTablet ? 305 : 260,
+                          // height: viewModel.isTablet ? 305 : 260,
+                          height: 305,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(32),
                             image: DecorationImage(
@@ -126,8 +159,10 @@ class _ItemCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         child: Image.asset(
                           AppWebpImages.placeholderMenu,
-                          height: viewModel.isTablet ? 305 : 260,
-                          width: viewModel.isTablet ? 305 : 260,
+                          // height: viewModel.isTablet ? 305 : 260,
+                          height: 305,
+                          // width: viewModel.isTablet ? 305 : 260,
+                          width: 305,
                         ),
                       ),
                 Text(
@@ -136,7 +171,8 @@ class _ItemCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyLStrong.copyWith(
-                    fontSize: viewModel.isTablet ? 24.sp : null,
+                    // fontSize: viewModel.isTablet ? 24.sp : null,
+                    fontSize: 24.sp,
                     color: AppColors.semanticFgDefault,
                   ),
                 ),
@@ -147,7 +183,8 @@ class _ItemCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyM.copyWith(
-                    fontSize: viewModel.isTablet ? 16.sp : null,
+                    // fontSize: viewModel.isTablet ? 16.sp : null,
+                    fontSize: 16.sp,
                     color: AppColors.semanticFgSoft,
                   ),
                 ),
@@ -157,7 +194,8 @@ class _ItemCard extends StatelessWidget {
                     Text(
                       '${priceFormat(item.price.toString())} ₸',
                       style: AppTextStyles.bodyXlStrong.copyWith(
-                        fontSize: viewModel.isTablet ? 24.sp : null,
+                        // fontSize: viewModel.isTablet ? 24.sp : null,
+                        fontSize: 24.sp,
                         color: AppColors.semanticFgDefault,
                       ),
                     ),

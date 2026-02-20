@@ -24,7 +24,8 @@ class GridMenuWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: StaggeredGrid.count(
-        crossAxisCount: viewModel.isTablet ? 3 : 2,
+        // crossAxisCount: viewModel.isTablet ? 3 : 2,
+        crossAxisCount: 3,
         mainAxisSpacing: 0,
         crossAxisSpacing: 12,
         children: items
@@ -32,11 +33,16 @@ class GridMenuWidget extends StatelessWidget {
               (item) => StaggeredGridTile.fit(
                 crossAxisCellCount: 1,
                 child: SizedBox(
-                  height: viewModel.isTablet
-                      ? (Platform.isIOS ? 50.1.sh : 44.5.sh)
-                      : context.isDesktop
-                          ? 500 / 1.3
-                          : context.mediaQuery.size.width / 1.16,
+                  height: (Platform.isIOS
+                      ? 50.1.sh
+                      : context.screenSize.width > 600
+                          ? 44.5.sh
+                          : 51.sh),
+                  // height: viewModel.isTablet
+                  //     ? (Platform.isIOS ? 50.1.sh : 44.5.sh)
+                  //     : context.isDesktop
+                  //         ? 500 / 1.3
+                  //         : context.mediaQuery.size.width / 1.16,
                   child: ItemRecomended(
                     item: item,
                     bottom: BasketBtn(

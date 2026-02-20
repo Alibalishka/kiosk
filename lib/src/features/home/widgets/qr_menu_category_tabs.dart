@@ -11,7 +11,8 @@ class QrMenuCategoryTabs extends StatelessWidget
 
   const QrMenuCategoryTabs({super.key, required this.viewModel});
 
-  double get _tabsHeight => viewModel.isTablet ? 69.0 : 54.0;
+  // double get _tabsHeight => viewModel.isTablet ? 69.0 : 54.0;
+  double get _tabsHeight => 69.0;
 
   @override
   Size get preferredSize => Size.fromHeight(_tabsHeight);
@@ -62,7 +63,8 @@ class QrMenuCategoryTabs extends StatelessWidget
                   child: Text(
                     category.name ?? '',
                     style: AppTextStyles.bodyM.copyWith(
-                      fontSize: viewModel.isTablet ? 14.sp : null,
+                      // fontSize: viewModel.isTablet ? 14.sp : null,
+                      fontSize: 14.sp,
                       color:
                           AppComponents.chipgroupChipsSelectedLabelColorDefault,
                     ),

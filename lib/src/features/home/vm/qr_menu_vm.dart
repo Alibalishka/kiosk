@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
@@ -76,7 +77,7 @@ class QrMenuVm extends ViewModel {
   bool isGridView = false;
 
   bool isTablet = false;
-  bool isKioskMode = false;
+  bool isKioskMode = true;
   bool isTechWork = false;
   bool _adWasVisible = false;
 
@@ -183,6 +184,20 @@ class QrMenuVm extends ViewModel {
         bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
       });
     }
+  }
+
+  /// Рефреш только меню (для pull-to-refresh). Ждёт завершения загрузки.
+  Future<void> refreshMenu() async {
+    if (menuId == null) return;
+    bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
+    await bloc.stream
+        .where((s) => s.when(
+            initial: () => false,
+            loading: () => false,
+            success: (_) => true,
+            failed: (_, __) => true))
+        .first
+        .timeout(const Duration(seconds: 30));
   }
 
   void fetchPaymentMethods() => bankCartBloc.add(
@@ -402,6 +417,9 @@ class QrMenuVm extends ViewModel {
     request.isFastpay = false;
     request.isKaspipay = true;
     request.fullName = nameController.text;
+
+    // Логируем request в формате JSON для удобного чтения
+    // log('📦 Request JSON:\n${const JsonEncoder.withIndent('  ').convert(request.toJson())}');
 
     if (request.items?.isNotEmpty ?? false) {
       context.router

@@ -194,16 +194,24 @@ class BasketService {
           : DeliveryType.delivery,
       addressId: addressId,
       items: basket.map((item) {
-        List<MenuCheckoutItemModif> modifiers = [];
+        // Группируем модификаторы только по itemId, суммируя amount
+        final Map<int, MenuCheckoutItemModif> modifiersMap = {};
         item.modifiers?.forEach((mod) {
           mod.items?.forEach((modItem) {
-            modifiers.add(MenuCheckoutItemModif(
-              itemId: modItem.id,
-              amount: 1,
-              itemGroupId: mod.iikoId,
-            ));
+            if (modifiersMap.containsKey(modItem.id)) {
+              modifiersMap[modItem.id]!.amount =
+                  (modifiersMap[modItem.id]!.amount ?? 0) + 1;
+            } else {
+              modifiersMap[modItem.id!] = MenuCheckoutItemModif(
+                itemId: modItem.id,
+                amount: 1,
+                itemGroupId: mod.iikoId,
+              );
+            }
           });
         });
+        final List<MenuCheckoutItemModif> modifiers =
+            modifiersMap.values.toList();
 
         return MenuCheckoutItem(
           itemId: item.id,

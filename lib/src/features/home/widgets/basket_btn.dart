@@ -42,8 +42,10 @@ class BasketBtn extends StatelessWidget {
     final int id = item.id ?? 0;
     final int count = viewModel.basketService.getCount(id);
 
-    final double width = viewModel.isTablet ? 160 : 115;
-    final double height = viewModel.isTablet ? 4.sh : 40;
+    // final double width = viewModel.isTablet ? 160 : 115;
+    final double width = 160;
+    // final double height = viewModel.isTablet ? 4.sh : 40;
+    final double height = 4.sh;
 
     return RepaintBoundary(
       child: SizedBox(
@@ -55,7 +57,8 @@ class BasketBtn extends StatelessWidget {
               )
             : _StepperButton(
                 count: viewModel.getItemCount(id),
-                isTablet: viewModel.isTablet,
+                // isTablet: viewModel.isTablet,
+                isTablet: true,
                 onMinus: () => viewModel.removeFromBasket(item),
                 onPlus: () => _onAddTap(context),
               ),

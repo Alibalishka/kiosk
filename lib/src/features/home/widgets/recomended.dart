@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -8,6 +9,7 @@ import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
+import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
@@ -33,16 +35,22 @@ class RecomendedWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primitiveNeutralwarm0.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                LocaleKeys.recommend.tr(),
-                style: AppTextStyles.bodyS.copyWith(
-                  fontSize: viewModel.isTablet ? 14.sp : null,
+            GestureDetector(
+              onTap: () {
+                context.router.replace(KioskSuccessPageRoute(id: 98));
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primitiveNeutralwarm0.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  LocaleKeys.recommend.tr(),
+                  style: AppTextStyles.bodyS.copyWith(
+                    // fontSize: viewModel.isTablet ? 14.sp : null,
+                    fontSize: 14.sp,
+                  ),
                 ),
               ),
             ),
@@ -53,17 +61,20 @@ class RecomendedWidget extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyLStrong.copyWith(
-                  fontSize: viewModel.isTablet ? 18.sp : null,
+                  // fontSize: viewModel.isTablet ? 18.sp : null,
+                  fontSize: 18.sp,
                   color: AppColors.primitiveNeutralcold0),
             ),
             const ColumnSpacer(0.4),
             Text(
               item?.description ?? '',
-              maxLines: viewModel.isTablet ? 5 : 3,
+              // maxLines: viewModel.isTablet ? 5 : 3,
+              maxLines: 5,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyM.copyWith(
-                  fontSize: viewModel.isTablet ? 14.sp : null,
+                  // fontSize: viewModel.isTablet ? 14.sp : null,
+                  fontSize: 14.sp,
                   color: AppColors.primitiveNeutralcold0),
             ),
             const ColumnSpacer(1.2),
@@ -73,7 +84,8 @@ class RecomendedWidget extends StatelessWidget {
                 Text(
                   '${priceFormat(item?.price.toString() ?? '0')} ₸',
                   style: AppTextStyles.bodyXlStrong.copyWith(
-                      fontSize: viewModel.isTablet ? 18.sp : null,
+                      // fontSize: viewModel.isTablet ? 18.sp : null,
+                      fontSize: 18.sp,
                       color: AppColors.primitiveNeutralcold0),
                 ),
                 BasketBtn(viewModel: viewModel, item: item!),

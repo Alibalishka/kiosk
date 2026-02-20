@@ -3,6 +3,8 @@ import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
@@ -19,7 +21,10 @@ class KioskAuthInterceptor extends Interceptor {
         headers: {
           'accept': 'application/json',
           if (sl<HostStorage>().hasHost())
-            'Host': '${sl<HostStorage>().getHost()}.dev.qrpay.kz',
+            'Host': '${sl<HostStorage>().getHost()}.admin.qrpay.kz',
+          // 'Host': '${sl<HostStorage>().getHost()}.dev.qrpay.kz',
+          // 'Host': '${sl<HostStorage>().getHost()}.admin.qrpay.kz',
+
           // authorization ставится динамически в onRequest _refreshDio не используется напрямую
         },
         validateStatus: (_) => true,
@@ -40,11 +45,12 @@ class KioskAuthInterceptor extends Interceptor {
     } else {
       options.headers.remove('authorization');
     }
-    
+
     // Динамически обновляем Accept-Language из SharedPreferences
-    final locale = sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
+    final locale =
+        sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
     options.headers['Accept-Language'] = locale;
-    
+
     handler.next(options);
   }
 
@@ -85,10 +91,11 @@ DATA: ${req.data}
 
       return handler.resolve(await _dio.fetch(req));
     } catch (_) {
-      unawaited(sl<KioskAuthManager>().forceLogoutOnce());
-      // sl<KTokenStorage>().deleteToken();
-      // sl<HostStorage>().deleteHost();
-      // _navigateToAuth();
+      try {
+        await sl<KioskAuthManager>().forceLogoutOnce();
+      } catch (e) {
+        log('[AUTH] forceLogoutOnce error: $e');
+      }
       return handler.next(err);
     }
   }
@@ -100,9 +107,10 @@ DATA: ${req.data}
       if (currentToken != null && currentToken.isNotEmpty) {
         _refreshDio.options.headers['authorization'] = 'Bearer $currentToken';
       }
-      
+
       // Обновляем Accept-Language для refresh-запроса
-      final locale = sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
+      final locale =
+          sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
       _refreshDio.options.headers['Accept-Language'] = locale;
 
       log('''
@@ -165,9 +173,43 @@ class KioskAuthManager {
     tokens.deleteToken();
     hostStorage.deleteHost();
 
-    Future.microtask(() {
-      router.replaceAll([const KioskProviderRoute()]);
+    // Выходим из стека Dio, принудительно запрашиваем кадр, затем навигация в postFrameCallback
+    final completer = Completer<void>();
+    Future<void>.delayed(Duration.zero, () {
+      SchedulerBinding.instance.scheduleFrame();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        log('[KIOSK AUTH] navigating to KioskProviderRoute');
+        void onDone() {
+          if (!completer.isCompleted) completer.complete();
+        }
+
+        router
+            .pushAndPopUntil(const KioskProviderRoute(),
+                predicate: (_) => false)
+            .then((_) {
+          log('[KIOSK AUTH] pushAndPopUntil completed');
+          onDone();
+        }, onError: (e, st) {
+          log('[KIOSK AUTH] pushAndPopUntil error: $e\n$st');
+          router.replaceAll([const KioskProviderRoute()]).then((_) => onDone(),
+              onError: (e2, st2) {
+            log('[KIOSK AUTH] replaceAll fallback error: $e2\n$st2');
+            onDone();
+          });
+        });
+      });
     });
+    try {
+      await completer.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          log('[KIOSK AUTH] navigation timeout');
+          if (!completer.isCompleted) completer.complete();
+        },
+      );
+    } catch (e) {
+      log('[KIOSK AUTH] forceLogoutOnce await error: $e');
+    }
   }
 
   /// вызвать после успешного логина

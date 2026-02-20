@@ -131,7 +131,8 @@ class _QrMenuCheckoutPageState extends State<QrMenuCheckoutPage>
                         Text(
                           LocaleKeys.payment.tr(),
                           style: AppTextStyles.bodyLStrong.copyWith(
-                              fontSize: viewModel.isTablet ? 18.sp : null,
+                              // fontSize: viewModel.isTablet ? 18.sp : null,
+                              fontSize: 18.sp,
                               color: AppComponents
                                   .buttongroupButtonPrimaryTextColorDefault),
                         ),

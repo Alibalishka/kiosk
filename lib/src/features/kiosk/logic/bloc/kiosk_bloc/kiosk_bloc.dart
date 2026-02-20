@@ -105,7 +105,11 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
         success: (reponse) =>
             emit(KioskState.successPayData(response: reponse)),
         failure: (error) => emit(
-            KioskState.failed(message: error.msg ?? 'Ошибка загурзки данных')),
+          KioskState.failed(
+            message: error.msg ?? 'Ошибка загурзки данных',
+            errorCode: error.errorCode,
+          ),
+        ),
       );
     } on Object {
       emit(const KioskState.failed());
@@ -122,8 +126,10 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
           await _kioskRepository.checkKapiPayStatus(orderId: event.orderId);
       result.when(
         success: (reponse) => emit(KioskState.successPay(response: reponse)),
-        failure: (error) => emit(
-            KioskState.failed(message: error.msg ?? 'Ошибка загурзки данных')),
+        failure: (error) => emit(KioskState.failed(
+          message: error.msg ?? 'Ошибка загурзки данных',
+          errorCode: error.errorCode,
+        )),
       );
     } on Object {
       emit(const KioskState.failed());

@@ -38,10 +38,10 @@ class TabletCheckoutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final vmQrMenu = context.read<QrMenuVm>();
     return KioskInteractionListener(
-      kioskService: context.read<QrMenuVm>().kioskService!,
+      kioskService: context.read<QrMenuVm>().kioskService,
       child: InactivityWatcher(
         isKioskMode: context.read<QrMenuVm>().isKioskMode,
-        inactivityDuration: context.read<QrMenuVm>().kioskService!.idleDuration,
+        inactivityDuration: context.read<QrMenuVm>().kioskService.idleDuration,
         decisionDuration: const Duration(seconds: 10),
         onLeave: () {
           context.read<QrMenuVm>().clearBasket();
@@ -203,152 +203,150 @@ class TabletCheckoutPage extends StatelessWidget {
                           ),
                           const ColumnSpacer(1.6),
                           SizedBox(
-                            height: (Platform.isIOS ? 50.1.sh : 46.sh),
-                            child: Padding(
+                            height: (Platform.isIOS
+                                ? 50.1.sh
+                                : context.screenSize.width > 600
+                                    ? 44.5.sh
+                                    : 51.sh),
+                            child: ListView.separated(
+                              shrinkWrap: true,
                               padding: AppPaddings.horizontal12,
-                              child: ListView.separated(
-                                shrinkWrap: true,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: value.getRecommended().length,
-                                separatorBuilder: (_, __) =>
-                                    const RowSpacer(1.2),
-                                itemBuilder: (context, index) {
-                                  final recommended =
-                                      value.getRecommended()[index];
-                                  final count =
-                                      value.getItemCount(recommended.id ?? 0);
-                                  final hasModifiers =
-                                      recommended.modifiers?.isNotEmpty == true;
+                              scrollDirection: Axis.horizontal,
+                              itemCount: value.getRecommended().length,
+                              separatorBuilder: (_, __) => const RowSpacer(1.2),
+                              itemBuilder: (context, index) {
+                                final recommended =
+                                    value.getRecommended()[index];
+                                final count =
+                                    value.getItemCount(recommended.id ?? 0);
+                                final hasModifiers =
+                                    recommended.modifiers?.isNotEmpty == true;
 
-                                  return ItemRecomended(
-                                    item: recommended,
-                                    bottom: count == 0
-                                        ? GestureDetector(
-                                            onTap: () => hasModifiers
-                                                ? showCustomSheet(
-                                                    context,
-                                                    child: ProductPage(
-                                                        item: recommended),
-                                                  )
-                                                : value.addToBasket(
-                                                    context, recommended, 1),
-                                            child: Container(
-                                              height:
-                                                  vmQrMenu.isTablet ? 4.sh : 40,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 12),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                color: AppComponents
-                                                    .buttongroupButtonGrayBgColorDefault,
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  // Text(
-                                                  //   '${priceFormat(recommended.price.toString())} ₸',
-                                                  //   overflow:
-                                                  //       TextOverflow.ellipsis,
-                                                  //   maxLines: 1,
-                                                  //   style: AppTextStyles
-                                                  //       .bodyMStrong
-                                                  //       .copyWith(
-                                                  //     fontSize:
-                                                  //         vmQrMenu.isTablet
-                                                  //             ? 14.sp
-                                                  //             : null,
-                                                  //     color: AppComponents
-                                                  //         .productcardorderContentTextcontentProducttitleColorDefault,
-                                                  //   ),
-                                                  // ),
-                                                  // RowSpacer(0.1.w),
-                                                  SvgPicture.asset(
-                                                    AppSvgImages.plus,
-                                                    height: vmQrMenu.isTablet
-                                                        ? 14.sp
-                                                        : 16,
-                                                    color: AppComponents
-                                                        .buttongroupButtonGrayTextColorDefault,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        : Container(
-                                            height: 40,
+                                return ItemRecomended(
+                                  item: recommended,
+                                  bottom: count == 0
+                                      ? GestureDetector(
+                                          onTap: () => hasModifiers
+                                              ? showCustomSheet(
+                                                  context,
+                                                  child: ProductPage(
+                                                      item: recommended),
+                                                )
+                                              : value.addToBasket(
+                                                  context, recommended, 1),
+                                          child: Container(
+                                            height:
+                                                vmQrMenu.isTablet ? 4.sh : 40,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 12),
                                             decoration: BoxDecoration(
                                               borderRadius:
                                                   BorderRadius.circular(12),
-                                              color:
-                                                  AppColors.semanticBgSurface3,
+                                              color: AppComponents
+                                                  .buttongroupButtonGrayBgColorDefault,
                                             ),
                                             child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
-                                                Expanded(
-                                                  child: GestureDetector(
-                                                    onTap: () =>
-                                                        value.removeFromBasket(
-                                                            recommended),
-                                                    child: Container(
-                                                      height: 40,
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          vertical: 12,
-                                                          horizontal: 16),
-                                                      color: AppColors.none,
-                                                      child: SvgPicture.asset(
-                                                        AppSvgImages.minus,
-                                                        color: AppComponents
-                                                            .buttongroupButtonGrayIconColorDefault,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Text(
-                                                  count.toString(),
-                                                  style: AppTextStyles
-                                                      .bodyLStrong
-                                                      .copyWith(
-                                                    color: AppComponents
-                                                        .buttongroupButtonGrayIconColorDefault,
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: GestureDetector(
-                                                    onTap: () => hasModifiers
-                                                        ? showCustomSheet(
-                                                            context,
-                                                            child: ProductPage(
-                                                                item:
-                                                                    recommended),
-                                                          )
-                                                        : value.addToBasket(
-                                                            context,
-                                                            recommended,
-                                                            1),
-                                                    child: Container(
-                                                      height: 40,
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          vertical: 12),
-                                                      color: AppColors.none,
-                                                      child: SvgPicture.asset(
-                                                        AppSvgImages.plus,
-                                                        color: AppComponents
-                                                            .buttongroupButtonGrayIconColorDefault,
-                                                      ),
-                                                    ),
-                                                  ),
+                                                // Text(
+                                                //   '${priceFormat(recommended.price.toString())} ₸',
+                                                //   overflow:
+                                                //       TextOverflow.ellipsis,
+                                                //   maxLines: 1,
+                                                //   style: AppTextStyles
+                                                //       .bodyMStrong
+                                                //       .copyWith(
+                                                //     fontSize:
+                                                //         vmQrMenu.isTablet
+                                                //             ? 14.sp
+                                                //             : null,
+                                                //     color: AppComponents
+                                                //         .productcardorderContentTextcontentProducttitleColorDefault,
+                                                //   ),
+                                                // ),
+                                                // RowSpacer(0.1.w),
+                                                SvgPicture.asset(
+                                                  AppSvgImages.plus,
+                                                  height: vmQrMenu.isTablet
+                                                      ? 14.sp
+                                                      : 16,
+                                                  color: AppComponents
+                                                      .buttongroupButtonGrayTextColorDefault,
                                                 ),
                                               ],
                                             ),
                                           ),
-                                  );
-                                },
-                              ),
+                                        )
+                                      : Container(
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            color: AppColors.semanticBgSurface3,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: GestureDetector(
+                                                  onTap: () =>
+                                                      value.removeFromBasket(
+                                                          recommended),
+                                                  child: Container(
+                                                    height: 40,
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 12,
+                                                        horizontal: 16),
+                                                    color: AppColors.none,
+                                                    child: SvgPicture.asset(
+                                                      AppSvgImages.minus,
+                                                      color: AppComponents
+                                                          .buttongroupButtonGrayIconColorDefault,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Text(
+                                                count.toString(),
+                                                style: AppTextStyles.bodyLStrong
+                                                    .copyWith(
+                                                  color: AppComponents
+                                                      .buttongroupButtonGrayIconColorDefault,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: GestureDetector(
+                                                  onTap: () => hasModifiers
+                                                      ? showCustomSheet(
+                                                          context,
+                                                          child: ProductPage(
+                                                              item:
+                                                                  recommended),
+                                                        )
+                                                      : value.addToBasket(
+                                                          context,
+                                                          recommended,
+                                                          1),
+                                                  child: Container(
+                                                    height: 40,
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 12),
+                                                    color: AppColors.none,
+                                                    child: SvgPicture.asset(
+                                                      AppSvgImages.plus,
+                                                      color: AppComponents
+                                                          .buttongroupButtonGrayIconColorDefault,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -439,8 +437,9 @@ class TabletCheckoutPage extends StatelessWidget {
                                       LocaleKeys.enterYourName.tr(),
                                       textAlign: TextAlign.center,
                                       style: AppTextStyles.headingH3.copyWith(
-                                        fontSize:
-                                            viewModel.isTablet ? 16.sp : null,
+                                        // fontSize:
+                                        //     viewModel.isTablet ? 16.sp : null,
+                                        fontSize: 16.sp,
                                       ),
                                     ),
                                     const ColumnSpacer(2.4),
@@ -455,14 +454,18 @@ class TabletCheckoutPage extends StatelessWidget {
                                       ],
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 16, horizontal: 16),
-                                      placeholderStyle: AppTextStyles.bodyM
-                                          .copyWith(
-                                              fontSize: viewModel.isTablet
-                                                  ? 14.sp
-                                                  : 18),
+                                      placeholderStyle:
+                                          AppTextStyles.bodyM.copyWith(
+                                        // fontSize: viewModel.isTablet
+                                        //     ? 14.sp
+                                        //     : 18,
+                                        fontSize: 14.sp,
+                                      ),
                                       style: AppTextStyles.bodyM.copyWith(
-                                          fontSize:
-                                              viewModel.isTablet ? 14.sp : 18),
+                                        // fontSize:
+                                        // viewModel.isTablet ? 14.sp : 18,
+                                        fontSize: 14.sp,
+                                      ),
                                       decoration: const BoxDecoration(
                                         color: CupertinoColors
                                             .quaternarySystemFill,
@@ -474,8 +477,8 @@ class TabletCheckoutPage extends StatelessWidget {
                                     Text(
                                       LocaleKeys.nameRequired.tr(),
                                       style: AppTextStyles.bodyL.copyWith(
-                                        fontSize:
-                                            viewModel.isTablet ? 13.sp : null,
+                                        // fontSize: viewModel.isTablet ? 13.sp : null,
+                                        fontSize: 13.sp,
                                       ),
                                     ),
                                     const ColumnSpacer(1.2),

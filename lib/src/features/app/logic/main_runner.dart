@@ -52,6 +52,7 @@ mixin MainRunner {
 
           // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
           await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          // Запрещаем альбомный режим — только портрет
           await SystemChrome.setPreferredOrientations(
               [DeviceOrientation.portraitUp]);
 

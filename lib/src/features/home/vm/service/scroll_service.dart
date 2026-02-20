@@ -125,7 +125,11 @@ class ScrollService {
         final columns = isTablet ? 3 : 2;
         // final itemHeight = isTablet ? 475.0 : 355.0;
         final itemHeight = isTablet
-            ? (Platform.isIOS ? 50.1.sh : 44.5.sh)
+            ? (Platform.isIOS
+                ? 50.1.sh
+                : context.screenSize.width > 600
+                    ? 44.5.sh
+                    : 51.sh)
             : context.mediaQuery.size.width / 1.16;
 
         final numRows = (itemCount / columns).ceil();

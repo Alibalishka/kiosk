@@ -28,7 +28,8 @@ class ItemMenu extends StatelessWidget {
     return Padding(
       padding: AppPaddings.all,
       child: SizedBox(
-        height: viewModel.isTablet ? 15.sh : 136,
+        // height: viewModel.isTablet ? 15.sh : 136,
+        height: 15.sh,
         child: Row(
           children: [
             if (item.image?.isNotEmpty ?? false)
@@ -45,22 +46,28 @@ class ItemMenu extends StatelessWidget {
                       ? Padding(
                           padding: const EdgeInsets.only(right: 20),
                           child: SafeNetworkImage(
-                            width: viewModel.isTablet ? 175 : 131,
-                            height: viewModel.isTablet ? 180 : 136,
+                            // width: viewModel.isTablet ? 175 : 131,
+                            width: 175,
+                            // height: viewModel.isTablet ? 180 : 136,
+                            height: 180,
                             imageUrl: item.image?.isNotEmpty ?? false
                                 ? item.image?.first.path ?? ''
                                 : 'https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png',
                             placeholder: Container(
-                              height: viewModel.isTablet ? 180 : 136,
-                              width: viewModel.isTablet ? 175 : 131,
+                              // height: viewModel.isTablet ? 180 : 136,
+                              height: 180,
+                              // width: viewModel.isTablet ? 175 : 131,
+                              width: 175,
                               decoration: BoxDecoration(
                                 color: AppColors.none,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             imageBuilder: (context, placeholder) => Container(
-                              width: viewModel.isTablet ? 175 : 131,
-                              height: viewModel.isTablet ? 180 : 136,
+                              // width: viewModel.isTablet ? 175 : 131,
+                              width: 175,
+                              // height: viewModel.isTablet ? 180 : 136,
+                              height: 180,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
                                 image: DecorationImage(
@@ -104,7 +111,8 @@ class ItemMenu extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.bodyLStrong.copyWith(
-                                fontSize: viewModel.isTablet ? 15.sp : null,
+                                fontSize: 15.sp,
+                                // fontSize: viewModel.isTablet ? 15.sp : null,
                                 color: AppColors.semanticFgDefault),
                           ),
                           Text(
@@ -112,7 +120,8 @@ class ItemMenu extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.bodyS.copyWith(
-                                fontSize: viewModel.isTablet ? 14.sp : null,
+                                fontSize: 14.sp,
+                                // fontSize: viewModel.isTablet ? 14.sp : null,
                                 color: AppColors.semanticFgSofter),
                           ),
                           const Spacer(),
@@ -122,7 +131,8 @@ class ItemMenu extends StatelessWidget {
                               Text(
                                 '${priceFormat(item.price.toString())} ₸',
                                 style: AppTextStyles.bodyXlStrong.copyWith(
-                                    fontSize: viewModel.isTablet ? 16.sp : null,
+                                    fontSize: 16.sp,
+                                    // fontSize: viewModel.isTablet ? 16.sp : null,
                                     color: AppColors.semanticFgDefault),
                               ),
                               BasketBtn(

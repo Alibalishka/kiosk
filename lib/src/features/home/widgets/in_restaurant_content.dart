@@ -39,7 +39,8 @@ class InRestaurantContent extends StatefulWidget {
   State<InRestaurantContent> createState() => _InRestaurantContentState();
 }
 
-class _InRestaurantContentState extends State<InRestaurantContent> with SingleTickerProviderStateMixin {
+class _InRestaurantContentState extends State<InRestaurantContent>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Consumer<QrMenuVm>(
@@ -370,7 +371,6 @@ class ItemRecomended extends StatelessWidget {
   final Items? item;
   final Widget? bottom;
 
-
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<QrMenuVm>(context, listen: false);
@@ -401,7 +401,8 @@ class ItemRecomended extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Container(
-          width: viewModel.isTablet ? 300 : 150,
+          // width: viewModel.isTablet ? 300 : 150,
+          width: 300,
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -443,7 +444,8 @@ class ItemRecomended extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: AppTextStyles.bodyXlStrong.copyWith(
-                    fontSize: viewModel.isTablet ? 16.sp : null,
+                    // fontSize: viewModel.isTablet ? 16.sp : null,
+                    fontSize: 16.sp,
                   )
                   // .copyWith(color: AppColors.primitiveNeutralwarm0),
                   ),
@@ -454,7 +456,8 @@ class ItemRecomended extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
                     style: AppTextStyles.bodyLStrong.copyWith(
-                      fontSize: viewModel.isTablet ? 15.sp : null,
+                      fontSize: 15.sp,
+                      // fontSize: viewModel.isTablet ? 15.sp : null,
                     )
                     // .copyWith(color: AppColors.primitiveNeutralwarm0),
                     ),
@@ -464,7 +467,8 @@ class ItemRecomended extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                   style: AppTextStyles.bodyS.copyWith(
-                    fontSize: viewModel.isTablet ? 14.sp : null,
+                    fontSize: 14.sp,
+                    // fontSize: viewModel.isTablet ? 14.sp : null,
                     color: AppColors.semanticFgSofter,
                   )
                   // .copyWith(color: AppColors.primitiveNeutralwarm0),
