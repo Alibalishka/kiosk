@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
@@ -982,12 +983,13 @@ class _BottomBar extends StatelessWidget {
             valueListenable: modsTick,
             builder: (_, __, ___) {
               final modifiersPrice = calcModifiersPrice();
-              final pricePerOne = basePrice + modifiersPrice;
-
+              final oneItemPrice = basePrice + modifiersPrice;
               return ValueListenableBuilder<int>(
                 valueListenable: count,
                 builder: (_, c, __) {
-                  final totalPrice = pricePerOne * c;
+                  // Товар × кол-во + модификаторы один раз (уже с учётом кол-ва каждого модификатора)
+                  // final totalPrice = basePrice * c + modifiersPrice;
+                  final totalPrice = oneItemPrice * c;
 
                   return Column(
                     mainAxisSize: MainAxisSize.min,

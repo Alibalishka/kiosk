@@ -123,10 +123,11 @@ class BasketService {
   double getTotalPrice() {
     double total = 0;
     for (var item in basket) {
-      total += (item.price ?? 0) * (item.count ?? 1);
+      final int itemCount = item.count ?? 1;
+      total += (item.price ?? 0) * itemCount;
       item.modifiers?.forEach((mod) {
         mod.items?.forEach((m) {
-          total += m.price ?? 0;
+          total += (m.price ?? 0) * itemCount;
         });
       });
     }
@@ -144,17 +145,30 @@ class BasketService {
   }
 
   int getItemTotalPrice(Items item) {
-    int total = (item.price ?? 0) * (item.count ?? 1);
+    final int itemCount = item.count ?? 1;
+    int total = (item.price ?? 0) * itemCount;
     item.modifiers?.forEach((data) {
       data.items?.forEach((mod) {
-        total += mod.price ?? 0;
+        total += (mod.price ?? 0) * itemCount;
       });
     });
     return total;
   }
 
   String getModifiers(List<Modifier> data) {
-    return data.expand((m) => m.items ?? []).map((i) => i.name).join(', ');
+    final allItems = data.expand((m) => m.items ?? []).toList();
+    final Map<String, int> counts = {};
+    for (final item in allItems) {
+      final name = item.name ?? '';
+      if (name.isEmpty) continue;
+      counts[name] = (counts[name] ?? 0) + 1;
+    }
+
+    return counts.entries
+        .map(
+          (e) => e.value > 1 ? 'x${e.value} ${e.key}' : e.key,
+        )
+        .join(', ');
   }
 
   bool containInBasket(Items item) {
@@ -194,17 +208,20 @@ class BasketService {
           : DeliveryType.delivery,
       addressId: addressId,
       items: basket.map((item) {
-        // Группируем модификаторы только по itemId, суммируя amount
         final Map<int, MenuCheckoutItemModif> modifiersMap = {};
         item.modifiers?.forEach((mod) {
           mod.items?.forEach((modItem) {
-            if (modifiersMap.containsKey(modItem.id)) {
-              modifiersMap[modItem.id]!.amount =
-                  (modifiersMap[modItem.id]!.amount ?? 0) + 1;
+            final int modItemId = modItem.id!;
+            final int baseCount = modItem.count ?? 1;
+            final int delta = baseCount;
+
+            if (modifiersMap.containsKey(modItemId)) {
+              modifiersMap[modItemId]!.amount =
+                  (modifiersMap[modItemId]!.amount ?? 0) + delta;
             } else {
-              modifiersMap[modItem.id!] = MenuCheckoutItemModif(
+              modifiersMap[modItemId] = MenuCheckoutItemModif(
                 itemId: modItem.id,
-                amount: 1,
+                amount: delta,
                 itemGroupId: mod.iikoId,
               );
             }

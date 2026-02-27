@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io' show Platform;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
@@ -311,7 +312,9 @@ class QrMenuPageState extends State<QrMenuPage>
                         viewModel.kioskService.saveScreenSavers(response),
                     successKioskStatus: (response) {
                       final serverVersion = response.data?.version;
-                      viewModel.checkAndUpdateIfNeeded(serverVersion);
+                      if (!Platform.isIOS) {
+                        viewModel.checkAndUpdateIfNeeded(serverVersion);
+                      }
                       return null;
 
                       // if (context.router.currentPath == 'kiosk-tech-work') {

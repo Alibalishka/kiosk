@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/services.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
@@ -313,16 +314,17 @@ class _KioskRegisterState extends State<KioskRegister>
 
                         const ColumnSpacer(1),
 
-                        // ✅ OTA: только при наличии интернета
-                        CustomButton(
-                          text: _otaRunning
-                              ? 'Обновление…'
-                              : 'Обновить приложение',
-                          fontSize: 16.sp,
-                          onPressed: (!hasInternet || _otaRunning)
-                              ? null
-                              : _runOtaUpdate,
-                        ),
+                        // ✅ OTA: только при наличии интернета, на iOS недоступно
+                        if (!Platform.isIOS)
+                          CustomButton(
+                            text: _otaRunning
+                                ? 'Обновление…'
+                                : 'Обновить приложение',
+                            fontSize: 16.sp,
+                            onPressed: (!hasInternet || _otaRunning)
+                                ? null
+                                : _runOtaUpdate,
+                          ),
                       ],
                     ),
                   ),

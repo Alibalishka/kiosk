@@ -38,7 +38,7 @@ class ItemCheckout extends StatelessWidget {
         children: [
           _buildImage(isTablet),
           const RowSpacer(1.6),
-          Flexible(child: _buildInfo(viewModel, isTablet)),
+          Expanded(child: _buildInfo(viewModel, isTablet)),
         ],
       ),
     );
@@ -76,59 +76,57 @@ class ItemCheckout extends StatelessWidget {
 
   Widget _buildInfo(QrMenuVm viewModel, bool isTablet) {
     if (isTablet) {
-      return Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              item.name ?? '',
-              style: AppTextStyles.headingH4.copyWith(
-                // fontSize: viewModel.isTablet ? 16.sp : null,
-                fontSize: 16.sp,
-                color: AppComponents.listitemBodytextColorDefault,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            item.name ?? '',
+            style: AppTextStyles.headingH4.copyWith(
+              // fontSize: viewModel.isTablet ? 16.sp : null,
+              fontSize: 16.sp,
+              color: AppComponents.listitemBodytextColorDefault,
             ),
-            const ColumnSpacer(0.4),
-            Text(
-              item.description ?? '',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodyM.copyWith(
-                // fontSize: viewModel.isTablet ? 14.sp : null,
-                fontSize: 14.sp,
-                color: AppColors.semanticFgSoft,
-              ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const ColumnSpacer(0.4),
+          Text(
+            item.description ?? '',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyM.copyWith(
+              // fontSize: viewModel.isTablet ? 14.sp : null,
+              fontSize: 14.sp,
+              color: AppColors.semanticFgSoft,
             ),
-            const ColumnSpacer(0.4),
-            Text(
-              viewModel.getModifiers(item.modifiers ?? []),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodyL.copyWith(
-                fontSize: 12.sp,
-                color: AppComponents
-                    .productcardorderContentTextcontentProductsubtitleColorDefault,
-              ),
+          ),
+          const ColumnSpacer(0.4),
+          Text(
+            viewModel.getModifiers(item.modifiers ?? []),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyL.copyWith(
+              fontSize: 12.sp,
+              color: AppComponents
+                  .productcardorderContentTextcontentProductsubtitleColorDefault,
             ),
-            Row(
-              children: [
-                Text(
-                  '${priceFormat(item.price.toString())} ₸',
-                  style: AppTextStyles.bodyL.copyWith(
-                    // fontSize: viewModel.isTablet ? 16.sp : null,
-                    fontSize: 16.sp,
-                    color: AppComponents
-                        .productcardorderContentTextcontentProducttitleColorDefault,
-                  ),
+          ),
+          Row(
+            children: [
+              Text(
+                '${priceFormat(viewModel.getItemTotalPrice(item).toString())} ₸',
+                style: AppTextStyles.bodyL.copyWith(
+                  // fontSize: viewModel.isTablet ? 16.sp : null,
+                  fontSize: 16.sp,
+                  color: AppComponents
+                      .productcardorderContentTextcontentProducttitleColorDefault,
                 ),
-                const Spacer(),
-                _buildQuantityButton(isTablet),
-              ],
-            ),
-          ],
-        ),
+              ),
+              const Spacer(),
+              _buildQuantityButton(isTablet),
+            ],
+          ),
+        ],
       );
     }
 
@@ -146,7 +144,7 @@ class ItemCheckout extends StatelessWidget {
         ),
         const ColumnSpacer(0.4),
         Text(
-          '${priceFormat(item.price.toString())} ₸',
+          '${priceFormat(viewModel.getItemTotalPrice(item).toString())} ₸',
           style: AppTextStyles.bodyL.copyWith(
             color: AppComponents
                 .productcardorderContentTextcontentProducttitleColorDefault,
