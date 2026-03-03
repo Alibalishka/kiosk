@@ -20,6 +20,7 @@ import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/in_restaurant_content.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_checkout.dart';
+import 'package:qr_pay_app/src/features/home/widgets/tabbar_widget.dart';
 import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
 import 'package:qr_pay_app/src/features/qr/widgets/custom_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -29,10 +30,30 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
-class TabletCheckoutPage extends StatelessWidget {
+class TabletCheckoutPage extends StatefulWidget {
   const TabletCheckoutPage({
     super.key,
   });
+
+  @override
+  State<TabletCheckoutPage> createState() => _TabletCheckoutPageState();
+}
+
+class _TabletCheckoutPageState extends State<TabletCheckoutPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +133,8 @@ class TabletCheckoutPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         onPressed: () => value.nameController.text.isEmpty
                             ? _showNameInputDialog(context)
-                            : context.read<QrMenuVm>().tabletCheckout(context),
+                            : context.read<QrMenuVm>().tabletCheckout(context,
+                                indexType: _tabController.index),
                         color: const Color(0xffF24634),
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Padding(
@@ -155,6 +177,18 @@ class TabletCheckoutPage extends StatelessWidget {
 
               return CustomScrollView(
                 slivers: [
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _TabBarSliverDelegate(
+                      child: TabbarWidget(
+                        tabController: _tabController,
+                        isTablet: true,
+                      ),
+                      height: 70,
+                    ),
+                  ),
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
                   // Основной список заказов
@@ -495,7 +529,10 @@ class TabletCheckoutPage extends StatelessWidget {
                                               FocusManager.instance.primaryFocus
                                                   ?.unfocus();
                                               Navigator.of(context).pop();
-                                              viewModel.tabletCheckout(context);
+                                              viewModel.tabletCheckout(
+                                                context,
+                                                indexType: _tabController.index,
+                                              );
                                             },
                                       child: Text(
                                         'Сохранить',
@@ -536,4 +573,47 @@ class TabletCheckoutPage extends StatelessWidget {
       transitionDuration: const Duration(milliseconds: 300),
     );
   }
+}
+
+class _TabBarSliverDelegate extends SliverPersistentHeaderDelegate {
+  _TabBarSliverDelegate({
+    required this.child,
+    required this.height,
+  });
+
+  final Widget child;
+  final double height;
+
+  @override
+  double get minExtent => height;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.primitiveNeutralcold0,
+        boxShadow: overlapsContent
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
+      ),
+      child: child,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      oldDelegate is _TabBarSliverDelegate && oldDelegate.height != height;
 }

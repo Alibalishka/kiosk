@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
-import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/utils/version_compare.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
@@ -14,7 +12,6 @@ import 'package:qr_pay_app/src/features/home/vm/service/kiosk_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/scroll_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/video_service.dart';
-import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/ota_update.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/responses/payment_method.dart';
@@ -371,7 +368,10 @@ class QrMenuVm extends ViewModel {
     notifyListeners();
   }
 
-  Future<void> tabletCheckout(BuildContext context) async {
+  Future<void> tabletCheckout(
+    BuildContext context, {
+    int indexType = 1,
+  }) async {
     // final orgId = menuData?.organization?.iikoOrgId;
     final orgId = menuData?.organization?.posOrgId;
 
@@ -410,7 +410,7 @@ class QrMenuVm extends ViewModel {
       organizationId: orgId,
       // detailVm?.data.data?.orgId ?? organizationId,
       tableId: null,
-      indexType: 1,
+      indexType: indexType,
       addressId: null,
     );
     request.paymentMethodId = paymentMethodData.data![0].id;

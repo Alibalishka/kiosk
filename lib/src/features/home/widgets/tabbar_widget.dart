@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -10,14 +8,17 @@ import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
+import 'package:sizer/sizer.dart';
 
 class TabbarWidget extends StatefulWidget {
   const TabbarWidget({
     super.key,
     required this.tabController,
+    this.isTablet = false,
   });
 
   final TabController tabController;
+  final bool isTablet;
 
   @override
   State<TabbarWidget> createState() => _TabbarWidgetState();
@@ -35,64 +36,111 @@ class _TabbarWidgetState extends State<TabbarWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final radius = widget.isTablet ? 16.0 : 12.0;
+    final iconHeight = widget.isTablet ? 2.2.sh : null;
+    final fontSize = widget.isTablet ? 14.5.sp : 14.sp;
+    final tabHeight = widget.isTablet ? 4.5.sh : null;
+    final tabPadding = widget.isTablet
+        ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6)
+        : AppPaddings.all4;
+    final iconSpacer = widget.isTablet ? 1.0 : 0.8;
+
     return Padding(
       padding: AppPaddings.horizontal12,
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppComponents.buttongroupButtonGrayBgColorDefault,
-          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderRadius: BorderRadius.all(Radius.circular(radius)),
+          boxShadow: widget.isTablet
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: TabBar(
           tabAlignment: TabAlignment.fill,
-          padding: AppPaddings.all4,
+          padding: tabPadding,
           controller: widget.tabController,
           unselectedLabelColor:
               AppComponents.buttongroupButtonGrayTextColorDefault,
-          unselectedLabelStyle: AppTextStyles.bodyLStrong,
+          unselectedLabelStyle: AppTextStyles.bodyLStrong.copyWith(
+            fontSize: fontSize,
+          ),
           labelColor: AppComponents.buttongroupButtonPrimaryTextColorDefault,
-          labelStyle: AppTextStyles.bodyLStrong,
+          labelStyle: AppTextStyles.bodyLStrong.copyWith(
+            fontSize: fontSize,
+          ),
           indicatorWeight: 0,
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: AppColors.none,
-          indicator: const BoxDecoration(
+          indicator: BoxDecoration(
             color: AppComponents.buttongroupButtonPrimaryBgColorDefault,
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(radius - 2)),
+            boxShadow: widget.isTablet
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 6,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
           ),
           tabs: [
             Tab(
+              height: tabHeight,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AnimatedContainer(
-                    duration: Duration.zero, // Длительность анимации
-                    curve: Curves.easeInOut, // Кривая анимации
-                    child: SvgPicture.asset(
-                      AppSvgImages.restaurantWhite,
-                      color: index == 0
+                  TweenAnimationBuilder<Color?>(
+                    tween: ColorTween(
+                      begin: index == 0
+                          ? AppColors.primitiveNeutralcold1000
+                          : AppColors.primitiveNeutralcold0,
+                      end: index == 0
                           ? AppColors.primitiveNeutralcold0
                           : AppColors.primitiveNeutralcold1000,
                     ),
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, color, _) => SvgPicture.asset(
+                      AppSvgImages.restaurantWhite,
+                      height: iconHeight,
+                      color: color ?? AppColors.primitiveNeutralcold1000,
+                    ),
                   ),
-                  const RowSpacer(0.8),
+                  RowSpacer(iconSpacer),
                   Text(LocaleKeys.dineIn.tr()),
                 ],
               ),
             ),
             Tab(
+              height: tabHeight,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AnimatedContainer(
-                    duration: Duration.zero, // Длительность анимации
-                    curve: Curves.easeInOut, // Кривая анимации
-                    child: SvgPicture.asset(
-                      AppSvgImages.walk,
-                      color: index == 1
+                  TweenAnimationBuilder<Color?>(
+                    tween: ColorTween(
+                      begin: index == 1
+                          ? AppColors.primitiveNeutralcold1000
+                          : AppColors.primitiveNeutralcold0,
+                      end: index == 1
                           ? AppColors.primitiveNeutralcold0
                           : AppColors.primitiveNeutralcold1000,
                     ),
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, color, _) => SvgPicture.asset(
+                      AppSvgImages.walk,
+                      height: iconHeight,
+                      color: color ?? AppColors.primitiveNeutralcold1000,
+                    ),
                   ),
-                  const RowSpacer(0.8),
+                  RowSpacer(iconSpacer),
                   Text(LocaleKeys.takeaway.tr()),
                 ],
               ),

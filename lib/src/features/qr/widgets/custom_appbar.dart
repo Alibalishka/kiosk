@@ -54,7 +54,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () => context.router.pop(),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                child: SvgPicture.asset(AppSvgImages.arrowLeft),
+                child: SvgPicture.asset(
+                  AppSvgImages.chevronBack,
+                  color: AppColors.semanticFgDefault,
+                ),
               ),
             )
           : const SizedBox.shrink(),
