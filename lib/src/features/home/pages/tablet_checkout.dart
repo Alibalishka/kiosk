@@ -283,23 +283,6 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
-                                                // Text(
-                                                //   '${priceFormat(recommended.price.toString())} ₸',
-                                                //   overflow:
-                                                //       TextOverflow.ellipsis,
-                                                //   maxLines: 1,
-                                                //   style: AppTextStyles
-                                                //       .bodyMStrong
-                                                //       .copyWith(
-                                                //     fontSize:
-                                                //         vmQrMenu.isTablet
-                                                //             ? 14.sp
-                                                //             : null,
-                                                //     color: AppComponents
-                                                //         .productcardorderContentTextcontentProducttitleColorDefault,
-                                                //   ),
-                                                // ),
-                                                // RowSpacer(0.1.w),
                                                 SvgPicture.asset(
                                                   AppSvgImages.plus,
                                                   height: vmQrMenu.isTablet

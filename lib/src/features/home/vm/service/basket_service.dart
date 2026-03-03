@@ -155,7 +155,10 @@ class BasketService {
     return total;
   }
 
-  String getModifiers(List<Modifier> data) {
+  String getModifiers(
+    List<Modifier> data, {
+    int itemCount = 1,
+  }) {
     final allItems = data.expand((m) => m.items ?? []).toList();
     final Map<String, int> counts = {};
     for (final item in allItems) {
@@ -164,11 +167,10 @@ class BasketService {
       counts[name] = (counts[name] ?? 0) + 1;
     }
 
-    return counts.entries
-        .map(
-          (e) => e.value > 1 ? 'x${e.value} ${e.key}' : e.key,
-        )
-        .join(', ');
+    return counts.entries.map((e) {
+      final total = (e.value) * (itemCount <= 0 ? 1 : itemCount);
+      return ' ${e.key}${total > 1 ? ' x$total' : ''}';
+    }).join('\n');
   }
 
   bool containInBasket(Items item) {

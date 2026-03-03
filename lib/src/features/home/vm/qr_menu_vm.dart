@@ -459,7 +459,8 @@ class QrMenuVm extends ViewModel {
   double getTotalPrice() => basketService.getTotalPrice();
   int getItemCount(int id) => basketService.getCount(id);
   int getItemTotalPrice(Items item) => basketService.getItemTotalPrice(item);
-  String getModifiers(List<Modifier> data) => basketService.getModifiers(data);
+  String getModifiers(List<Modifier> data, int itemCount) =>
+      basketService.getModifiers(data, itemCount: itemCount);
   List<Items> getRecommended() => basketService.returnRecommended(menuData);
   int getModifierTotalSum() => basketService.getTotalSum();
   bool isItemInBasket(Items item) => basketService.containInBasket(item);

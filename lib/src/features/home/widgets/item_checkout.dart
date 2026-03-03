@@ -3,7 +3,6 @@ import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
-import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
@@ -80,9 +79,10 @@ class ItemCheckout extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            item.name ?? '',
+            item.count != null && item.count! > 1
+                ? '${item.name ?? ''} x${item.count ?? 1}'
+                : item.name ?? '',
             style: AppTextStyles.headingH4.copyWith(
-              // fontSize: viewModel.isTablet ? 16.sp : null,
               fontSize: 16.sp,
               color: AppComponents.listitemBodytextColorDefault,
             ),
@@ -90,27 +90,31 @@ class ItemCheckout extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const ColumnSpacer(0.4),
-          Text(
-            item.description ?? '',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodyM.copyWith(
-              // fontSize: viewModel.isTablet ? 14.sp : null,
-              fontSize: 14.sp,
-              color: AppColors.semanticFgSoft,
+          // Text(
+          //   item.description ?? '',
+          //   maxLines: 2,
+          //   overflow: TextOverflow.ellipsis,
+          //   style: AppTextStyles.bodyM.copyWith(
+          //     // fontSize: viewModel.isTablet ? 14.sp : null,
+          //     fontSize: 14.sp,
+          //     color: AppColors.semanticFgSoft,
+          //   ),
+          // ),
+          // const ColumnSpacer(0.1),
+          if ((item.modifiers ?? []).isNotEmpty)
+            Text(
+              viewModel.getModifiers(
+                item.modifiers ?? [],
+                item.count ?? 1,
+              ),
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyL.copyWith(
+                fontSize: 14.sp,
+                color: AppComponents
+                    .productcardorderContentTextcontentProductsubtitleColorDefault,
+              ),
             ),
-          ),
-          const ColumnSpacer(0.4),
-          Text(
-            viewModel.getModifiers(item.modifiers ?? []),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodyL.copyWith(
-              fontSize: 12.sp,
-              color: AppComponents
-                  .productcardorderContentTextcontentProductsubtitleColorDefault,
-            ),
-          ),
           Row(
             children: [
               Text(
@@ -135,7 +139,7 @@ class ItemCheckout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          item.name ?? '',
+          '${item.name ?? ''} x${item.count ?? 1}',
           style: AppTextStyles.headingH4.copyWith(
             color: AppComponents.listitemBodytextColorDefault,
           ),
@@ -150,15 +154,19 @@ class ItemCheckout extends StatelessWidget {
                 .productcardorderContentTextcontentProducttitleColorDefault,
           ),
         ),
-        Text(
-          viewModel.getModifiers(item.modifiers ?? []),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.bodyL.copyWith(
-            color: AppComponents
-                .productcardorderContentTextcontentProductsubtitleColorDefault,
+        if ((item.modifiers ?? []).isNotEmpty)
+          Text(
+            viewModel.getModifiers(
+              item.modifiers ?? [],
+              item.count ?? 1,
+            ),
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodyL.copyWith(
+              color: AppComponents
+                  .productcardorderContentTextcontentProductsubtitleColorDefault,
+            ),
           ),
-        ),
         const ColumnSpacer(1.2),
         _buildQuantityButton(isTablet),
       ],
