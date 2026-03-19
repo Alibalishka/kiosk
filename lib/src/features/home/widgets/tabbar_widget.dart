@@ -114,7 +114,7 @@ class _TabbarWidgetState extends State<TabbarWidget> {
                     ),
                   ),
                   RowSpacer(iconSpacer),
-                  Text(LocaleKeys.dineIn.tr()),
+                  Text(LocaleKeys.inTheHall.tr()),
                 ],
               ),
             ),

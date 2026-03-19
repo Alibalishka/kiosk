@@ -44,6 +44,7 @@ class DetailItemDatum extends BaseModel<DetailItemDatum> {
   bool? isReady;
   bool? canReserve;
   List<GraphicWorkDatum>? graphicWorks;
+  dynamic inHall;
 
   DetailItemDatum({
     this.id,
@@ -67,6 +68,7 @@ class DetailItemDatum extends BaseModel<DetailItemDatum> {
     this.isReady,
     this.canReserve,
     this.graphicWorks,
+    this.inHall,
   });
 
   factory DetailItemDatum.fromJson(Map<String, dynamic> json) =>

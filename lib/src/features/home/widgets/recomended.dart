@@ -35,22 +35,17 @@ class RecomendedWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            GestureDetector(
-              onTap: () {
-                context.router.replace(KioskSuccessPageRoute(id: 98));
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primitiveNeutralwarm0.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  LocaleKeys.recommend.tr(),
-                  style: AppTextStyles.bodyS.copyWith(
-                    // fontSize: viewModel.isTablet ? 14.sp : null,
-                    fontSize: 14.sp,
-                  ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primitiveNeutralwarm0.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                LocaleKeys.recommend.tr(),
+                style: AppTextStyles.bodyS.copyWith(
+                  // fontSize: viewModel.isTablet ? 14.sp : null,
+                  fontSize: 14.sp,
                 ),
               ),
             ),

@@ -27,6 +27,7 @@ MenuCheckoutRequest _$MenuCheckoutRequestFromJson(Map<String, dynamic> json) =>
       addressId: (json['address_id'] as num?)?.toInt(),
       token: json['token'] as String?,
       fullName: json['full_name'] as String?,
+      inHall: json['in_hall'],
     );
 
 Map<String, dynamic> _$MenuCheckoutRequestToJson(
@@ -46,6 +47,7 @@ Map<String, dynamic> _$MenuCheckoutRequestToJson(
       'address_id': instance.addressId,
       'token': instance.token,
       'full_name': instance.fullName,
+      'in_hall': instance.inHall,
     };
 
 const _$DeliveryTypeEnumMap = {

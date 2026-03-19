@@ -404,6 +404,11 @@ class QrMenuVm extends ViewModel {
 
     log('✅ iikoOrgId: $orgId');
 
+    final orgInHallRaw = menuData?.organization?.inHall;
+    final orgInHall =
+        orgInHallRaw == true || orgInHallRaw == 1 || orgInHallRaw == '1';
+    final inHall = orgInHall && indexType == 0;
+
     final request = basketService.buildCheckoutRequest(
       // orgId,
       // null,
@@ -412,6 +417,7 @@ class QrMenuVm extends ViewModel {
       tableId: null,
       indexType: indexType,
       addressId: null,
+      inHall: inHall,
     );
     request.paymentMethodId = paymentMethodData.data![0].id;
     request.isFastpay = false;

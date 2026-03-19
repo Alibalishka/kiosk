@@ -29,17 +29,19 @@ import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
-import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_menu.dart';
-import 'package:qr_pay_app/src/features/home/widgets/order_interruption.dart';
 import 'package:qr_pay_app/src/features/home/widgets/shimmer_qr_menu.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/language_bloc/language_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/language.dart';
 import 'package:sizer/sizer.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
+import 'dart:async';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class QrMenuPage extends StatefulWidget {
   const QrMenuPage({
@@ -59,6 +61,10 @@ class QrMenuPageState extends State<QrMenuPage>
   QrMenuVm get viewModel => widget.viewModel;
 
   String? _appVersion;
+  int _secretTapCount = 0;
+  Timer? _secretTapResetTimer;
+  final TextEditingController _exitConfirmController = TextEditingController();
+  bool _exitInProgress = false;
 
   @override
   void initState() {
@@ -72,8 +78,201 @@ class QrMenuPageState extends State<QrMenuPage>
 
   @override
   void dispose() {
+    _secretTapResetTimer?.cancel();
+    _exitConfirmController.dispose();
     viewModel.clearSubscription();
     super.dispose();
+  }
+
+  void _handleSecretTap() {
+    _secretTapResetTimer?.cancel();
+    _secretTapResetTimer = Timer(const Duration(seconds: 2), () {
+      _secretTapCount = 0;
+    });
+
+    _secretTapCount++;
+    if (_secretTapCount >= 10) {
+      _secretTapCount = 0;
+      _secretTapResetTimer?.cancel();
+      _showDeviceInfoDialog();
+    }
+  }
+
+  Future<void> _showDeviceInfoDialog() async {
+    final deviceInfo = DeviceInfoPlugin();
+    final deviceId = await const DeviceIdService().getOrCreate();
+
+    final org = viewModel.menuData?.organization;
+
+    String model = '';
+    String osVersion = '';
+
+    try {
+      if (Platform.isAndroid) {
+        final info = await deviceInfo.androidInfo;
+        model = info.model;
+        osVersion =
+            'Android ${info.version.release} (SDK ${info.version.sdkInt})';
+      } else if (Platform.isIOS) {
+        final info = await deviceInfo.iosInfo;
+        model = info.name;
+        osVersion = '${info.systemName} ${info.systemVersion}';
+      }
+    } catch (_) {
+      // ignore: avoid_catches_without_on_clauses
+    }
+
+    final platform = Platform.isAndroid
+        ? 'Android'
+        : Platform.isIOS
+            ? 'iOS'
+            : 'Unknown';
+
+    final locale = context.locale.toLanguageTag();
+
+    final text = StringBuffer()
+      ..writeln('--- Organization ---')
+      ..writeln('Name: ${org?.name ?? '-'}')
+      ..writeln('Address: ${org?.address ?? '-'}')
+      ..writeln('iiko_org_id (org_id): ${org?.orgId ?? '-'}')
+      ..writeln('pos_org_id: ${org?.posOrgId ?? '-'}')
+      ..writeln()
+      ..writeln('--- Device ---')
+      ..writeln('Platform: $platform')
+      ..writeln('OS: $osVersion')
+      ..writeln('Device ID: $deviceId')
+      ..writeln('Model: $model')
+      ..writeln('App version: ${_appVersion ?? '-'}')
+      ..writeln('Locale: $locale');
+
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => Center(
+        child: Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  QrImageView(
+                    data: deviceId,
+                    version: QrVersions.auto,
+                    size: 300,
+                  ),
+                  const SizedBox(height: 12),
+                  SelectableText(
+                    text.toString(),
+                    style: AppTextStyles.bodyS,
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        OutlinedButton(
+                          onPressed: _exitInProgress
+                              ? null
+                              : () async {
+                                  final confirmed =
+                                      await _showKioskExitConfirmDialog();
+                                  if (!mounted || confirmed != true) return;
+                                  ctx.router.pop();
+                                  _exitFromKiosk();
+                                },
+                          child: const Text('Выйти из киоска'),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: () => ctx.router.pop(),
+                          child: Text(LocaleKeys.close.tr()),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _showKioskExitConfirmDialog() async {
+    _exitConfirmController.clear();
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Подтверждение выхода'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Это действие завершит сессию киоска и вернёт экран регистрации.\n\n'
+              'Чтобы подтвердить, введите слово EXIT.',
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _exitConfirmController,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                hintText: 'Введите EXIT',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed:
+                _exitInProgress ? null : () => Navigator.of(ctx).pop(false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: _exitInProgress
+                ? null
+                : () {
+                    final v = _exitConfirmController.text.trim().toUpperCase();
+                    if (v != 'EXIT') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Введите EXIT, чтобы подтвердить'),
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.of(ctx).pop(true);
+                  },
+            child: const Text('Подтвердить'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _exitFromKiosk() async {
+    if (_exitInProgress) return;
+    setState(() => _exitInProgress = true);
+    try {
+      viewModel.kioskService.stopSendingStatusKiosk();
+      sl<KTokenStorage>().deleteToken();
+      sl<HostStorage>().deleteHost();
+      viewModel.clearBasket();
+      if (!mounted) return;
+      context.router.replaceAll([const KioskProviderRoute()]);
+    } finally {
+      if (mounted) setState(() => _exitInProgress = false);
+    }
   }
 
   String getCurrentLanguageCode(BuildContext context) {
@@ -129,12 +328,16 @@ class QrMenuPageState extends State<QrMenuPage>
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          LocaleKeys.language.tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.w600,
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _handleSecretTap,
+                          child: Text(
+                            LocaleKeys.language.tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -325,6 +528,12 @@ class QrMenuPageState extends State<QrMenuPage>
                       // }
                     },
                     successTechWork: (response) {
+                      // if (context.router.currentPath != 'kiosk-tech-work') {
+                      //   context.router.push(
+                      //     KioskTechWorkPageRoute(
+                      //         code: response.data?.header ?? ''),
+                      //   );
+                      // }
                       if ((response.data?.active ?? false) == true) {
                         if (context.router.currentPath != 'kiosk-tech-work') {
                           context.router.push(
@@ -680,8 +889,8 @@ class QrMenuPageState extends State<QrMenuPage>
 
           // --- ПОЛНОЭКРАННАЯ РЕКЛАМА НАД ВСЕМ ---
           if (viewModel.isKioskMode &&
-              viewModel.kioskService!.isAdVisible &&
-              viewModel.kioskService!.currentScreenSaver != null)
+              viewModel.kioskService.isAdVisible &&
+              viewModel.kioskService.currentScreenSaver != null)
             Positioned.fill(
               child: AdFullScreen(
                 items: viewModel.kioskService.screenSavers?.data ?? [],

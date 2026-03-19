@@ -278,7 +278,8 @@ class CodegenLoader extends AssetLoader{
   "recommend": "Ұсынамыз",
   "minimumOptions": "минимум таңдау керек",
   "options": "опцияны",
-  "maximumOptions": "максимум таңдауга болады"
+  "maximumOptions": "максимум таңдауга болады",
+  "inTheHall": "Залда"
 };
 static const Map<String,dynamic> _ru_RU = {
   "selectCity": "Выберите город",
@@ -545,7 +546,8 @@ static const Map<String,dynamic> _ru_RU = {
   "recommend": "Рекомендуем",
   "minimumOptions": "выберите минимум",
   "options": "опций",
-  "maximumOptions": "можно выбрать максимум"
+  "maximumOptions": "можно выбрать максимум",
+  "inTheHall": "В зале"
 };
 static const Map<String,dynamic> _en_US = {
   "selectCity": "Select a city",
@@ -811,7 +813,8 @@ static const Map<String,dynamic> _en_US = {
   "recommend": "Recommend",
   "minimumOptions": "select minimum",
   "options": "options",
-  "maximumOptions": "select maximum"
+  "maximumOptions": "select maximum",
+  "inTheHall": "In the hall"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"kk_KK": _kk_KK, "ru_RU": _ru_RU, "en_US": _en_US};
 }

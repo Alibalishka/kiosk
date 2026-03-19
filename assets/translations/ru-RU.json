@@ -263,7 +263,8 @@
     "recommend": "Рекомендуем",
     "minimumOptions" : "выберите минимум",
     "options" : "опций",
-    "maximumOptions" : "можно выбрать максимум"
+    "maximumOptions" : "можно выбрать максимум",
+    "inTheHall":"В зале"
 
 
 }

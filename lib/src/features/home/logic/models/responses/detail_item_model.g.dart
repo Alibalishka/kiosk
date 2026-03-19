@@ -47,6 +47,7 @@ DetailItemDatum _$DetailItemDatumFromJson(Map<String, dynamic> json) =>
       graphicWorks: (json['graphic_works'] as List<dynamic>?)
           ?.map((e) => GraphicWorkDatum.fromJson(e as Map<String, dynamic>))
           .toList(),
+      inHall: json['in_hall'],
     );
 
 Map<String, dynamic> _$DetailItemDatumToJson(DetailItemDatum instance) =>
@@ -72,6 +73,7 @@ Map<String, dynamic> _$DetailItemDatumToJson(DetailItemDatum instance) =>
       'is_ready': instance.isReady,
       'can_reserve': instance.canReserve,
       'graphic_works': instance.graphicWorks,
+      'in_hall': instance.inHall,
     };
 
 GraphicWorkDatum _$GraphicWorkDatumFromJson(Map<String, dynamic> json) =>

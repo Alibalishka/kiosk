@@ -199,16 +199,19 @@ class BasketService {
     String? tableId,
     required int indexType,
     int? addressId,
+    dynamic inHall,
   }) {
     return MenuCheckoutRequest(
       organizationId: organizationId,
       tableId: tableId,
-      deliveryType: addressId == null
-          ? indexType == 0
-              ? DeliveryType.order
-              : DeliveryType.pickup
-          : DeliveryType.delivery,
+      deliveryType: DeliveryType.pickup,
+      // addressId == null
+      //     ? indexType == 0
+      //         ? DeliveryType.delivery
+      //         : DeliveryType.pickup
+      //     : DeliveryType.delivery,
       addressId: addressId,
+      inHall: inHall,
       items: basket.map((item) {
         final Map<int, MenuCheckoutItemModif> modifiersMap = {};
         item.modifiers?.forEach((mod) {

@@ -18,6 +18,7 @@ class MenuCheckoutRequest {
   int? addressId;
   String? token;
   String? fullName;
+  dynamic inHall;
 
   MenuCheckoutRequest({
     this.organizationId,
@@ -34,6 +35,7 @@ class MenuCheckoutRequest {
     this.addressId,
     this.token,
     this.fullName,
+    this.inHall,
   });
 
   Map<String, dynamic> toJson() => _$MenuCheckoutRequestToJson(this);

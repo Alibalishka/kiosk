@@ -175,21 +175,26 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                 });
               }
 
+              final inHallRaw = value.menuData?.organization?.inHall;
+              final showInHallTabs =
+                  inHallRaw == true || inHallRaw == 1 || inHallRaw == '1';
+
               return CustomScrollView(
                 slivers: [
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _TabBarSliverDelegate(
-                      child: TabbarWidget(
-                        tabController: _tabController,
-                        isTablet: true,
+                  if (showInHallTabs) ...[
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _TabBarSliverDelegate(
+                        child: TabbarWidget(
+                          tabController: _tabController,
+                          isTablet: true,
+                        ),
+                        height: 70,
                       ),
-                      height: 70,
                     ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  ],
 
                   // Основной список заказов
                   SliverList(

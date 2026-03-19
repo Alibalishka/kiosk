@@ -267,5 +267,6 @@ abstract class  LocaleKeys {
   static const minimumOptions = 'minimumOptions';
   static const options = 'options';
   static const maximumOptions = 'maximumOptions';
+  static const inTheHall = 'inTheHall';
 
 }

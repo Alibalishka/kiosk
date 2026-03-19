@@ -263,5 +263,6 @@
     "recommend": "Recommend",
     "minimumOptions" : "select minimum",
     "options" : "options",
-    "maximumOptions" : "select maximum"
+    "maximumOptions" : "select maximum",
+    "inTheHall" : "In the hall"
 }
