@@ -32,6 +32,7 @@ class AppWebpImages {
   static const String delete4 = 'assets/images/webp/delete4.webp';
   static const String delete5 = 'assets/images/webp/delete5.webp';
   static const String emptyBell = 'assets/images/webp/emptyBell.webp';
+  static const String emptyStatus = 'assets/images/webp/empty_status.webp';
   static const String error = 'assets/images/webp/error.webp';
   static const String flowInterruption =
       'assets/images/webp/flowInterruption.webp';
@@ -67,5 +68,4 @@ class AppWebpImages {
       'assets/images/webp/subscription_logo.webp';
   static const String waiterAvatar = 'assets/images/webp/waiterAvatar.webp';
   static const String wallet = 'assets/images/webp/wallet.webp';
-  static const String emptyStatus = 'assets/images/webp/empty_status.webp';
 }

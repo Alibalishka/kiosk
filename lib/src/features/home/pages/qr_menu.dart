@@ -6,6 +6,7 @@ import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
+import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
 import 'package:qr_pay_app/src/features/home/widgets/ad_fulll_screen.dart';
 import 'package:qr_pay_app/src/features/home/widgets/category_header.dart';
@@ -874,7 +875,61 @@ class QrMenuPageState extends State<QrMenuPage>
                                     ),
                                   ),
                                   const SliverToBoxAdapter(
-                                    child: ColumnSpacer(5),
+                                    child: ColumnSpacer(4),
+                                  ),
+                                  SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
+                                      child: Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'Powered by',
+                                                  style: AppTextStyles.bodyL
+                                                      .copyWith(
+                                                    color: AppColors
+                                                        .semanticFgSoft,
+                                                  ),
+                                                ),
+                                                const RowSpacer(0.8),
+                                                SvgPicture.asset(
+                                                  AppSvgImages.qrpayLogo,
+                                                  height: 22,
+                                                  color: AppColors
+                                                      .primitiveNeutralcold1000,
+                                                ),
+                                              ],
+                                            ),
+                                            if (_appVersion != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 6),
+                                                child: Text(
+                                                  'v$_appVersion',
+                                                  style: AppTextStyles.bodyM
+                                                      .copyWith(
+                                                    decoration:
+                                                        TextDecoration.none,
+                                                    color: AppColors
+                                                        .semanticFgDefault
+                                                        .withOpacity(0.6),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SliverToBoxAdapter(
+                                    child: ColumnSpacer(2),
                                   ),
                                 ],
                               ),
@@ -899,18 +954,18 @@ class QrMenuPageState extends State<QrMenuPage>
               ),
             ),
 
-          if (_appVersion != null)
-            Positioned(
-              right: 12,
-              bottom: 8,
-              child: Text(
-                'v$_appVersion',
-                style: AppTextStyles.bodyS.copyWith(
-                  decoration: TextDecoration.none,
-                  color: AppColors.semanticFgDefault.withOpacity(0.6),
-                ),
-              ),
-            ),
+          // if (_appVersion != null)
+          //   Positioned(
+          //     right: 12,
+          //     bottom: 8,
+          //     child: Text(
+          //       'v$_appVersion',
+          //       style: AppTextStyles.bodyS.copyWith(
+          //         decoration: TextDecoration.none,
+          //         color: AppColors.semanticFgDefault.withOpacity(0.6),
+          //       ),
+          //     ),
+          //   ),
         ],
       ),
     );

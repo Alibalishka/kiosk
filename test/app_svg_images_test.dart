@@ -5,6 +5,9 @@ import 'package:qr_pay_app/src/core/resources/resources.dart';
 
 void main() {
   test('app_svg_images assets test', () {
+    expect(File(AppSvgImages.ok).existsSync(), isTrue);
+    expect(File(AppSvgImages.okError).existsSync(), isTrue);
+    expect(File(AppSvgImages.qr).existsSync(), isTrue);
     expect(File(AppSvgImages.addCircle).existsSync(), isTrue);
     expect(File(AppSvgImages.applePay).existsSync(), isTrue);
     expect(File(AppSvgImages.arrowLeft).existsSync(), isTrue);
@@ -57,11 +60,16 @@ void main() {
     expect(File(AppSvgImages.history).existsSync(), isTrue);
     expect(File(AppSvgImages.home).existsSync(), isTrue);
     expect(File(AppSvgImages.homeFill).existsSync(), isTrue);
+    expect(File(AppSvgImages.iconKiosk).existsSync(), isTrue);
     expect(File(AppSvgImages.iconLeft).existsSync(), isTrue);
     expect(File(AppSvgImages.iconProfile).existsSync(), isTrue);
     expect(File(AppSvgImages.informationCircle).existsSync(), isTrue);
     expect(File(AppSvgImages.internet).existsSync(), isTrue);
+    expect(File(AppSvgImages.kaspiCompact).existsSync(), isTrue);
+    expect(File(AppSvgImages.kaspiGold).existsSync(), isTrue);
+    expect(File(AppSvgImages.kaspiQr).existsSync(), isTrue);
     expect(File(AppSvgImages.kazakhstan).existsSync(), isTrue);
+    expect(File(AppSvgImages.kioskNo).existsSync(), isTrue);
     expect(File(AppSvgImages.language).existsSync(), isTrue);
     expect(File(AppSvgImages.like).existsSync(), isTrue);
     expect(File(AppSvgImages.list).existsSync(), isTrue);
@@ -88,6 +96,7 @@ void main() {
     expect(File(AppSvgImages.plus).existsSync(), isTrue);
     expect(File(AppSvgImages.point).existsSync(), isTrue);
     expect(File(AppSvgImages.qrIcon).existsSync(), isTrue);
+    expect(File(AppSvgImages.qrpayLogo).existsSync(), isTrue);
     expect(File(AppSvgImages.radiobuttonOff).existsSync(), isTrue);
     expect(File(AppSvgImages.radiobuttonOn).existsSync(), isTrue);
     expect(File(AppSvgImages.ratingStar).existsSync(), isTrue);

@@ -26,10 +26,12 @@ void main() {
     expect(File(AppWebpImages.delete4).existsSync(), isTrue);
     expect(File(AppWebpImages.delete5).existsSync(), isTrue);
     expect(File(AppWebpImages.emptyBell).existsSync(), isTrue);
+    expect(File(AppWebpImages.emptyStatus).existsSync(), isTrue);
     expect(File(AppWebpImages.error).existsSync(), isTrue);
     expect(File(AppWebpImages.flowInterruption).existsSync(), isTrue);
     expect(File(AppWebpImages.handshake).existsSync(), isTrue);
     expect(File(AppWebpImages.kaspiLogo).existsSync(), isTrue);
+    expect(File(AppWebpImages.kaspiOutline).existsSync(), isTrue);
     expect(File(AppWebpImages.locationFill).existsSync(), isTrue);
     expect(File(AppWebpImages.logoApple).existsSync(), isTrue);
     expect(File(AppWebpImages.logo).existsSync(), isTrue);
@@ -53,6 +55,7 @@ void main() {
     expect(File(AppWebpImages.sandyqGroup).existsSync(), isTrue);
     expect(File(AppWebpImages.subscriptionCanceled).existsSync(), isTrue);
     expect(File(AppWebpImages.subscriptionLogo).existsSync(), isTrue);
+    expect(File(AppWebpImages.waiterAvatar).existsSync(), isTrue);
     expect(File(AppWebpImages.wallet).existsSync(), isTrue);
   });
 }

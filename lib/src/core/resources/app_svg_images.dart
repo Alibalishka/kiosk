@@ -65,6 +65,7 @@ class AppSvgImages {
   static const String history = 'assets/images/svg/history.svg';
   static const String home = 'assets/images/svg/home.svg';
   static const String homeFill = 'assets/images/svg/homeFill.svg';
+  static const String iconKiosk = 'assets/images/svg/icon_kiosk.svg';
   static const String iconLeft = 'assets/images/svg/icon_left.svg';
   static const String iconProfile = 'assets/images/svg/icon_profile.svg';
   static const String informationCircle =
@@ -74,6 +75,7 @@ class AppSvgImages {
   static const String kaspiGold = 'assets/images/svg/kaspi_gold.svg';
   static const String kaspiQr = 'assets/images/svg/kaspi_qr.svg';
   static const String kazakhstan = 'assets/images/svg/kazakhstan.svg';
+  static const String kioskNo = 'assets/images/svg/kiosk_no.svg';
   static const String language = 'assets/images/svg/language.svg';
   static const String like = 'assets/images/svg/like.svg';
   static const String list = 'assets/images/svg/list.svg';
@@ -100,6 +102,7 @@ class AppSvgImages {
   static const String plus = 'assets/images/svg/plus.svg';
   static const String point = 'assets/images/svg/point.svg';
   static const String qrIcon = 'assets/images/svg/qrIcon.svg';
+  static const String qrpayLogo = 'assets/images/svg/qrpay_logo.svg';
   static const String radiobuttonOff = 'assets/images/svg/radiobutton_off.svg';
   static const String radiobuttonOn = 'assets/images/svg/radiobutton_on.svg';
   static const String ratingStar = 'assets/images/svg/rating_star.svg';
@@ -144,6 +147,4 @@ class AppSvgImages {
   static const String wallet = 'assets/images/svg/wallet.svg';
   static const String warning = 'assets/images/svg/warning.svg';
   static const String warningFill = 'assets/images/svg/warningFill.svg';
-  static const String iconKiosk = 'assets/images/svg/icon_kiosk.svg';
-  static const String kioskNo = 'assets/images/svg/kiosk_no.svg';
 }
