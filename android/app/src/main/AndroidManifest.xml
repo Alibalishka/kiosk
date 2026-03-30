@@ -20,7 +20,8 @@
     <application
         android:label="Qr Pay"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:testOnly="false">
 
         <!-- MainActivity -->
         <activity
