@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_pay_app/src/core/base/view_model.dart';

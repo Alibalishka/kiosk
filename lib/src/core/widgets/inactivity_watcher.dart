@@ -33,6 +33,13 @@ class InactivityWatcher extends StatefulWidget {
   /// (также вызывается при автозакрытии по таймеру)
   final VoidCallback? onLeave;
 
+  /// Если true при срабатывании таймера бездействия — диалог не показывается,
+  /// вызывается [onSilentInactivity] и таймер запускается снова (например, реклама на экране).
+  final bool skipInactivityDialog;
+
+  /// Вызывается вместо диалога, когда [skipInactivityDialog] == true.
+  final VoidCallback? onSilentInactivity;
+
   // final String title;
   final String message;
   // final String stayText;
@@ -46,6 +53,8 @@ class InactivityWatcher extends StatefulWidget {
     this.decisionDuration = const Duration(seconds: 10),
     this.onStay,
     this.onLeave,
+    this.skipInactivityDialog = false,
+    this.onSilentInactivity,
     // this.title = 'Хотите продолжить заказ?',
     this.message = '',
     // this.stayText = 'Да',
@@ -130,6 +139,14 @@ class _InactivityWatcherState extends State<InactivityWatcher> {
     final route = ModalRoute.of(context);
     if (route != null && !route.isCurrent) {
       // мы сейчас под другим экраном → просто игнорируем этот таймаут
+      return;
+    }
+
+    if (widget.skipInactivityDialog) {
+      widget.onSilentInactivity?.call();
+      if (widget.isKioskMode) {
+        _startInactivityTimer();
+      }
       return;
     }
 
