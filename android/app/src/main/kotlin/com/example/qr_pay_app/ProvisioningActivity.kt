@@ -3,6 +3,7 @@ package dd.qrPay
 import android.app.Activity
 import android.app.admin.DevicePolicyManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
 
@@ -10,30 +11,31 @@ class ProvisioningActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val incomingIntent = intent
-        val allowedProvisioningModes =
-            incomingIntent.getIntegerArrayListExtra(
-                DevicePolicyManager.EXTRA_PROVISIONING_ALLOWED_PROVISIONING_MODES
+        val allowedModes: ArrayList<Int>? =
+            intent.getIntegerArrayListExtra(
+                "android.app.extra.PROVISIONING_ALLOWED_PROVISIONING_MODES"
             )
 
-        val provisioningMode = when {
-            allowedProvisioningModes?.contains(DevicePolicyManager.PROVISIONING_MODE_FULLY_MANAGED_DEVICE) == true ->
-                DevicePolicyManager.PROVISIONING_MODE_FULLY_MANAGED_DEVICE
-            allowedProvisioningModes?.contains(DevicePolicyManager.PROVISIONING_MODE_MANAGED_PROFILE) == true ->
-                DevicePolicyManager.PROVISIONING_MODE_MANAGED_PROFILE
-            else -> DevicePolicyManager.PROVISIONING_MODE_FULLY_MANAGED_DEVICE
+        val mode: Int = when {
+            allowedModes == null -> 1 // PROVISIONING_MODE_FULLY_MANAGED_DEVICE
+            allowedModes.contains(1) -> 1 // fully managed
+            allowedModes.contains(2) -> 2 // managed profile
+            else -> allowedModes[0]
         }
 
-        val resultIntent = incomingIntent
-        val adminExtras = incomingIntent.getParcelableExtra<PersistableBundle>(
-            DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE
-        )
-        if (adminExtras != null) {
-            resultIntent.putExtra(DevicePolicyManager.EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE, adminExtras)
-        }
-        resultIntent.putExtra(DevicePolicyManager.EXTRA_PROVISIONING_MODE, provisioningMode)
+        val result = Intent()
 
-        setResult(RESULT_OK, resultIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            @Suppress("DEPRECATION")
+            val extras: PersistableBundle? =
+                intent.getParcelableExtra("android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE")
+            if (extras != null) {
+                result.putExtra("android.app.extra.PROVISIONING_ADMIN_EXTRAS_BUNDLE", extras)
+            }
+        }
+
+        result.putExtra("android.app.extra.PROVISIONING_MODE", mode)
+        setResult(RESULT_OK, result)
         finish()
     }
 }
