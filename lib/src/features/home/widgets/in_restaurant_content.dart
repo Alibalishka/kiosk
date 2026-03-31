@@ -1,11 +1,9 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
@@ -27,8 +25,6 @@ import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_checkout.dart';
 import 'package:qr_pay_app/src/features/profile/widgets/not_auth_profile.dart';
 import 'package:sizer/sizer.dart';
-import 'package:vibration/vibration.dart';
-import 'package:vibration/vibration_presets.dart';
 
 class InRestaurantContent extends StatefulWidget {
   const InRestaurantContent({
@@ -384,17 +380,37 @@ class ItemRecomended extends StatelessWidget {
           DefaultCacheManager().getSingleFile(url);
         }
         viewModel.preloadVideoForItem(item!);
-        showCustomSheet(
-          context,
-          child: ProductPage(
+        // showCustomSheet(
+        //   context,
+        //   child: ProductPage(
+        //     item: item!,
+        //     preloadedVideo: viewModel.getCachedVideoController(item!.id),
+        //   ),
+        //   onClose: () {
+        //     viewModel.videoService.videoPlayerController?.play();
+        //     viewModel.returnVideoController(item!.id);
+        //   },
+        // );
+        // Navigator.of(context)
+        //     .push(
+        //   MaterialPageRoute(
+        //     builder: (_) => ProductPage(
+        //       item: item!,
+        //       preloadedVideo: viewModel.getCachedVideoController(item!.id),
+        //     ),
+        //   ),
+        // )
+        context.router
+            .push(
+          ProductPageRoute(
             item: item!,
             preloadedVideo: viewModel.getCachedVideoController(item!.id),
           ),
-          onClose: () {
-            viewModel.videoService.videoPlayerController?.play();
-            viewModel.returnVideoController(item!.id);
-          },
-        );
+        )
+            .whenComplete(() {
+          viewModel.videoService.videoPlayerController?.play();
+          viewModel.returnVideoController(item!.id);
+        });
       },
       child: Container(
         decoration: BoxDecoration(

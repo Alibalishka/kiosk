@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
@@ -13,14 +12,6 @@ import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_status_
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/screen_savers_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
-
-import 'dart:async';
-import 'dart:io';
-
-import 'package:battery_plus/battery_plus.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/material.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
 
 class KioskService {
@@ -103,15 +94,37 @@ class KioskService {
     Duration checkInterval = const Duration(seconds: 2),
   }) async {
     final deadline = DateTime.now().add(timeout);
+    const requiredSuccessStreak = 3;
+    var successStreak = 0;
+    const dnsHosts = <String>[
+      'google.com',
+      'cloudflare.com',
+      'one.one.one.one',
+    ];
+
     while (DateTime.now().isBefore(deadline)) {
+      var isResolved = false;
       try {
-        final result = await InternetAddress.lookup('google.com');
-        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-          return; // DNS работает — интернет есть
+        for (final host in dnsHosts) {
+          final result = await InternetAddress.lookup(host);
+          if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+            isResolved = true;
+            break;
+          }
         }
       } catch (_) {
-        // DNS ещё не работает — ждём
+        isResolved = false;
       }
+
+      if (isResolved) {
+        successStreak++;
+        if (successStreak >= requiredSuccessStreak) {
+          return; // интернет считаем стабильным
+        }
+      } else {
+        successStreak = 0;
+      }
+
       await Future<void>.delayed(checkInterval);
     }
     // timeout — стартуем таймеры всё равно, retry interceptor подхватит
@@ -180,10 +193,7 @@ class KioskService {
           batteryLevel: level,
           batteryStatus: _getBatteryStatus(state),
           networkLevel: 100,
-          // ⚠️ зависит от версии connectivity_plus:
-          // если у тебя возвращается List — оставь result[0]
-          // если один ConnectivityResult — используй result
-          networkType: _getNetworkType(result is List ? result[0] : result),
+          networkType: _getNetworkType(result),
           screenStatus: 'active',
           status: 'online',
         ),

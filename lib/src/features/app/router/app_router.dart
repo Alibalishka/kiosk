@@ -8,8 +8,10 @@ import 'package:qr_pay_app/src/features/booking/provider/booking_provider.dart';
 import 'package:qr_pay_app/src/features/booking/vm/booking_vm.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/requests/menu_checkout.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/detail_item_model.dart';
+import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/pages/drinks.dart';
 import 'package:qr_pay_app/src/features/home/pages/menu_checkout.dart';
+import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/pages/story.dart';
 import 'package:qr_pay_app/src/features/home/pages/tablet_checkout.dart';
 import 'package:qr_pay_app/src/features/home/provider/map_provider.dart';
@@ -17,7 +19,6 @@ import 'package:qr_pay_app/src/features/home/provider/qr_menu_provider.dart';
 import 'package:qr_pay_app/src/features/home/provider/review_provider.dart';
 import 'package:qr_pay_app/src/features/home/vm/detail_vm.dart';
 import 'package:qr_pay_app/src/features/home/vm/story_vm.dart';
-import 'package:qr_pay_app/src/features/kiosk/pages/kiosk_kaspi_pay.dart';
 import 'package:qr_pay_app/src/features/kiosk/pages/kiosk_success.dart';
 import 'package:qr_pay_app/src/features/kiosk/pages/kiosk_tech_work.dart';
 import 'package:qr_pay_app/src/features/kiosk/provider/kiosk_kaspi_provider.dart';
@@ -52,6 +53,7 @@ import 'package:qr_pay_app/src/features/qr/provider/qr_provider.dart';
 import 'package:qr_pay_app/src/features/search/pages/filter_watch_all.dart';
 import 'package:qr_pay_app/src/features/search/pages/result.dart';
 import 'package:flutter/widgets.dart';
+import 'package:video_player/video_player.dart';
 part 'app_router.gr.dart';
 
 @MaterialAutoRouter(
@@ -96,6 +98,13 @@ part 'app_router.gr.dart';
     AutoRoute(page: KioskKaspiProvider, path: 'kiosk-kaspi-pay'),
     AutoRoute(page: KioskSuccessPage, path: 'kiosk-success'),
     AutoRoute(page: KioskTechWorkPage, path: 'kiosk-tech-work'),
+    CustomRoute(
+      page: ProductPage,
+      path: 'product-page',
+      transitionsBuilder: TransitionsBuilders.slideBottom,
+      durationInMilliseconds: 180,
+      reverseDurationInMilliseconds: 240,
+    ),
 
     // KIOSK
     AutoRoute(page: KioskProvider, path: 'kiosk-register'),

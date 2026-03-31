@@ -201,108 +201,112 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
         onPointerUp: (_) => _scheduleDragEndSettle(),
         onPointerCancel: (_) => _scheduleDragEndSettle(),
         child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-        clipBehavior: Clip.hardEdge,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const ColoredBox(color: Colors.black),
-            if (_items.length == 1)
-              _buildPoster(currentItem)
-            else
-              LayoutBuilder(
-                builder: (context, constraints) => NotificationListener<
-                    UserScrollNotification>(
-                  onNotification: (notification) {
-                    final isIdle = notification.direction == ScrollDirection.idle;
-                    _setDraggingState(!isIdle);
-                    if (isIdle) {
-                      _scheduleDragEndSettle();
-                      _restartAutoSlideTimer();
-                    } else {
-                      _dragSettleTimer?.cancel();
-                      _autoSlideTimer?.cancel();
-                    }
-                    return false;
-                  },
-                  child: CarouselSlider.builder(
-                    carouselController: _carouselController,
-                    itemCount: _items.length,
-                    itemBuilder: (_, index, __) {
-                      final item = _items[index];
-                      final isCurrent = index == _currentIndex;
-                      return RepaintBoundary(
-                        child: SizedBox.expand(
-                          child: ColoredBox(
-                            color: Colors.black,
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                Positioned.fill(
-                                  left: -2,
-                                  right: -2,
-                                  child: _buildPoster(item),
-                                ),
-                                if (isCurrent &&
-                                    !_isPageDragging &&
-                                    !_adVisible &&
-                                    widget.viewModel.videoService.isVideo)
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          clipBehavior: Clip.hardEdge,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const ColoredBox(color: Colors.black),
+              if (_items.length == 1)
+                _buildPoster(currentItem)
+              else
+                LayoutBuilder(
+                  builder: (context, constraints) =>
+                      NotificationListener<UserScrollNotification>(
+                    onNotification: (notification) {
+                      final isIdle =
+                          notification.direction == ScrollDirection.idle;
+                      _setDraggingState(!isIdle);
+                      if (isIdle) {
+                        _scheduleDragEndSettle();
+                        _restartAutoSlideTimer();
+                      } else {
+                        _dragSettleTimer?.cancel();
+                        _autoSlideTimer?.cancel();
+                      }
+                      return false;
+                    },
+                    child: CarouselSlider.builder(
+                      carouselController: _carouselController,
+                      itemCount: _items.length,
+                      itemBuilder: (_, index, __) {
+                        final item = _items[index];
+                        final isCurrent = index == _currentIndex;
+                        return RepaintBoundary(
+                          child: SizedBox.expand(
+                            child: ColoredBox(
+                              color: Colors.black,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
                                   Positioned.fill(
                                     left: -2,
                                     right: -2,
-                                    child: _buildVideoFadeIn(widget.viewModel),
+                                    child: _buildPoster(item),
                                   ),
-                              ],
+                                  if (isCurrent &&
+                                      !_isPageDragging &&
+                                      !_adVisible &&
+                                      widget.viewModel.videoService.isVideo)
+                                    Positioned.fill(
+                                      left: -2,
+                                      right: -2,
+                                      child:
+                                          _buildVideoFadeIn(widget.viewModel),
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                    options: CarouselOptions(
-                      height: constraints.maxHeight,
-                      viewportFraction: 1,
-                      enableInfiniteScroll: true,
-                      disableCenter: true,
-                      padEnds: false,
-                      scrollPhysics: const ClampingScrollPhysics(),
-                      autoPlay: false,
-                      enlargeCenterPage: false,
-                      onPageChanged: (index, _) => _onPageChanged(index),
+                        );
+                      },
+                      options: CarouselOptions(
+                        height: constraints.maxHeight,
+                        viewportFraction: 1,
+                        enableInfiniteScroll: true,
+                        disableCenter: true,
+                        padEnds: false,
+                        scrollPhysics: const ClampingScrollPhysics(),
+                        autoPlay: false,
+                        enlargeCenterPage: false,
+                        onPageChanged: (index, _) => _onPageChanged(index),
+                      ),
                     ),
                   ),
                 ),
+
+              if (_items.length == 1 &&
+                  !_isPageDragging &&
+                  !_adVisible &&
+                  widget.viewModel.videoService.isVideo)
+                Positioned.fill(
+                  left: -2,
+                  right: -2,
+                  child: _buildVideoFadeIn(widget.viewModel),
+                ),
+
+              // 3) gradient overlay
+              IgnorePointer(
+                ignoring: true,
+                child: _gradientOverlay,
               ),
 
-            if (_items.length == 1 &&
-                !_isPageDragging &&
-                !_adVisible &&
-                widget.viewModel.videoService.isVideo)
-              Positioned.fill(
-                left: -2,
-                right: -2,
-                child: _buildVideoFadeIn(widget.viewModel),
-              ),
-
-            // 3) gradient overlay
-            IgnorePointer(
-              ignoring: true,
-              child: _gradientOverlay,
-            ),
-
-            // 4) overlay content
-            IgnorePointer(
-              ignoring: false,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: RecomendedWidget(
-                  item: currentItem,
-                  viewModel: widget.viewModel,
+              // 4) overlay content
+              IgnorePointer(
+                ignoring: false,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: RecomendedWidget(
+                    item: currentItem,
+                    viewModel: widget.viewModel,
+                    activeIndex: _currentIndex,
+                    recommendCount: _items.length,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

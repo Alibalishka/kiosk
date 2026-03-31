@@ -345,6 +345,22 @@ class _$AppRouter extends RootStackRouter {
         ),
       );
     },
+    ProductPageRoute.name: (routeData) {
+      final args = routeData.argsAs<ProductPageRouteArgs>();
+      return CustomPage<dynamic>(
+        routeData: routeData,
+        child: ProductPage(
+          key: args.key,
+          item: args.item,
+          preloadedVideo: args.preloadedVideo,
+        ),
+        transitionsBuilder: TransitionsBuilders.slideBottom,
+        durationInMilliseconds: 180,
+        reverseDurationInMilliseconds: 240,
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     KioskProviderRoute.name: (routeData) {
       return MaterialPageX<dynamic>(
         routeData: routeData,
@@ -528,6 +544,10 @@ class _$AppRouter extends RootStackRouter {
         RouteConfig(
           KioskTechWorkPageRoute.name,
           path: 'kiosk-tech-work',
+        ),
+        RouteConfig(
+          ProductPageRoute.name,
+          path: 'product-page',
         ),
         RouteConfig(
           KioskProviderRoute.name,
@@ -1593,6 +1613,45 @@ class KioskTechWorkPageRouteArgs {
   @override
   String toString() {
     return 'KioskTechWorkPageRouteArgs{key: $key, code: $code}';
+  }
+}
+
+/// generated route for
+/// [ProductPage]
+class ProductPageRoute extends PageRouteInfo<ProductPageRouteArgs> {
+  ProductPageRoute({
+    Key? key,
+    required Items item,
+    VideoPlayerController? preloadedVideo,
+  }) : super(
+          ProductPageRoute.name,
+          path: 'product-page',
+          args: ProductPageRouteArgs(
+            key: key,
+            item: item,
+            preloadedVideo: preloadedVideo,
+          ),
+        );
+
+  static const String name = 'ProductPageRoute';
+}
+
+class ProductPageRouteArgs {
+  const ProductPageRouteArgs({
+    this.key,
+    required this.item,
+    this.preloadedVideo,
+  });
+
+  final Key? key;
+
+  final Items item;
+
+  final VideoPlayerController? preloadedVideo;
+
+  @override
+  String toString() {
+    return 'ProductPageRouteArgs{key: $key, item: $item, preloadedVideo: $preloadedVideo}';
   }
 }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
+import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
@@ -11,16 +12,21 @@ import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_mode
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
 import 'package:sizer/sizer.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class RecomendedWidget extends StatelessWidget {
   const RecomendedWidget({
     super.key,
     required this.item,
     required this.viewModel,
+    required this.activeIndex,
+    required this.recommendCount,
   });
 
   final Items? item;
   final QrMenuVm viewModel;
+  final int activeIndex;
+  final int recommendCount;
 
   @override
   Widget build(BuildContext context) {
@@ -74,17 +80,38 @@ class RecomendedWidget extends StatelessWidget {
                   color: AppColors.primitiveNeutralcold0),
             ),
             const ColumnSpacer(1.2),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Stack(
+              alignment: Alignment.center,
               children: [
-                Text(
-                  '${priceFormat(currentItem.price.toString())} ₸',
-                  style: AppTextStyles.bodyXlStrong.copyWith(
-                      // fontSize: viewModel.isTablet ? 18.sp : null,
-                      fontSize: 18.sp,
-                      color: AppColors.primitiveNeutralcold0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${priceFormat(currentItem.price.toString())} ₸',
+                      style: AppTextStyles.bodyXlStrong.copyWith(
+                          // fontSize: viewModel.isTablet ? 18.sp : null,
+                          fontSize: 18.sp,
+                          color: AppColors.primitiveNeutralcold0),
+                    ),
+                    BasketBtn(viewModel: viewModel, item: currentItem),
+                  ],
                 ),
-                BasketBtn(viewModel: viewModel, item: currentItem),
+                if (recommendCount > 1)
+                  IgnorePointer(
+                    child: AnimatedSmoothIndicator(
+                      activeIndex: activeIndex,
+                      count: recommendCount,
+                      effect: const ScrollingDotsEffect(
+                        dotHeight: 8,
+                        dotWidth: 8,
+                        activeDotScale: 1.5,
+                        dotColor: AppComponents
+                            .pageindicatorIndicatorInactiveColorDefault,
+                        activeDotColor: AppComponents
+                            .pageindicatorIndicatorActiveColorDefault,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ],
