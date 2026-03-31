@@ -20,7 +20,8 @@ class ProvisioningActivity : Activity() {
             allowedModes == null -> 1 // PROVISIONING_MODE_FULLY_MANAGED_DEVICE
             allowedModes.contains(1) -> 1 // fully managed
             allowedModes.contains(2) -> 2 // managed profile
-            else -> allowedModes[0]
+            allowedModes.isNotEmpty() -> allowedModes[0]
+            else -> 1
         }
 
         val result = Intent()
