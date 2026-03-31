@@ -293,10 +293,10 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                                         ],
                                       ),
                                     ),
-                                    MapWidgte(
-                                      lat: item.data?.lat,
-                                      lng: item.data?.lng,
-                                    ),
+                                    // MapWidgte(
+                                    //   lat: item.data?.lat,
+                                    //   lng: item.data?.lng,
+                                    // ),
                                     const CustomDivider(horizontalPadding: 16),
 
                                     ///туть

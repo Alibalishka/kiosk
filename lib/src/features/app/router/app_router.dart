@@ -73,7 +73,7 @@ part 'app_router.gr.dart';
     AutoRoute(page: SubscriptionProvider, path: 'subscriptionPage'),
     AutoRoute(page: CheckoutProvider, path: 'checkout'),
     AutoRoute(page: QrProvider, path: 'qr'),
-    AutoRoute(page: MapProvider, path: 'map'),
+    // AutoRoute(page: MapProvider, path: 'map'),
     AutoRoute(page: MyDetailsPage, path: 'my-details'),
     // AutoRoute(page: CoffeeShopsPage, path: 'free-coffe'),
     AutoRoute(page: DrinksPage, path: 'drinks'),

@@ -19,7 +19,7 @@ import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_mode
 import 'package:qr_pay_app/src/features/home/vm/story_vm.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:video_player/video_player.dart';
-import 'package:yandex_mapkit/yandex_mapkit.dart';
+// import 'package:yandex_mapkit/yandex_mapkit.dart';
 
 class DetailVm extends ViewModel {
   final BuildContext context;
