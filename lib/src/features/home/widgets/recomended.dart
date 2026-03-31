@@ -1,20 +1,16 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
-import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
 import 'package:sizer/sizer.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 
 class RecomendedWidget extends StatelessWidget {
   const RecomendedWidget({
@@ -28,11 +24,16 @@ class RecomendedWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentItem = item;
+    if (currentItem == null) {
+      return const SizedBox.shrink();
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 78),
       child: Padding(
         padding: AppPaddings.horizontal16,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Container(
@@ -51,7 +52,7 @@ class RecomendedWidget extends StatelessWidget {
             ),
             const ColumnSpacer(0.4),
             Text(
-              item?.name ?? '',
+              currentItem.name ?? '',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -62,7 +63,7 @@ class RecomendedWidget extends StatelessWidget {
             ),
             const ColumnSpacer(0.4),
             Text(
-              item?.description ?? '',
+              currentItem.description ?? '',
               // maxLines: viewModel.isTablet ? 5 : 3,
               maxLines: 5,
               overflow: TextOverflow.ellipsis,
@@ -77,13 +78,13 @@ class RecomendedWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${priceFormat(item?.price.toString() ?? '0')} ₸',
+                  '${priceFormat(currentItem.price.toString())} ₸',
                   style: AppTextStyles.bodyXlStrong.copyWith(
                       // fontSize: viewModel.isTablet ? 18.sp : null,
                       fontSize: 18.sp,
                       color: AppColors.primitiveNeutralcold0),
                 ),
-                BasketBtn(viewModel: viewModel, item: item!),
+                BasketBtn(viewModel: viewModel, item: currentItem),
               ],
             ),
           ],

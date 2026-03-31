@@ -35,10 +35,13 @@ class VideoPreviewService with WidgetsBindingObserver {
   }
 
   Future<void> init(QrMenuModel menuData) async {
-    final videoPath = menuData.recommend?.isNotEmpty == true
-        ? menuData.recommend!.first.image?.first.file
-        : null;
+    await loadHeaderVideoForItem(menuData.recommend?.first);
+  }
 
+  Future<void> loadHeaderVideoForItem(Items? item) async {
+    final videoPath = item?.image?.isNotEmpty == true
+        ? item!.image!.first.file
+        : null;
     final url = (videoPath ?? '').trim();
 
     if (url.isEmpty || !url.toLowerCase().endsWith('.mp4')) {

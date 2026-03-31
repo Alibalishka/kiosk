@@ -157,6 +157,7 @@ class QrMenuPageState extends State<QrMenuPage>
         decisionDuration: const Duration(seconds: 10),
         skipInactivityDialog: viewModel.adVisible,
         onSilentInactivity: () => viewModel.clearBasket(),
+        showInactivityDialogIf: () => viewModel.basketService.basket.isNotEmpty,
         onLeave: () {
           viewModel.clearBasket();
           context.router.pop();

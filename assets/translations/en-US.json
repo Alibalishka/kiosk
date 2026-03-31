@@ -264,5 +264,8 @@
     "minimumOptions" : "select minimum",
     "options" : "options",
     "maximumOptions" : "select maximum",
-    "inTheHall" : "In the hall"
+    "inTheHall" : "In the hall",
+    "selectExactCount": "Choose {max}",
+    "selectUpToCount": "You can choose up to {max}",
+    "selectFromToCount": "Choose from {min} to {max}"
 }

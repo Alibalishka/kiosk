@@ -13,7 +13,7 @@ class CircleLoader extends StatelessWidget {
     if (Platform.isIOS) {
       return const Center(
           child: CupertinoActivityIndicator(
-        color: AppColors.primitiveNeutralwarm0,
+        color: AppColors.primitiveNeutralwarm1000,
       ));
     } else if (Platform.isAndroid) {
       return Center(

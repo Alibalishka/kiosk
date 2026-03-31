@@ -1,6 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
-import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
@@ -8,10 +9,10 @@ import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/recomended.dart';
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:flutter/rendering.dart';
 import 'package:video_player/video_player.dart';
 
-class QrMenuHeaderBackground extends StatelessWidget {
+class QrMenuHeaderBackground extends StatefulWidget {
   final QrMenuVm viewModel;
   final BuildContext context;
 
@@ -21,80 +22,299 @@ class QrMenuHeaderBackground extends StatelessWidget {
     required this.context,
   });
 
+  @override
+  State<QrMenuHeaderBackground> createState() => _QrMenuHeaderBackgroundState();
+}
+
+class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
+  static const _slideInterval = Duration(seconds: 10);
+  static const _slideDuration = Duration(milliseconds: 420);
+
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
+  Timer? _autoSlideTimer;
+  Timer? _dragSettleTimer;
+  int _currentIndex = 0;
+  bool _isPageDragging = false;
+  late final Widget _gradientOverlay = Container(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.bottomCenter,
+        end: Alignment.topCenter,
+        colors: [
+          AppColors.primitiveNeutralwarm1000,
+          AppColors.primitiveNeutralwarm1000.withOpacity(0.1),
+          AppColors.none,
+        ],
+        stops: const [0, 0.35, 1.0],
+      ),
+    ),
+  );
+
   bool get _adVisible =>
-      viewModel.isKioskMode &&
-      viewModel.kioskService.isAdVisible &&
-      viewModel.kioskService.currentScreenSaver != null;
+      widget.viewModel.isKioskMode &&
+      widget.viewModel.kioskService.isAdVisible &&
+      widget.viewModel.kioskService.currentScreenSaver != null;
+
+  List<Items> get _items => widget.viewModel.menuData?.recommend ?? const [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncHeaderVideoForCurrent();
+      _syncAutoSlideState();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant QrMenuHeaderBackground oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldItems = oldWidget.viewModel.menuData?.recommend ?? const <Items>[];
+    final newItems = _items;
+
+    if (newItems.isEmpty) {
+      _currentIndex = 0;
+      _autoSlideTimer?.cancel();
+      _autoSlideTimer = null;
+      return;
+    }
+
+    if (_currentIndex >= newItems.length || _currentIndex < 0) {
+      _currentIndex = 0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _carouselController.jumpToPage(0);
+      });
+    }
+
+    if (oldItems != newItems) {
+      _syncHeaderVideoForCurrent();
+    }
+
+    _syncAutoSlideState();
+  }
+
+  @override
+  void dispose() {
+    _autoSlideTimer?.cancel();
+    _dragSettleTimer?.cancel();
+    super.dispose();
+  }
+
+  void _setDraggingState(bool isDragging) {
+    _dragSettleTimer?.cancel();
+    if (!mounted || _isPageDragging == isDragging) return;
+    setState(() {
+      _isPageDragging = isDragging;
+    });
+  }
+
+  void _scheduleDragEndSettle() {
+    _dragSettleTimer?.cancel();
+    _dragSettleTimer = Timer(const Duration(milliseconds: 120), () {
+      if (!mounted) return;
+      _setDraggingState(false);
+    });
+  }
+
+  void _syncHeaderVideoForCurrent() {
+    final item = _items.isNotEmpty ? _items[_currentIndex] : null;
+    unawaited(
+      widget.viewModel.videoService.loadHeaderVideoForItem(item).then((_) {
+        if (!mounted) return;
+        setState(() {});
+      }),
+    );
+  }
+
+  void _onPageChanged(int index) {
+    if (!mounted) return;
+    final prevIndex = _currentIndex;
+    setState(() {
+      _currentIndex = index;
+    });
+    if (prevIndex != _currentIndex) {
+      _syncHeaderVideoForCurrent();
+    }
+    _restartAutoSlideTimer();
+  }
+
+  void _syncAutoSlideState() {
+    if (_adVisible || _items.length <= 1) {
+      _autoSlideTimer?.cancel();
+      _autoSlideTimer = null;
+      return;
+    }
+    _restartAutoSlideTimer();
+  }
+
+  void _restartAutoSlideTimer() {
+    _autoSlideTimer?.cancel();
+    if (_adVisible || _items.length <= 1) return;
+
+    _autoSlideTimer = Timer.periodic(_slideInterval, (_) {
+      if (!mounted) return;
+      _carouselController.nextPage(
+        duration: _slideDuration,
+        curve: Curves.easeInOut,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final item = viewModel.menuData?.recommend?.first;
+    if (_items.isEmpty) return const SizedBox.shrink();
+    final currentItem = _items[_currentIndex];
 
     return GestureDetector(
-      onTap: (!_adVisible && viewModel.scrollService.isAtStart && item != null)
+      onTap: (!_adVisible && widget.viewModel.scrollService.isAtStart)
           ? () async {
-              final headerCtrl = viewModel.videoService.videoPlayerController;
+              final headerCtrl =
+                  widget.viewModel.videoService.videoPlayerController;
               headerCtrl?.pause();
+              _autoSlideTimer?.cancel();
 
               try {
                 await showCustomSheet(
                   context,
-                  child: ProductPage(item: item),
+                  child: ProductPage(item: currentItem),
                 );
               } finally {
                 if (!_adVisible) {
-                  final c = viewModel.videoService.videoPlayerController;
+                  final c = widget.viewModel.videoService.videoPlayerController;
                   if (c != null && c.value.isInitialized) {
                     c.play();
                   }
                 }
+                _restartAutoSlideTimer();
               }
             }
           : null,
-      child: ClipRRect(
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) {
+          _setDraggingState(true);
+          _autoSlideTimer?.cancel();
+        },
+        onPointerUp: (_) => _scheduleDragEndSettle(),
+        onPointerCancel: (_) => _scheduleDragEndSettle(),
+        child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(12)),
+        clipBehavior: Clip.hardEdge,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 1) Постер ВСЕГДА снизу (и во время рекламы, и пока видео не готово)
-            _buildPoster(item),
+            const ColoredBox(color: Colors.black),
+            if (_items.length == 1)
+              _buildPoster(currentItem)
+            else
+              LayoutBuilder(
+                builder: (context, constraints) => NotificationListener<
+                    UserScrollNotification>(
+                  onNotification: (notification) {
+                    final isIdle = notification.direction == ScrollDirection.idle;
+                    _setDraggingState(!isIdle);
+                    if (isIdle) {
+                      _scheduleDragEndSettle();
+                      _restartAutoSlideTimer();
+                    } else {
+                      _dragSettleTimer?.cancel();
+                      _autoSlideTimer?.cancel();
+                    }
+                    return false;
+                  },
+                  child: CarouselSlider.builder(
+                    carouselController: _carouselController,
+                    itemCount: _items.length,
+                    itemBuilder: (_, index, __) {
+                      final item = _items[index];
+                      final isCurrent = index == _currentIndex;
+                      return RepaintBoundary(
+                        child: SizedBox.expand(
+                          child: ColoredBox(
+                            color: Colors.black,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Positioned.fill(
+                                  left: -2,
+                                  right: -2,
+                                  child: _buildPoster(item),
+                                ),
+                                if (isCurrent &&
+                                    !_isPageDragging &&
+                                    !_adVisible &&
+                                    widget.viewModel.videoService.isVideo)
+                                  Positioned.fill(
+                                    left: -2,
+                                    right: -2,
+                                    child: _buildVideoFadeIn(widget.viewModel),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    options: CarouselOptions(
+                      height: constraints.maxHeight,
+                      viewportFraction: 1,
+                      enableInfiniteScroll: true,
+                      disableCenter: true,
+                      padEnds: false,
+                      scrollPhysics: const ClampingScrollPhysics(),
+                      autoPlay: false,
+                      enlargeCenterPage: false,
+                      onPageChanged: (index, _) => _onPageChanged(index),
+                    ),
+                  ),
+                ),
+              ),
 
-            // 2) Видео — только если не реклама и isVideo=true
-            if (!_adVisible && viewModel.videoService.isVideo)
-              _buildVideoFadeIn(viewModel, item),
+            if (_items.length == 1 &&
+                !_isPageDragging &&
+                !_adVisible &&
+                widget.viewModel.videoService.isVideo)
+              Positioned.fill(
+                left: -2,
+                right: -2,
+                child: _buildVideoFadeIn(widget.viewModel),
+              ),
 
             // 3) gradient overlay
-            _buildGradient(),
+            IgnorePointer(
+              ignoring: true,
+              child: _gradientOverlay,
+            ),
 
             // 4) overlay content
-            RecomendedWidget(item: item, viewModel: viewModel),
+            IgnorePointer(
+              ignoring: false,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: RecomendedWidget(
+                  item: currentItem,
+                  viewModel: widget.viewModel,
+                ),
+              ),
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildGradient() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [
-            AppColors.primitiveNeutralwarm1000,
-            AppColors.primitiveNeutralwarm1000.withOpacity(0.1),
-            AppColors.none,
-          ],
-          stops: const [0, 0.35, 1.0],
-        ),
       ),
     );
   }
 
   Widget _buildPoster(Items? item) {
-    final url = (item?.image?.first.file?.contains('mp4') == true)
-        ? (item?.image?.first.filePreview ?? '')
-        : (item?.image?.first.path ?? item?.image?.first.file ?? '');
+    if (item == null || (item.image?.isEmpty ?? true)) {
+      return const ColoredBox(color: Colors.black);
+    }
+    final firstImage = item.image!.first;
+    final url = (firstImage.file?.contains('mp4') == true)
+        ? (firstImage.filePreview ?? firstImage.path ?? '')
+        : (firstImage.file ?? firstImage.path ?? '');
 
     if (url.isEmpty) {
       return const ColoredBox(color: Colors.black);
@@ -102,6 +322,8 @@ class QrMenuHeaderBackground extends StatelessWidget {
 
     return SafeNetworkImage(
       imageUrl: url,
+      placeholder: const ColoredBox(color: Colors.black),
+      errorWidget: const ColoredBox(color: Colors.black),
       imageBuilder: (context, placeholder) => DecoratedBox(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -113,7 +335,7 @@ class QrMenuHeaderBackground extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoFadeIn(QrMenuVm viewModel, Items? item) {
+  Widget _buildVideoFadeIn(QrMenuVm viewModel) {
     final controller = viewModel.videoService.videoPlayerController;
     if (controller == null) return const SizedBox.shrink();
 

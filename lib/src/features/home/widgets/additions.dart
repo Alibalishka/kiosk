@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
+import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
@@ -27,12 +29,17 @@ class AdditionsWidget extends StatelessWidget {
     final max = m.max ?? 0;
 
     if (min > 0 && max > 0 && min == max) {
-      // как на скрине: "Выберите 2"
-      return 'Выберите $max';
+      return LocaleKeys.selectExactCount.tr(
+        namedArgs: {'max': '$max'},
+      );
     } else if (min == 0 && max > 0) {
-      return 'Можно выбрать до $max';
+      return LocaleKeys.selectUpToCount.tr(
+        namedArgs: {'max': '$max'},
+      );
     } else if (min > 0 && max > 0) {
-      return 'Выберите от $min до $max';
+      return LocaleKeys.selectFromToCount.tr(
+        namedArgs: {'min': '$min', 'max': '$max'},
+      );
     }
     return '';
   }

@@ -268,5 +268,8 @@ abstract class  LocaleKeys {
   static const options = 'options';
   static const maximumOptions = 'maximumOptions';
   static const inTheHall = 'inTheHall';
+  static const selectExactCount = 'selectExactCount';
+  static const selectUpToCount = 'selectUpToCount';
+  static const selectFromToCount = 'selectFromToCount';
 
 }

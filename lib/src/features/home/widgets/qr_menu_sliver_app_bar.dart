@@ -32,7 +32,7 @@ class QrMenuSliverAppBar extends StatelessWidget {
       stretch: true,
       elevation: 0,
       scrolledUnderElevation: 0,
-      shadowColor: Colors.transparent,
+      shadowColor: AppColors.none,
       shape: const Border(
         bottom: BorderSide(
           color: AppComponents.buttongroupButtonWhiteBgColorDefault,
@@ -41,7 +41,7 @@ class QrMenuSliverAppBar extends StatelessWidget {
       ),
       expandedHeight:
           hasRecommend ? MediaQuery.of(context).size.width / 1.3 : null,
-      surfaceTintColor: Colors.transparent,
+      surfaceTintColor: AppColors.none,
       backgroundColor: AppColors.semanticBgSurface1,
       title: AnimatedOpacity(
         duration: const Duration(milliseconds: 500),
@@ -85,11 +85,14 @@ class QrMenuSliverAppBar extends StatelessWidget {
       flexibleSpace: hasRecommend
           ? FlexibleSpaceBar(
               titlePadding: EdgeInsets.zero,
-              collapseMode: CollapseMode.parallax,
-              background: RepaintBoundary(
-                child: QrMenuHeaderBackground(
-                  viewModel: viewModel,
-                  context: context,
+              collapseMode: CollapseMode.none,
+              background: ColoredBox(
+                color: Colors.black,
+                child: RepaintBoundary(
+                  child: QrMenuHeaderBackground(
+                    viewModel: viewModel,
+                    context: context,
+                  ),
                 ),
               ),
             )
@@ -98,4 +101,3 @@ class QrMenuSliverAppBar extends StatelessWidget {
     );
   }
 }
-

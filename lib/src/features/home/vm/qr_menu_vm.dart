@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
+import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/utils/version_compare.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
@@ -237,6 +237,14 @@ class QrMenuVm extends ViewModel {
     final cache = DefaultCacheManager();
     final urls = <String>{};
 
+    int? targetW;
+    int? targetH;
+    if (context.mounted) {
+      final px = qrPayHeroImageProxyPixels(context);
+      targetW = px.widthPx;
+      targetH = px.heightPx;
+    }
+
     void collectFromItems(List<Items>? items) {
       if (items == null) return;
       for (final item in items) {
@@ -247,10 +255,20 @@ class QrMenuVm extends ViewModel {
         final url = img.file ?? img.path ?? img.image;
         if (url != null && url.isNotEmpty) {
           urls.add(url);
+          urls.add(normalizeQrPayInsecureImageUrl(
+            url,
+            targetWidthPx: targetW,
+            targetHeightPx: targetH,
+          ));
         }
         final previewUrl = img.filePreview;
         if (previewUrl != null && previewUrl.isNotEmpty) {
           urls.add(previewUrl);
+          urls.add(normalizeQrPayInsecureImageUrl(
+            previewUrl,
+            targetWidthPx: targetW,
+            targetHeightPx: targetH,
+          ));
         }
       }
     }

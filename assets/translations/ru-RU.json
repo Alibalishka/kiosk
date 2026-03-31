@@ -264,7 +264,10 @@
     "minimumOptions" : "выберите минимум",
     "options" : "опций",
     "maximumOptions" : "можно выбрать максимум",
-    "inTheHall":"В зале"
+    "inTheHall":"В зале",
+    "selectExactCount": "Выберите {max}",
+    "selectUpToCount": "Можно выбрать до {max}",
+    "selectFromToCount": "Выберите от {min} до {max}"
 
 
 }

@@ -264,7 +264,10 @@
     "minimumOptions": "минимум таңдау керек",
     "options": "опцияны",
     "maximumOptions": "максимум таңдауга болады",
-    "inTheHall":"Залда"
+    "inTheHall":"Залда",
+    "selectExactCount": "{max} таңдаңыз",
+    "selectUpToCount": "{max}-ке дейін таңдауға болады",
+    "selectFromToCount": "{min}-ден {max}-ке дейін таңдаңыз"
 
 
 

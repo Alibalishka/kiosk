@@ -1,15 +1,13 @@
-import 'dart:developer';
 import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
+import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
@@ -26,7 +24,6 @@ import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/additions.dart';
 import 'package:qr_pay_app/src/features/home/widgets/product_info.dart';
 import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:sizer/sizer.dart';
 import 'package:video_player/video_player.dart';
 
@@ -1126,10 +1123,11 @@ class _ProductMediaBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = AppComponents.modalBgColorDefault;
+    const bgColor = AppComponents.modalBgColorDefault;
     final pixelRatio = MediaQuery.of(context).devicePixelRatio;
     final cacheHeight =
         (MediaQuery.of(context).size.height * 0.6 * pixelRatio).round();
+    final heroProxyPx = qrPayHeroImageProxyPixels(context);
 
     return Stack(
       fit: StackFit.expand,
@@ -1143,7 +1141,11 @@ class _ProductMediaBackground extends StatelessWidget {
                       videoController?.value.isPlaying == true))
                 SafeNetworkImage(
                   key: const ValueKey('preview'),
-                  imageUrl: item.image?[0].filePreview ?? '',
+                  imageUrl: normalizeQrPayInsecureImageUrl(
+                    item.image?[0].filePreview ?? '',
+                    targetWidthPx: heroProxyPx.widthPx,
+                    targetHeightPx: heroProxyPx.heightPx,
+                  ),
                   imageBuilder: (context, provider) => Container(
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.vertical(
@@ -1183,11 +1185,13 @@ class _ProductMediaBackground extends StatelessWidget {
             ],
           )
         else if (item.image?.isNotEmpty ?? false)
-          CachedNetworkImage(
-            imageUrl: item.image?[0].file ?? item.image?[0].path ?? '',
-            fit: BoxFit.cover,
-            memCacheHeight: cacheHeight,
-            progressIndicatorBuilder: (_, __, ___) => Container(
+          SafeNetworkImage(
+            imageUrl: normalizeQrPayInsecureImageUrl(
+              item.image?[0].file ?? item.image?[0].path ?? '',
+              targetWidthPx: heroProxyPx.widthPx,
+              targetHeightPx: heroProxyPx.heightPx,
+            ),
+            placeholder: Container(
               decoration: const BoxDecoration(
                 color: AppColors.primitiveNeutral0,
                 borderRadius: BorderRadius.all(Radius.circular(8)),

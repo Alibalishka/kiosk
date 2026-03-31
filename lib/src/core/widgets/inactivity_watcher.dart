@@ -40,6 +40,9 @@ class InactivityWatcher extends StatefulWidget {
   /// Вызывается вместо диалога, когда [skipInactivityDialog] == true.
   final VoidCallback? onSilentInactivity;
 
+  /// Если задан, определяет нужно ли показывать диалог при бездействии.
+  final bool Function()? showInactivityDialogIf;
+
   // final String title;
   final String message;
   // final String stayText;
@@ -55,6 +58,7 @@ class InactivityWatcher extends StatefulWidget {
     this.onLeave,
     this.skipInactivityDialog = false,
     this.onSilentInactivity,
+    this.showInactivityDialogIf,
     // this.title = 'Хотите продолжить заказ?',
     this.message = '',
     // this.stayText = 'Да',
@@ -144,6 +148,14 @@ class _InactivityWatcherState extends State<InactivityWatcher> {
 
     if (widget.skipInactivityDialog) {
       widget.onSilentInactivity?.call();
+      if (widget.isKioskMode) {
+        _startInactivityTimer();
+      }
+      return;
+    }
+
+    final shouldShowDialog = widget.showInactivityDialogIf?.call() ?? true;
+    if (!shouldShowDialog) {
       if (widget.isKioskMode) {
         _startInactivityTimer();
       }
