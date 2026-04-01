@@ -6,6 +6,7 @@ import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
+import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,21 +47,99 @@ class _KioskRegisterState extends State<KioskRegister>
 
   final TextEditingController _confirmController = TextEditingController();
   bool _clearingDo = false;
+  String _managedConfigText = 'Managed config: {}';
+  String? _lastAutoRegisterCode;
+  String? _pendingAutoRegisterCode;
+  bool _autoRegisterInProgress = false;
+  late final VoidCallback _internetListener;
 
   @override
   void initState() {
     super.initState();
+    _dpc.setMethodCallHandler(_onNativeCall);
+    _internetListener = () {
+      if (viewModel.hasInternet.value) {
+        _tryAutoRegisterFromManagedConfig();
+      }
+    };
+    viewModel.hasInternet.addListener(_internetListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _syncManagedConfig();
       await viewModel.initAndWatchInternet();
+      await _tryAutoRegisterFromManagedConfig();
     });
   }
 
   @override
   void dispose() {
+    _dpc.setMethodCallHandler(null);
+    viewModel.hasInternet.removeListener(_internetListener);
     _confirmController.dispose();
     viewModel.disposeVm(); // ✅ важно: закрываем подписки на сеть/таймеры
     super.dispose();
+  }
+
+  Future<void> _syncManagedConfig() async {
+    try {
+      final dynamic raw = await _dpc.invokeMethod('getManagedConfig');
+      if (raw is! Map) return;
+      await _applyManagedConfig(Map<String, dynamic>.from(raw));
+    } catch (e) {
+      debugPrint('Managed config sync failed: $e');
+    }
+  }
+
+  Future<dynamic> _onNativeCall(MethodCall call) async {
+    if (call.method != 'managedConfigChanged') return null;
+    final args = call.arguments;
+    if (args is! Map) return null;
+    await _applyManagedConfig(Map<String, dynamic>.from(args));
+    return null;
+  }
+
+  Future<void> _applyManagedConfig(Map<String, dynamic> config) async {
+    if (mounted) {
+      setState(() {
+        _managedConfigText = 'Managed config: $config';
+      });
+    } else {
+      _managedConfigText = 'Managed config: $config';
+    }
+
+    final code = (config['kiosk_code'] as String?)?.trim();
+    if (code != null && code.isNotEmpty) {
+      viewModel.kioskNameController.text = code;
+      _pendingAutoRegisterCode = code;
+      await _tryAutoRegisterFromManagedConfig();
+    }
+
+    final serverUrl = (config['server_url'] as String?)?.trim();
+    if (serverUrl != null && serverUrl.isNotEmpty) {
+      final host = Uri.tryParse(serverUrl)?.host;
+      if (host != null && host.endsWith('.admin.qrpay.kz')) {
+        final parts = host.split('.');
+        if (parts.isNotEmpty && parts.first.isNotEmpty) {
+          await sl<HostStorage>().saveHost(parts.first);
+        }
+      }
+    }
+  }
+
+  Future<void> _tryAutoRegisterFromManagedConfig() async {
+    final code = _pendingAutoRegisterCode;
+    if (code == null || code.isEmpty) return;
+    if (_autoRegisterInProgress) return;
+    if (!viewModel.hasInternet.value) return;
+    if (_lastAutoRegisterCode == code) return;
+
+    _autoRegisterInProgress = true;
+    try {
+      _lastAutoRegisterCode = code;
+      await viewModel.register();
+    } finally {
+      _autoRegisterInProgress = false;
+    }
   }
 
   // ✅ Открыть список Wi-Fi (панель/настройки)
@@ -288,6 +367,15 @@ class _KioskRegisterState extends State<KioskRegister>
                             fontSize: 13.sp,
                             color: AppColors.primitiveNeutralcold500,
                           ),
+                        ),
+                        const ColumnSpacer(1),
+                        Text(
+                          _managedConfigText,
+                          style: AppTextStyles.bodyM.copyWith(
+                            fontSize: 11.sp,
+                            color: AppColors.primitiveNeutralcold600,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
 
                         const ColumnSpacer(3),

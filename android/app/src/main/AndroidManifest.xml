@@ -130,6 +130,22 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".ApplicationRestrictionsChangedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_RESTRICTIONS_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".AdbConfigReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="dd.qrPay.ACTION_CONFIG" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
     <!-- Required for ProcessTextPlugin -->
