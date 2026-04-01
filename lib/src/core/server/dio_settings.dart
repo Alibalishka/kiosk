@@ -7,9 +7,6 @@ import 'package:dio/dio.dart';
 import 'package:qr_pay_app/src/core/server/interceptors/refresh.dart';
 import 'package:qr_pay_app/src/core/server/interceptors/retry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
-import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 
 class DioSettings {
   late final PackageInfo packageInfo;
@@ -31,15 +28,14 @@ class DioSettings {
     )
     ..interceptors.addAll(
       <Interceptor>[
-        // TalkerDioLogger(
-        //   talker: sl<Talker>(),
-        //   settings: const TalkerDioLoggerSettings(
-        //     printRequestHeaders: true,
-        //     printResponseHeaders: true,
-        //     printRequestData: true,
-        //     printResponseData: true,
-        //   ),
-        // ),
+        LogInterceptor(
+          request: true,
+          requestHeader: true,
+          requestBody: true,
+          responseHeader: true,
+          responseBody: true,
+          error: true,
+        ),
       ],
     );
 
@@ -65,15 +61,14 @@ class DioSettings {
     dioKiosk.interceptors.addAll([
       RetryOnConnectionErrorInterceptor(dio: dioKiosk),
       KioskAuthInterceptor(dioKiosk),
-      // TalkerDioLogger(
-      //   talker: sl<Talker>(),
-      //   settings: const TalkerDioLoggerSettings(
-      //     printRequestHeaders: true,
-      //     printResponseHeaders: true,
-      //     printRequestData: true,
-      //     printResponseData: true,
-      //   ),
-      // ),
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+      ),
     ]);
   }
 }
