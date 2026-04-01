@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
@@ -8,6 +9,7 @@ import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
+import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
@@ -34,14 +36,19 @@ class ItemMenu extends StatelessWidget {
           children: [
             if (item.image?.isNotEmpty ?? false)
               GestureDetector(
-                  onTap: () => showCustomSheet(
-                        context,
-                        child: ProductPage(
+                  onTap: () => context.router.push(
+                        ProductPageRoute(
                           item: item,
-                          // isSubscription: viewModel.isSubscription,
-                          // isMenuPage: true,
                         ),
                       ),
+                  // showCustomSheet(
+                  //       context,
+                  //       child: ProductPage(
+                  //         item: item,
+                  //         // isSubscription: viewModel.isSubscription,
+                  //         // isMenuPage: true,
+                  //       ),
+                  //     ),
                   child: item.image?.isNotEmpty ?? false
                       ? Padding(
                           padding: const EdgeInsets.only(right: 20),
@@ -86,11 +93,16 @@ class ItemMenu extends StatelessWidget {
             // const RowSpacer(2),
             Flexible(
               child: GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ProductPage(item: item)),
+                onTap: () => context.router.push(
+                  ProductPageRoute(
+                    item: item,
+                  ),
                 ),
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //       builder: (context) => ProductPage(item: item)),
+                // ),
                 //  showCustomSheet(
                 //   context,
                 //   child: ProductPage(

@@ -16,6 +16,7 @@ import 'package:qr_pay_app/src/core/widgets/custom_divider.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/core/widgets/inactivity_watcher.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
+import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/in_restaurant_content.dart';
@@ -266,11 +267,16 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                   bottom: count == 0
                                       ? GestureDetector(
                                           onTap: () => hasModifiers
-                                              ? showCustomSheet(
-                                                  context,
-                                                  child: ProductPage(
-                                                      item: recommended),
+                                              ? context.router.push(
+                                                  ProductPageRoute(
+                                                    item: recommended,
+                                                  ),
                                                 )
+                                              //  showCustomSheet(
+                                              //     context,
+                                              //     child: ProductPage(
+                                              //         item: recommended),
+                                              //   )
                                               : value.addToBasket(
                                                   context, recommended, 1),
                                           child: Container(
@@ -340,12 +346,17 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                               Expanded(
                                                 child: GestureDetector(
                                                   onTap: () => hasModifiers
-                                                      ? showCustomSheet(
-                                                          context,
-                                                          child: ProductPage(
-                                                              item:
-                                                                  recommended),
+                                                      ? context.router.push(
+                                                          ProductPageRoute(
+                                                            item: recommended,
+                                                          ),
                                                         )
+                                                      // showCustomSheet(
+                                                      //     context,
+                                                      //     child: ProductPage(
+                                                      //         item:
+                                                      //             recommended),
+                                                      //   )
                                                       : value.addToBasket(
                                                           context,
                                                           recommended,

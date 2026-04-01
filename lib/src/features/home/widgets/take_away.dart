@@ -14,6 +14,7 @@ import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_divider.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
+import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/in_restaurant_content.dart';
@@ -29,7 +30,8 @@ class TakeAwayContent extends StatefulWidget {
   State<TakeAwayContent> createState() => _TakeAwayContentState();
 }
 
-class _TakeAwayContentState extends State<TakeAwayContent> with SingleTickerProviderStateMixin {
+class _TakeAwayContentState extends State<TakeAwayContent>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Consumer<QrMenuVm>(
@@ -176,13 +178,20 @@ class _TakeAwayContentState extends State<TakeAwayContent> with SingleTickerProv
                                                   value.getRecommended()[index],
                                                   1,
                                                 )
-                                              : showCustomSheet(
-                                                  context,
-                                                  child: ProductPage(
-                                                      item: value
-                                                              .getRecommended()[
-                                                          index]),
+                                              : context.router.push(
+                                                  ProductPageRoute(
+                                                    item:
+                                                        value.getRecommended()[
+                                                            index],
+                                                  ),
                                                 ),
+                                          // showCustomSheet(
+                                          //     context,
+                                          //     child: ProductPage(
+                                          //         item: value
+                                          //                 .getRecommended()[
+                                          //             index]),
+                                          //   ),
                                           child: Container(
                                               height: 40,
                                               padding:
@@ -261,13 +270,20 @@ class _TakeAwayContentState extends State<TakeAwayContent> with SingleTickerProv
                                                               index],
                                                           1,
                                                         )
-                                                      : showCustomSheet(
-                                                          context,
-                                                          child: ProductPage(
+                                                      : context.router.push(
+                                                          ProductPageRoute(
                                                               item: value
                                                                       .getRecommended()[
                                                                   index]),
                                                         ),
+
+                                                  // showCustomSheet(
+                                                  //     context,
+                                                  //     child: ProductPage(
+                                                  //         item: value
+                                                  //                 .getRecommended()[
+                                                  //             index]),
+                                                  //   ),
                                                   child: Container(
                                                     // width: 40,
                                                     height: 40,

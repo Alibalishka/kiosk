@@ -1,7 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
+import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/widgets/in_restaurant_content.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
@@ -37,33 +39,32 @@ class ItemCatalog extends StatelessWidget {
 
     final mainItem = item![0];
 
-    return  Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: _ItemCard(
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: _ItemCard(
+            viewModel: viewModel,
+            item: mainItem,
+          ),
+        ),
+        const RowSpacer(1.2),
+        if (items?.isNotEmpty ?? false)
+          Expanded(
+            flex: 1,
+            child: SizedBox(
+              height: 475,
+              child: ItemRecomended(
+                item: items![0],
+                bottom: BasketBtn(
                   viewModel: viewModel,
-                  item: mainItem,
+                  item: items![0],
                 ),
               ),
-              const RowSpacer(1.2),
-              if (items?.isNotEmpty ?? false)
-                Expanded(
-                  flex: 1,
-                  child: SizedBox(
-                    height: 475,
-                    child: ItemRecomended(
-                      item: items![0],
-                      bottom: BasketBtn(
-                        viewModel: viewModel,
-                        item: items![0],
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          );
-
+            ),
+          ),
+      ],
+    );
 
     // return viewModel.isTablet
     //     ? Row(
@@ -115,10 +116,15 @@ class _ItemCard extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: GestureDetector(
-          onTap: () => showCustomSheet(
-            context,
-            child: ProductPage(item: item),
+          onTap: () => context.router.push(
+            ProductPageRoute(
+              item: item,
+            ),
           ),
+          // showCustomSheet(
+          //   context,
+          //   child: ProductPage(item: item),
+          // ),
           child: Container(
             // height: viewModel.isTablet ? 475 : 430,
             height: 475,

@@ -214,13 +214,20 @@ class _InRestaurantContentState extends State<InRestaurantContent>
                                                   value.getRecommended()[index],
                                                   1,
                                                 )
-                                              : showCustomSheet(
-                                                  context,
-                                                  child: ProductPage(
-                                                      item: value
+                                              :context.router.push(
+                                                          ProductPageRoute(
+                                                            item: value
                                                               .getRecommended()[
-                                                          index]),
-                                                ),
+                                                          index],
+                                                          ),
+                                                        ),
+                                              // showCustomSheet(
+                                              //     context,
+                                              //     child: ProductPage(
+                                              //         item: value
+                                              //                 .getRecommended()[
+                                              //             index]),
+                                              //   ),
                                           child: Container(
                                               height: 40,
                                               padding:
@@ -317,13 +324,20 @@ class _InRestaurantContentState extends State<InRestaurantContent>
                                                               index],
                                                           1,
                                                         )
-                                                      : showCustomSheet(
-                                                          context,
-                                                          child: ProductPage(
-                                                              item: value
-                                                                      .getRecommended()[
-                                                                  index]),
+                                                      :context.router.push(
+                                                          ProductPageRoute(
+                                                            item: value
+                                                                    .getRecommended()[
+                                                                index],
+                                                          ),
                                                         ),
+                                                      //  showCustomSheet(
+                                                      //     context,
+                                                      //     child: ProductPage(
+                                                      //         item: value
+                                                      //                 .getRecommended()[
+                                                      //             index]),
+                                                      //   ),
                                                   child: Container(
                                                     // width: 40,
                                                     height: 40,

@@ -75,7 +75,7 @@ part 'app_router.gr.dart';
     AutoRoute(page: SubscriptionProvider, path: 'subscriptionPage'),
     AutoRoute(page: CheckoutProvider, path: 'checkout'),
     AutoRoute(page: QrProvider, path: 'qr'),
-    AutoRoute(page: MapProvider, path: 'map'),
+    // AutoRoute(page: MapProvider, path: 'map'),
     AutoRoute(page: MyDetailsPage, path: 'my-details'),
     // AutoRoute(page: CoffeeShopsPage, path: 'free-coffe'),
     AutoRoute(page: DrinksPage, path: 'drinks'),
@@ -102,8 +102,8 @@ part 'app_router.gr.dart';
       page: ProductPage,
       path: 'product-page',
       transitionsBuilder: TransitionsBuilders.slideBottom,
-      durationInMilliseconds: 180,
-      reverseDurationInMilliseconds: 240,
+      durationInMilliseconds: 260,
+      reverseDurationInMilliseconds: 220,
     ),
 
     // KIOSK

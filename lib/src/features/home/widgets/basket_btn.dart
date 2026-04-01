@@ -1,9 +1,11 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
+import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
@@ -23,10 +25,15 @@ class BasketBtn extends StatelessWidget {
   bool get _hasNoModifiers => item.modifiers?.isEmpty ?? true;
 
   void _openProductSheet(BuildContext context) {
-    showCustomSheet(
-      context,
-      child: ProductPage(item: item),
+    context.router.push(
+      ProductPageRoute(
+        item: item,
+      ),
     );
+    // showCustomSheet(
+    //   context,
+    //   child: ProductPage(item: item),
+    // );
   }
 
   void _onAddTap(BuildContext context) {

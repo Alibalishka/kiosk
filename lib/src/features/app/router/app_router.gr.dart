@@ -150,17 +150,6 @@ class _$AppRouter extends RootStackRouter {
         ),
       );
     },
-    MapProviderRoute.name: (routeData) {
-      final args = routeData.argsAs<MapProviderRouteArgs>();
-      return MaterialPageX<dynamic>(
-        routeData: routeData,
-        child: MapProvider(
-          key: args.key,
-          lat: args.lat,
-          lng: args.lng,
-        ),
-      );
-    },
     MyDetailsPageRoute.name: (routeData) {
       return MaterialPageX<dynamic>(
         routeData: routeData,
@@ -355,8 +344,8 @@ class _$AppRouter extends RootStackRouter {
           preloadedVideo: args.preloadedVideo,
         ),
         transitionsBuilder: TransitionsBuilders.slideBottom,
-        durationInMilliseconds: 180,
-        reverseDurationInMilliseconds: 240,
+        durationInMilliseconds: 260,
+        reverseDurationInMilliseconds: 220,
         opaque: true,
         barrierDismissible: false,
       );
@@ -460,10 +449,6 @@ class _$AppRouter extends RootStackRouter {
         RouteConfig(
           QrProviderRoute.name,
           path: 'qr',
-        ),
-        RouteConfig(
-          MapProviderRoute.name,
-          path: 'map',
         ),
         RouteConfig(
           MyDetailsPageRoute.name,
@@ -982,45 +967,6 @@ class QrProviderRouteArgs {
   @override
   String toString() {
     return 'QrProviderRouteArgs{key: $key, isSubscribed: $isSubscribed, type: $type}';
-  }
-}
-
-/// generated route for
-/// [MapProvider]
-class MapProviderRoute extends PageRouteInfo<MapProviderRouteArgs> {
-  MapProviderRoute({
-    Key? key,
-    required String lat,
-    required String lng,
-  }) : super(
-          MapProviderRoute.name,
-          path: 'map',
-          args: MapProviderRouteArgs(
-            key: key,
-            lat: lat,
-            lng: lng,
-          ),
-        );
-
-  static const String name = 'MapProviderRoute';
-}
-
-class MapProviderRouteArgs {
-  const MapProviderRouteArgs({
-    this.key,
-    required this.lat,
-    required this.lng,
-  });
-
-  final Key? key;
-
-  final String lat;
-
-  final String lng;
-
-  @override
-  String toString() {
-    return 'MapProviderRouteArgs{key: $key, lat: $lat, lng: $lng}';
   }
 }
 

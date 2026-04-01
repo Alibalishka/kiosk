@@ -20,7 +20,6 @@ import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import com.yandex.mapkit.MapKitFactory
 import java.io.File
 import android.content.pm.ActivityInfo
 
@@ -40,7 +39,6 @@ class MainActivity : FlutterActivity() {
   }
 
   override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
-    MapKitFactory.setApiKey("68428e34-3d85-439d-bc8b-d5f8f85b89b6")
     super.configureFlutterEngine(flutterEngine)
 
     MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DPC_CHANNEL)

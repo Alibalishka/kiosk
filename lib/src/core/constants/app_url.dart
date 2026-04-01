@@ -1,4 +1,4 @@
-import 'package:yandex_geocoder/yandex_geocoder.dart';
+// import 'package:yandex_geocoder/yandex_geocoder.dart';
 
 abstract class AppUrls {
   // Sandyq.dev.qrpay.kz
@@ -8,8 +8,8 @@ abstract class AppUrls {
   // static const kBaseUrl = 'https://chayla.admin.qrpay.kz/api';
   static const notFoundUrl =
       'https://s3.amazonaws.com/thetech-production/images/web_photos/web/4429_image_not_found.png?1460712165';
-  static final geoCoder =
-      YandexGeocoder(apiKey: 'ac1e09ba-e6e1-4fb9-addc-5b44608b74a8');
+  // static final geoCoder =
+  //     YandexGeocoder(apiKey: 'ac1e09ba-e6e1-4fb9-addc-5b44608b74a8');
   static const userAgreement =
       'https://minio.daladev.kz/tenant-sandyq/terms/Политика_конфиденциальности_Sandyq_prime.pdf';
   static const publicContract =
