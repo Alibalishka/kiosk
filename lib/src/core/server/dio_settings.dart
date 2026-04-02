@@ -28,14 +28,14 @@ class DioSettings {
     )
     ..interceptors.addAll(
       <Interceptor>[
-        LogInterceptor(
-          request: true,
-          requestHeader: true,
-          requestBody: true,
-          responseHeader: true,
-          responseBody: true,
-          error: true,
-        ),
+        // LogInterceptor(
+        //   request: true,
+        //   requestHeader: true,
+        //   requestBody: true,
+        //   responseHeader: true,
+        //   responseBody: true,
+        //   error: true,
+        // ),
       ],
     );
 
@@ -61,14 +61,14 @@ class DioSettings {
     dioKiosk.interceptors.addAll([
       RetryOnConnectionErrorInterceptor(dio: dioKiosk),
       KioskAuthInterceptor(dioKiosk),
-      LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: true,
-        responseBody: true,
-        error: true,
-      ),
+      // LogInterceptor(
+      //   request: true,
+      //   requestHeader: true,
+      //   requestBody: true,
+      //   responseHeader: true,
+      //   responseBody: true,
+      //   error: true,
+      // ),
     ]);
   }
 }
