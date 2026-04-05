@@ -179,15 +179,15 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
               _autoSlideTimer?.cancel();
 
               try {
-                context.router.push(
-                  ProductPageRoute(
-                    item: currentItem,
-                  ),
-                );
-                // await showCustomSheet(
-                //   context,
-                //   child: ProductPage(item: currentItem),
+                // context.router.push(
+                //   ProductPageRoute(
+                //     item: currentItem,
+                //   ),
                 // );
+                await showCustomSheet(
+                  context,
+                  child: ProductPage(item: currentItem),
+                );
               } finally {
                 if (!_adVisible) {
                   final c = widget.viewModel.videoService.videoPlayerController;
@@ -238,51 +238,51 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
                         return false;
                       },
                       child: CarouselSlider.builder(
-                      carouselController: _carouselController,
-                      itemCount: _items.length,
-                      itemBuilder: (_, index, __) {
-                        final item = _items[index];
-                        final isCurrent = index == _currentIndex;
-                        return RepaintBoundary(
-                          child: SizedBox.expand(
-                            child: ColoredBox(
-                              color: Colors.black,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Positioned.fill(
-                                    left: -2,
-                                    right: -2,
-                                    child: _buildPoster(item),
-                                  ),
-                                  if (isCurrent &&
-                                      !_isPageDragging &&
-                                      !_adVisible &&
-                                      widget.viewModel.videoService.isVideo)
+                        carouselController: _carouselController,
+                        itemCount: _items.length,
+                        itemBuilder: (_, index, __) {
+                          final item = _items[index];
+                          final isCurrent = index == _currentIndex;
+                          return RepaintBoundary(
+                            child: SizedBox.expand(
+                              child: ColoredBox(
+                                color: Colors.black,
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
                                     Positioned.fill(
                                       left: -2,
                                       right: -2,
-                                      child:
-                                          _buildVideoFadeIn(widget.viewModel),
+                                      child: _buildPoster(item),
                                     ),
-                                ],
+                                    if (isCurrent &&
+                                        !_isPageDragging &&
+                                        !_adVisible &&
+                                        widget.viewModel.videoService.isVideo)
+                                      Positioned.fill(
+                                        left: -2,
+                                        right: -2,
+                                        child:
+                                            _buildVideoFadeIn(widget.viewModel),
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                      options: CarouselOptions(
-                        height: constraints.maxHeight,
-                        viewportFraction: 1,
-                        enableInfiniteScroll: true,
-                        disableCenter: true,
-                        padEnds: false,
-                        scrollPhysics: const ClampingScrollPhysics(),
-                        autoPlay: false,
-                        enlargeCenterPage: false,
-                        onPageChanged: (index, _) => _onPageChanged(index),
+                          );
+                        },
+                        options: CarouselOptions(
+                          height: constraints.maxHeight,
+                          viewportFraction: 1,
+                          enableInfiniteScroll: true,
+                          disableCenter: true,
+                          padEnds: false,
+                          scrollPhysics: const ClampingScrollPhysics(),
+                          autoPlay: false,
+                          enlargeCenterPage: false,
+                          onPageChanged: (index, _) => _onPageChanged(index),
+                        ),
                       ),
-                    ),
                     ),
                   ),
                 ),

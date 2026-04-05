@@ -25,15 +25,15 @@ class BasketBtn extends StatelessWidget {
   bool get _hasNoModifiers => item.modifiers?.isEmpty ?? true;
 
   void _openProductSheet(BuildContext context) {
-    context.router.push(
-      ProductPageRoute(
-        item: item,
-      ),
-    );
-    // showCustomSheet(
-    //   context,
-    //   child: ProductPage(item: item),
+    // context.router.push(
+    //   ProductPageRoute(
+    //     item: item,
+    //   ),
     // );
+    showCustomSheet(
+      context,
+      child: ProductPage(item: item),
+    );
   }
 
   void _onAddTap(BuildContext context) {
