@@ -178,13 +178,20 @@ class _TakeAwayContentState extends State<TakeAwayContent>
                                                   value.getRecommended()[index],
                                                   1,
                                                 )
-                                              : context.router.push(
-                                                  ProductPageRoute(
-                                                    item:
-                                                        value.getRecommended()[
-                                                            index],
-                                                  ),
+                                              : showCustomSheet(
+                                                  context,
+                                                  child: ProductPage(
+                                                      item: value
+                                                              .getRecommended()[
+                                                          index]),
                                                 ),
+                                          // context.router.push(
+                                          //     ProductPageRoute(
+                                          //       item:
+                                          //           value.getRecommended()[
+                                          //               index],
+                                          //     ),
+                                          //   ),
                                           // showCustomSheet(
                                           //     context,
                                           //     child: ProductPage(
@@ -270,12 +277,19 @@ class _TakeAwayContentState extends State<TakeAwayContent>
                                                               index],
                                                           1,
                                                         )
-                                                      : context.router.push(
-                                                          ProductPageRoute(
+                                                      : showCustomSheet(
+                                                          context,
+                                                          child: ProductPage(
                                                               item: value
                                                                       .getRecommended()[
                                                                   index]),
                                                         ),
+                                                  // context.router.push(
+                                                  //     ProductPageRoute(
+                                                  //         item: value
+                                                  //                 .getRecommended()[
+                                                  //             index]),
+                                                  //   ),
 
                                                   // showCustomSheet(
                                                   //     context,
