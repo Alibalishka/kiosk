@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
 import 'package:flutter/services.dart';
@@ -37,6 +38,10 @@ class KioskRegister extends StatefulWidget {
 
 class _KioskRegisterState extends State<KioskRegister>
     with ViewModelMixin<KioskRegister, KioskVm> {
+  static void _logUserMessage(String message) {
+    developer.log(message, name: 'KioskRegister');
+  }
+
   @override
   KioskVm get viewModel => widget.viewModel;
 
@@ -135,8 +140,8 @@ class _KioskRegisterState extends State<KioskRegister>
 
     _autoRegisterInProgress = true;
     try {
-      _lastAutoRegisterCode = code;
-      await viewModel.register();
+      final ok = await viewModel.register();
+      if (ok) _lastAutoRegisterCode = code;
     } finally {
       _autoRegisterInProgress = false;
     }
@@ -148,13 +153,17 @@ class _KioskRegisterState extends State<KioskRegister>
       await _dpc.invokeMethod('openWifi');
     } on PlatformException catch (e) {
       if (!mounted) return;
+      final msg = 'Ошибка Wi-Fi: ${e.message ?? e.code}';
+      _logUserMessage('snackbar: $msg (platform ${e.code})');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка Wi-Fi: ${e.message ?? e.code}')),
+        SnackBar(content: Text(msg)),
       );
     } catch (e) {
       if (!mounted) return;
+      final msg = 'Ошибка Wi-Fi: $e';
+      _logUserMessage('snackbar: $msg');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка Wi-Fi: $e')),
+        SnackBar(content: Text(msg)),
       );
     }
   }
@@ -165,8 +174,10 @@ class _KioskRegisterState extends State<KioskRegister>
     // ✅ не запускаем OTA без интернета
     if (!viewModel.hasInternet.value) {
       if (!mounted) return;
+      const msg = 'Нет интернета. Подключите Wi-Fi.';
+      _logUserMessage('snackbar: $msg');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Нет интернета. Подключите Wi-Fi.')),
+        const SnackBar(content: Text(msg)),
       );
       return;
     }
@@ -180,13 +191,17 @@ class _KioskRegisterState extends State<KioskRegister>
       );
     } on PlatformException catch (e) {
       if (!mounted) return;
+      final msg = 'OTA ошибка: ${e.message ?? e.code}';
+      _logUserMessage('snackbar: $msg (platform ${e.code})');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('OTA ошибка: ${e.message ?? e.code}')),
+        SnackBar(content: Text(msg)),
       );
     } catch (e) {
       if (!mounted) return;
+      final msg = 'OTA ошибка: $e';
+      _logUserMessage('snackbar: $msg');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('OTA ошибка: $e')),
+        SnackBar(content: Text(msg)),
       );
     } finally {
       if (mounted) setState(() => _otaRunning = false);
@@ -233,10 +248,10 @@ class _KioskRegisterState extends State<KioskRegister>
                       final v = _confirmController.text.trim().toUpperCase();
                       if (v != 'CLEAR') {
                         if (!mounted) return;
+                        const msg = 'Введите CLEAR, чтобы подтвердить';
+                        _logUserMessage('snackbar: $msg');
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Введите CLEAR, чтобы подтвердить'),
-                          ),
+                          const SnackBar(content: Text(msg)),
                         );
                         return;
                       }
@@ -251,15 +266,19 @@ class _KioskRegisterState extends State<KioskRegister>
                         );
                       } on PlatformException catch (e) {
                         if (!mounted) return;
+                        final msg = 'Ошибка: ${e.message ?? e.code}';
+                        _logUserMessage(
+                          'snackbar: clearDeviceOwner $msg (platform ${e.code})',
+                        );
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Ошибка: ${e.message ?? e.code}'),
-                          ),
+                          SnackBar(content: Text(msg)),
                         );
                       } catch (e) {
                         if (!mounted) return;
+                        final msg = 'Ошибка: $e';
+                        _logUserMessage('snackbar: clearDeviceOwner $msg');
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Ошибка: $e')),
+                          SnackBar(content: Text(msg)),
                         );
                       } finally {
                         if (mounted) setState(() => _clearingDo = false);
@@ -285,6 +304,7 @@ class _KioskRegisterState extends State<KioskRegister>
         listener: (context, state) => state.maybeWhen(
           orElse: () => null,
           failed: (error, _) {
+            _logUserMessage('topSnack (kiosk bloc): $error');
             showTopSnackBar(
               Overlay.of(context),
               CustomSnackBar.error(

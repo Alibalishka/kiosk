@@ -10,6 +10,7 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:qr_pay_app/src/core/base/view_model.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:qr_pay_app/src/core/utils/device_display_name.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
@@ -79,9 +80,18 @@ class KioskVm extends ViewModel {
   }
 
   Future<void> _updateInternetNow() async {
+    // Важно: сначала deviceId/model, потом hasInternet — иначе слушатель в UI
+    // успевает вызвать register() с пустыми полями.
+    await _ensureDeviceInfoReady();
     final ok = await _logInternetProbe();
     hasInternet.value = ok;
     log('Internet: $ok');
+  }
+
+  Future<void> _ensureDeviceInfoReady() async {
+    if (_deviceInfoReady) return;
+    await initDeviceInfo();
+    _deviceInfoReady = true;
   }
 
   Future<bool> _logInternetProbe() async {
@@ -109,11 +119,7 @@ class KioskVm extends ViewModel {
     if (_initFlowDone) return; // уже делали (в этой сессии)
     if (!hasInternet.value) return;
 
-    // device info можно получить и без интернета, но делаем аккуратно один раз
-    if (!_deviceInfoReady) {
-      await initDeviceInfo();
-      _deviceInfoReady = true;
-    }
+    await _ensureDeviceInfoReady();
 
     // checkKiosk делаем только если есть host (как у тебя)
     await checkKiosk();
@@ -135,11 +141,14 @@ class KioskVm extends ViewModel {
 
     if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
-      model = androidInfo.model;
+      model = await androidDeviceDisplayNameResolved(androidInfo);
     } else if (Platform.isIOS) {
       final iosInfo = await deviceInfo.iosInfo;
-      model = iosInfo.name;
+      model = iosDeviceDisplayName(iosInfo);
+    } else {
+      model = 'kiosk';
     }
+    if (model.isEmpty) model = 'unknown';
 
     log('Device UUID: $deviceId');
     log('Device Model: $model');
@@ -167,7 +176,8 @@ class KioskVm extends ViewModel {
     _initFlowDone = false;
   }
 
-  Future<void> register() async {
+  /// `true` — событие регистрации отправлено в bloc; иначе пользователю показана ошибка.
+  Future<bool> register() async {
     // ✅ не шлём запросы без интернета
     if (!hasInternet.value) {
       showTopSnackBar(
@@ -178,7 +188,21 @@ class KioskVm extends ViewModel {
         ),
         dismissType: DismissType.onSwipe,
       );
-      return;
+      return false;
+    }
+
+    await _ensureDeviceInfoReady();
+    if (deviceId.isEmpty) {
+      log('register: deviceId пуст после initDeviceInfo');
+      showTopSnackBar(
+        Overlay.of(context),
+        const CustomSnackBar.error(
+          textAlign: TextAlign.start,
+          message: 'Не удалось получить ID устройства. Повторите попытку.',
+        ),
+        dismissType: DismissType.onSwipe,
+      );
+      return false;
     }
 
     final text = kioskNameController.text.trim();
@@ -196,6 +220,7 @@ class KioskVm extends ViewModel {
           ),
         ),
       );
+      return true;
     } else {
       showTopSnackBar(
         Overlay.of(context),
@@ -205,6 +230,7 @@ class KioskVm extends ViewModel {
         ),
         dismissType: DismissType.onSwipe,
       );
+      return false;
     }
   }
 

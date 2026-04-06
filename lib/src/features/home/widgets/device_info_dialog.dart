@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import 'package:qr_pay_app/src/core/utils/device_display_name.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/kiosk_exit_confirm_dialog.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
@@ -33,17 +34,20 @@ class DeviceInfoDialog {
     try {
       if (Platform.isAndroid) {
         final info = await deviceInfo.androidInfo;
-        model = info.model;
+        model = await androidDeviceDisplayNameResolved(info);
         osVersion =
             'Android ${info.version.release} (SDK ${info.version.sdkInt})';
       } else if (Platform.isIOS) {
         final info = await deviceInfo.iosInfo;
-        model = info.name;
+        model = iosDeviceDisplayName(info);
         osVersion = '${info.systemName} ${info.systemVersion}';
       }
     } catch (_) {
       // ignore: avoid_catches_without_on_clauses
     }
+
+    model = model.trim();
+    if (model.isEmpty) model = '-';
 
     final platform = Platform.isAndroid
         ? 'Android'
@@ -64,7 +68,7 @@ class DeviceInfoDialog {
       ..writeln('Platform: $platform')
       ..writeln('OS: $osVersion')
       ..writeln('Device ID: $deviceId')
-      ..writeln('Model: $model')
+      ..writeln('Name: $model')
       ..writeln('App version: ${appVersion ?? '-'}')
       ..writeln('Locale: $locale');
 
@@ -112,8 +116,8 @@ class DeviceInfoDialog {
                                     exitInProgress: exitInProgress,
                                   );
 
-                                  if (!context.mounted ||
-                                      confirmed != true) return;
+                                  if (!context.mounted || confirmed != true)
+                                    return;
 
                                   ctx.router.pop();
                                   await onExitFromKiosk();
@@ -137,4 +141,3 @@ class DeviceInfoDialog {
     );
   }
 }
-

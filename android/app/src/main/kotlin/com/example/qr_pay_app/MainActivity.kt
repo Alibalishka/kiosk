@@ -73,6 +73,19 @@ class MainActivity : FlutterActivity() {
 
   private val DPC_CHANNEL = "dpc"
 
+  private fun readSystemDeviceDisplayName(): String? {
+    return try {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+        val name = Settings.Global.getString(contentResolver, Settings.Global.DEVICE_NAME)
+        if (!name.isNullOrBlank()) name.trim() else null
+      } else {
+        null
+      }
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
   private fun isKioskDisabled(): Boolean =
     getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_KIOSK_DISABLED, false)
 
@@ -180,6 +193,11 @@ class MainActivity : FlutterActivity() {
 
           "getManagedConfig" -> {
             result.success(readManagedConfig())
+          }
+
+          // Имя из «Настройки → О телефоне / Имя устройства» (Settings.Global.DEVICE_NAME).
+          "getDeviceDisplayName" -> {
+            result.success(readSystemDeviceDisplayName())
           }
 
           else -> result.notImplemented()
