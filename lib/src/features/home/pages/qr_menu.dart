@@ -154,9 +154,9 @@ class QrMenuPageState extends State<QrMenuPage>
     setState(() => _exitInProgress = true);
     try {
       final deviceId = await const DeviceIdService().getOrCreate();
-      viewModel.kioskService.kioskBloc.add(
-        KioskEvent.disconnectKiosk(deviceId: deviceId),
-      );
+      // viewModel.kioskService.kioskBloc.add(
+      //   KioskEvent.disconnectKiosk(deviceId: deviceId),
+      // );
       viewModel.kioskService.stopSendingStatusKiosk();
       sl<KTokenStorage>().deleteToken();
       sl<HostStorage>().deleteHost();

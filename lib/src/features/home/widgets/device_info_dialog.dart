@@ -5,10 +5,12 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 
 import 'package:qr_pay_app/src/core/utils/device_display_name.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/kiosk_exit_confirm_dialog.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/ota_update.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
@@ -24,6 +26,7 @@ class DeviceInfoDialog {
     required TextEditingController exitConfirmController,
     required Future<void> Function() onExitFromKiosk,
   }) async {
+    var otaRunning = false;
     final deviceInfo = DeviceInfoPlugin();
     final deviceId = await const DeviceIdService().getOrCreate();
     final org = viewModel.menuData?.organization;
@@ -83,17 +86,18 @@ class DeviceInfoDialog {
     await showDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) => Center(
-        child: Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) => Center(
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                   QrImageView(
                     data: deviceId,
                     version: QrVersions.auto,
@@ -131,6 +135,43 @@ class DeviceInfoDialog {
                           child: const Text('Выйти из киоска'),
                         ),
                         const SizedBox(height: 8),
+                        if (!Platform.isIOS)
+                          FilledButton(
+                            onPressed: otaRunning
+                                ? null
+                                : () async {
+                                    setStateDialog(() => otaRunning = true);
+                                    try {
+                                      await sl<OtaUpdateService>()
+                                          .downloadAndInstall();
+                                      if (!ctx.mounted) return;
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(
+                                          content:
+                                              Text('Обновление запущено…'),
+                                        ),
+                                      );
+                                    } catch (_) {
+                                      if (!ctx.mounted) return;
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(
+                                          content:
+                                              Text('Не удалось обновить'),
+                                        ),
+                                      );
+                                    } finally {
+                                      if (ctx.mounted) {
+                                        setStateDialog(() => otaRunning = false);
+                                      }
+                                    }
+                                  },
+                            child: Text(
+                              otaRunning
+                                  ? 'Обновление…'
+                                  : 'Обновить приложение',
+                            ),
+                          ),
+                        if (!Platform.isIOS) const SizedBox(height: 8),
                         TextButton(
                           onPressed: () => ctx.router.pop(),
                           child: Text(LocaleKeys.close.tr()),
@@ -138,7 +179,8 @@ class DeviceInfoDialog {
                       ],
                     ),
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

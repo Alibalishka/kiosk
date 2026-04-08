@@ -407,7 +407,6 @@ class _KioskRegisterState extends State<KioskRegister>
                           ),
                           textAlign: TextAlign.center,
                         ),
-
                         const ColumnSpacer(3),
 
                         // ✅ Регистрация: без интернета кнопка отключена
