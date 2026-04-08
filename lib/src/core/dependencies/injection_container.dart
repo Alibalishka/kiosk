@@ -92,6 +92,8 @@ Future<void> initGetIt() async {
       () => SharedPrefsKTokenStorage(preferences: sl<SharedPreferences>()));
   sl.registerLazySingleton<HostStorage>(
       () => SharedPrefsHostStorage(preferences: sl<SharedPreferences>()));
+  sl.registerLazySingleton<SectionStorage>(
+      () => SharedPrefsSectionStorage(preferences: sl<SharedPreferences>()));
   sl.registerLazySingleton<DioSettings>(() => DioSettings());
   sl.registerLazySingleton<OtaUpdateService>(() => OtaUpdateService());
 

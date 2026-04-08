@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:auto_route/auto_route.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/inactivity_watcher.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
@@ -20,6 +21,7 @@ import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener
 import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/core/base/view_model_mixin.dart';
@@ -30,6 +32,8 @@ import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_menu.dart';
 import 'package:qr_pay_app/src/features/home/widgets/shimmer_qr_menu.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:async';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
@@ -49,6 +53,8 @@ class QrMenuPage extends StatefulWidget {
 
 class QrMenuPageState extends State<QrMenuPage>
     with ViewModelMixin<QrMenuPage, QrMenuVm>, SingleTickerProviderStateMixin {
+  static const MethodChannel _dpc = MethodChannel('dpc');
+
   @override
   QrMenuVm get viewModel => widget.viewModel;
 
@@ -62,6 +68,7 @@ class QrMenuPageState extends State<QrMenuPage>
   @override
   void initState() {
     super.initState();
+    _dpc.setMethodCallHandler(_onNativeCall);
     try {
       _appVersion = sl<PackageInfo>().version;
     } catch (_) {
@@ -89,10 +96,36 @@ class QrMenuPageState extends State<QrMenuPage>
 
   @override
   void dispose() {
+    _dpc.setMethodCallHandler(null);
     _secretTapResetTimer?.cancel();
     _exitConfirmController.dispose();
     viewModel.clearSubscription();
     super.dispose();
+  }
+
+  Future<dynamic> _onNativeCall(MethodCall call) async {
+    if (call.method != 'managedConfigChanged') return null;
+    final args = call.arguments;
+    if (args is! Map) return null;
+    final config = Map<String, dynamic>.from(args);
+    final kioskDisable = config['kiosk_disable'] == true;
+    if (!kioskDisable) return null;
+
+    if (_exitInProgress) return null;
+    setState(() => _exitInProgress = true);
+    try {
+      final deviceId = await const DeviceIdService().getOrCreate();
+      await sl<KioskRepository>().disconnectKiosk(deviceId: deviceId);
+      await _dpc.invokeMethod('clearDeviceOwner');
+    } catch (e) {
+      log('kiosk_disable flow failed: $e');
+      try {
+        await _dpc.invokeMethod('clearDeviceOwner');
+      } catch (_) {}
+    } finally {
+      if (mounted) setState(() => _exitInProgress = false);
+    }
+    return null;
   }
 
   void _handleSecretTap() {
@@ -120,6 +153,10 @@ class QrMenuPageState extends State<QrMenuPage>
     if (_exitInProgress) return;
     setState(() => _exitInProgress = true);
     try {
+      final deviceId = await const DeviceIdService().getOrCreate();
+      viewModel.kioskService.kioskBloc.add(
+        KioskEvent.disconnectKiosk(deviceId: deviceId),
+      );
       viewModel.kioskService.stopSendingStatusKiosk();
       sl<KTokenStorage>().deleteToken();
       sl<HostStorage>().deleteHost();
@@ -187,6 +224,7 @@ class QrMenuPageState extends State<QrMenuPage>
                       successScreenSavers: (response) =>
                           viewModel.kioskService.saveScreenSavers(response),
                       successKioskStatus: (response) {
+                        viewModel.setKioskSection(response.data?.section);
                         final serverVersion = response.data?.version;
                         if (!Platform.isIOS) {
                           viewModel.checkAndUpdateIfNeeded(serverVersion);
@@ -307,6 +345,17 @@ class QrMenuPageState extends State<QrMenuPage>
                                   controller:
                                       viewModel.scrollService.scrollController,
                                   slivers: [
+                                    // // здесь
+                                    // if (viewModel.kioskSection != null)
+                                    //   SliverToBoxAdapter(
+                                    //     child: _SectionInfoBar(
+                                    //       number:
+                                    //           viewModel.kioskSection?.number,
+                                    //       groupName:
+                                    //           viewModel.kioskSection?.groupName,
+                                    //     ),
+                                    //   ),
+                                    // // ==========
                                     QrMenuSliverAppBar(
                                       viewModel: viewModel,
                                       currentLanguageCode:
@@ -321,6 +370,7 @@ class QrMenuPageState extends State<QrMenuPage>
                                         );
                                       },
                                     ),
+
                                     SliverList(
                                       delegate: SliverChildBuilderDelegate(
                                         (context, index) {
@@ -384,6 +434,56 @@ class QrMenuPageState extends State<QrMenuPage>
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SectionInfoBar extends StatelessWidget {
+  const _SectionInfoBar({
+    required this.number,
+    required this.groupName,
+  });
+
+  final String? number;
+  final String? groupName;
+
+  @override
+  Widget build(BuildContext context) {
+    final n = number?.trim() ?? '';
+    final g = groupName?.trim() ?? '';
+    if (n.isEmpty && g.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.primitiveNeutralcold1000,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(
+              g,
+              // [
+
+              //   if (g.isNotEmpty) g,
+              // ],
+              style: AppTextStyles.headingH1.copyWith(
+                  fontSize: 40, color: AppColors.primitiveNeutralcold0),
+            ),
+          ),
+          if (n.isNotEmpty)
+            Text(
+              n,
+              style: AppTextStyles.headingH1.copyWith(
+                fontSize: 100,
+                color: AppColors.primitiveNeutralcold0,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+        ],
       ),
     );
   }

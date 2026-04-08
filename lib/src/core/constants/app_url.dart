@@ -1,10 +1,18 @@
 // import 'package:yandex_geocoder/yandex_geocoder.dart';
 
 abstract class AppUrls {
-  // Sandyq.dev.qrpay.kz
-  static const devUrl = 'https://sandyq.dev.qrpay.kz/api';
-  // https://aidos.finsider.asia/
-  static const kBaseUrl = 'https://sandyq.admin.qrpay.kz/api';
+  /// Переключатель окружения в одном месте.
+  /// false = dev, true = prod.
+  static const bool isProd = false;
+
+  static String get _apiZone => isProd ? 'admin' : 'dev';
+  static String get _otaChannel => isProd ? 'prod' : 'dev';
+
+  static String get devUrl => 'https://sandyq.$_apiZone.qrpay.kz/api';
+  static String get kBaseUrl => devUrl;
+  static String apiByHost(String host) => 'https://$host.$_apiZone.qrpay.kz/api';
+  static String get otaApkUrl => 'https://kiosk.qrpay.kz/apk/app/$_otaChannel';
+
   // static const kBaseUrl = 'https://chayla.admin.qrpay.kz/api';
   static const notFoundUrl =
       'https://s3.amazonaws.com/thetech-production/images/web_photos/web/4429_image_not_found.png?1460712165';

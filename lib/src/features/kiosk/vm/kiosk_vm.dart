@@ -30,6 +30,7 @@ class KioskVm extends ViewModel {
   final deviceInfo = DeviceInfoPlugin();
   String deviceId = '';
   String model = '';
+  String deviceName = '';
 
   // ✅ интернет состояние
   final ValueNotifier<bool> hasInternet = ValueNotifier<bool>(false);
@@ -141,16 +142,21 @@ class KioskVm extends ViewModel {
 
     if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
-      model = await androidDeviceDisplayNameResolved(androidInfo);
+      deviceName = await androidDeviceDisplayNameResolved(androidInfo);
+      model = androidBuildPropModel(androidInfo);
     } else if (Platform.isIOS) {
       final iosInfo = await deviceInfo.iosInfo;
-      model = iosDeviceDisplayName(iosInfo);
+      deviceName = iosDeviceDisplayName(iosInfo);
+      model = iosInfo.utsname.machine;
     } else {
+      deviceName = 'kiosk';
       model = 'kiosk';
     }
+    if (deviceName.isEmpty) deviceName = 'unknown';
     if (model.isEmpty) model = 'unknown';
 
     log('Device UUID: $deviceId');
+    log('Device Name: $deviceName');
     log('Device Model: $model');
   }
 
@@ -217,6 +223,10 @@ class KioskVm extends ViewModel {
             deviceId: deviceId,
             model: model,
             connectionCode: parts[1],
+            name: deviceName,
+            sectionId: sl<SectionStorage>().hasSectionId()
+                ? sl<SectionStorage>().getSectionId()
+                : null,
           ),
         ),
       );

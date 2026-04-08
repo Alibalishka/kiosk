@@ -40,6 +40,23 @@ String androidDeviceDisplayName(AndroidDeviceInfo i) {
   return 'unknown';
 }
 
+/// Техническая модель Android на базе build-полей (build.prop).
+/// Пример: "samsung SM-A546E" или fallback на product/device.
+String androidBuildPropModel(AndroidDeviceInfo i) {
+  final brand = i.brand.trim();
+  final modelName = i.model.trim();
+  final product = i.product.trim();
+  final device = i.device.trim();
+
+  if (brand.isNotEmpty && modelName.isNotEmpty) {
+    return '$brand $modelName';
+  }
+  if (modelName.isNotEmpty) return modelName;
+  if (product.isNotEmpty) return product;
+  if (device.isNotEmpty) return device;
+  return 'unknown';
+}
+
 /// Имя в настройках + идентификатор модели (utsname.machine).
 String iosDeviceDisplayName(IosDeviceInfo i) {
   final human = i.name.trim();

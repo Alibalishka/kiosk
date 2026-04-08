@@ -29,6 +29,7 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
         checkKapiPayStatus: (event) => _checkKapiPayStatus(event, emit),
         fetchScreenSavers: (event) => _fetchScreenSavers(event, emit),
         techWork: (event) => _techWork(event, emit),
+        disconnectKiosk: (event) => _disconnectKiosk(event, emit),
       ),
     );
   }
@@ -165,6 +166,26 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
       result.when(
         success: (reponse) =>
             emit(KioskState.successTechWork(response: reponse)),
+        failure: (error) => emit(KioskState.failed(
+          message: error.msg ?? 'Ошибка загурзки данных',
+          errorCode: error.errorCode,
+        )),
+      );
+    } on Object {
+      emit(const KioskState.failed());
+    }
+  }
+
+  Future<void> _disconnectKiosk(
+    _DisconnectKiosk event,
+    Emitter<KioskState> emit,
+  ) async {
+    emit(const KioskState.loading());
+    try {
+      final result =
+          await _kioskRepository.disconnectKiosk(deviceId: event.deviceId);
+      result.when(
+        success: (reponse) => emit(const KioskState.successDisconnectKiosk()),
         failure: (error) => emit(KioskState.failed(
           message: error.msg ?? 'Ошибка загурзки данных',
           errorCode: error.errorCode,

@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageInstaller
+import android.content.pm.PackageManager
 import android.content.RestrictionsManager
 import android.os.Bundle
 import android.os.Build
@@ -81,6 +82,17 @@ class MainActivity : FlutterActivity() {
       } else {
         null
       }
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
+  private fun readPackageVersion(targetPackage: String): String? {
+    return try {
+      val info = packageManager.getPackageInfo(targetPackage, 0)
+      info.versionName
+    } catch (_: PackageManager.NameNotFoundException) {
+      null
     } catch (_: Throwable) {
       null
     }
@@ -199,6 +211,15 @@ class MainActivity : FlutterActivity() {
           // Имя из «Настройки → О телефоне / Имя устройства» (Settings.Global.DEVICE_NAME).
           "getDeviceDisplayName" -> {
             result.success(readSystemDeviceDisplayName())
+          }
+
+          "getPackageVersion" -> {
+            val targetPackage = call.argument<String>("packageName")
+            if (targetPackage.isNullOrBlank()) {
+              result.success(null)
+            } else {
+              result.success(readPackageVersion(targetPackage))
+            }
           }
 
           else -> result.notImplemented()

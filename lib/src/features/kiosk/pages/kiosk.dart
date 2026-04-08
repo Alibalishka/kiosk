@@ -119,6 +119,16 @@ class _KioskRegisterState extends State<KioskRegister>
       await _tryAutoRegisterFromManagedConfig();
     }
 
+    final dynamic rawSectionId = config['section_id'];
+    if (rawSectionId is int) {
+      await sl<SectionStorage>().saveSectionId(rawSectionId);
+    } else if (rawSectionId is String) {
+      final parsed = int.tryParse(rawSectionId.trim());
+      if (parsed != null) {
+        await sl<SectionStorage>().saveSectionId(parsed);
+      }
+    }
+
     final serverUrl = (config['server_url'] as String?)?.trim();
     if (serverUrl != null && serverUrl.isNotEmpty) {
       final host = Uri.tryParse(serverUrl)?.host;

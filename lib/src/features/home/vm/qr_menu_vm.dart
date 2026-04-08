@@ -13,6 +13,7 @@ import 'package:qr_pay_app/src/features/home/vm/service/kiosk_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/scroll_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/video_service.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_status.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/ota_update.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/responses/payment_method.dart';
@@ -78,6 +79,7 @@ class QrMenuVm extends ViewModel {
   bool isKioskMode = true;
   bool isTechWork = false;
   bool _adWasVisible = false;
+  SectionData? kioskSection;
 
   /// Кэш предзагруженных видео для ProductPage (по item.id). Таймеры очистки через 2 мин.
   final Map<int, VideoPlayerController> _videoControllerCache = {};
@@ -160,6 +162,11 @@ class QrMenuVm extends ViewModel {
       isKioskMode &&
       kioskService.isAdVisible &&
       kioskService.currentScreenSaver != null;
+
+  void setKioskSection(SectionData? section) {
+    kioskSection = section;
+    notifyListeners();
+  }
 
   Future<void> syncAdVisibility(bool isVisible) async {
     if (_adWasVisible == isVisible) return;

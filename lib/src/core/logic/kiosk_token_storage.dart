@@ -97,3 +97,39 @@ class SharedPrefsHostStorage implements HostStorage {
     }
   }
 }
+
+abstract class SectionStorage {
+  Future<void> saveSectionId(int sectionId);
+  Future<void> deleteSectionId();
+  int? getSectionId();
+  bool hasSectionId();
+}
+
+const String _sectionIdKey = 'kiosk_section_id';
+
+class SharedPrefsSectionStorage implements SectionStorage {
+  SharedPrefsSectionStorage({required final SharedPreferences preferences})
+      : _preferences = preferences;
+
+  final SharedPreferences _preferences;
+
+  @override
+  Future<void> saveSectionId(int sectionId) async =>
+      _preferences.setInt(_sectionIdKey, sectionId);
+
+  @override
+  Future<void> deleteSectionId() async {
+    await _preferences.remove(_sectionIdKey);
+  }
+
+  @override
+  int? getSectionId() => _preferences.getInt(_sectionIdKey);
+
+  @override
+  bool hasSectionId() {
+    if (!_preferences.containsKey(_sectionIdKey)) {
+      return false;
+    }
+    return _preferences.getInt(_sectionIdKey) != null;
+  }
+}

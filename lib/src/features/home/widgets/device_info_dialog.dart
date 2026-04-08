@@ -28,26 +28,31 @@ class DeviceInfoDialog {
     final deviceId = await const DeviceIdService().getOrCreate();
     final org = viewModel.menuData?.organization;
 
-    String model = '';
+    String displayName = '';
+    String deviceModel = '';
     String osVersion = '';
 
     try {
       if (Platform.isAndroid) {
         final info = await deviceInfo.androidInfo;
-        model = await androidDeviceDisplayNameResolved(info);
+        displayName = await androidDeviceDisplayNameResolved(info);
+        deviceModel = androidBuildPropModel(info);
         osVersion =
             'Android ${info.version.release} (SDK ${info.version.sdkInt})';
       } else if (Platform.isIOS) {
         final info = await deviceInfo.iosInfo;
-        model = iosDeviceDisplayName(info);
+        displayName = iosDeviceDisplayName(info);
+        deviceModel = info.utsname.machine;
         osVersion = '${info.systemName} ${info.systemVersion}';
       }
     } catch (_) {
       // ignore: avoid_catches_without_on_clauses
     }
 
-    model = model.trim();
-    if (model.isEmpty) model = '-';
+    displayName = displayName.trim();
+    if (displayName.isEmpty) displayName = '-';
+    deviceModel = deviceModel.trim();
+    if (deviceModel.isEmpty) deviceModel = '-';
 
     final platform = Platform.isAndroid
         ? 'Android'
@@ -68,7 +73,8 @@ class DeviceInfoDialog {
       ..writeln('Platform: $platform')
       ..writeln('OS: $osVersion')
       ..writeln('Device ID: $deviceId')
-      ..writeln('Name: $model')
+      ..writeln('Name: $displayName')
+      ..writeln('Model: $deviceModel')
       ..writeln('App version: ${appVersion ?? '-'}')
       ..writeln('Locale: $locale');
 

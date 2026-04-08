@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
-import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
@@ -385,6 +383,7 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
     );
   }
 }
+
 
 
 

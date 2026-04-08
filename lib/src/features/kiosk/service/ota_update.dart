@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_pay_app/src/core/constants/app_url.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -51,7 +52,7 @@ class OtaUpdateService {
 
     status.value = const OtaStatus.downloading(0);
 
-    const url = 'https://kiosk.admin.qrpay.kz/ota.apk';
+    final url = AppUrls.otaApkUrl;
 
     final dir = await getTemporaryDirectory();
     final filePath = p.join(dir.path, 'ota.apk');

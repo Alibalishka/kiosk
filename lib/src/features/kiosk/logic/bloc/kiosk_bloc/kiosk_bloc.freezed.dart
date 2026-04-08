@@ -26,6 +26,7 @@ mixin _$KioskEvent {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -38,6 +39,7 @@ mixin _$KioskEvent {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -49,6 +51,7 @@ mixin _$KioskEvent {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -61,6 +64,7 @@ mixin _$KioskEvent {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -72,6 +76,7 @@ mixin _$KioskEvent {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -83,6 +88,7 @@ mixin _$KioskEvent {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -178,6 +184,7 @@ class _$RegisterImpl implements _Register {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
   }) {
     return register(body);
   }
@@ -193,6 +200,7 @@ class _$RegisterImpl implements _Register {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
   }) {
     return register?.call(body);
   }
@@ -207,6 +215,7 @@ class _$RegisterImpl implements _Register {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (register != null) {
@@ -225,6 +234,7 @@ class _$RegisterImpl implements _Register {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
   }) {
     return register(this);
   }
@@ -239,6 +249,7 @@ class _$RegisterImpl implements _Register {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
   }) {
     return register?.call(this);
   }
@@ -253,6 +264,7 @@ class _$RegisterImpl implements _Register {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (register != null) {
@@ -344,6 +356,7 @@ class _$CheckKioskImpl implements _CheckKiosk {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
   }) {
     return checkKiosk(deviceId);
   }
@@ -359,6 +372,7 @@ class _$CheckKioskImpl implements _CheckKiosk {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
   }) {
     return checkKiosk?.call(deviceId);
   }
@@ -373,6 +387,7 @@ class _$CheckKioskImpl implements _CheckKiosk {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (checkKiosk != null) {
@@ -391,6 +406,7 @@ class _$CheckKioskImpl implements _CheckKiosk {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
   }) {
     return checkKiosk(this);
   }
@@ -405,6 +421,7 @@ class _$CheckKioskImpl implements _CheckKiosk {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
   }) {
     return checkKiosk?.call(this);
   }
@@ -419,6 +436,7 @@ class _$CheckKioskImpl implements _CheckKiosk {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (checkKiosk != null) {
@@ -520,6 +538,7 @@ class _$SendStatusKioskImpl implements _SendStatusKiosk {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
   }) {
     return sendStatusKiosk(body, deviceId);
   }
@@ -535,6 +554,7 @@ class _$SendStatusKioskImpl implements _SendStatusKiosk {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
   }) {
     return sendStatusKiosk?.call(body, deviceId);
   }
@@ -549,6 +569,7 @@ class _$SendStatusKioskImpl implements _SendStatusKiosk {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (sendStatusKiosk != null) {
@@ -567,6 +588,7 @@ class _$SendStatusKioskImpl implements _SendStatusKiosk {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
   }) {
     return sendStatusKiosk(this);
   }
@@ -581,6 +603,7 @@ class _$SendStatusKioskImpl implements _SendStatusKiosk {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
   }) {
     return sendStatusKiosk?.call(this);
   }
@@ -595,6 +618,7 @@ class _$SendStatusKioskImpl implements _SendStatusKiosk {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (sendStatusKiosk != null) {
@@ -688,6 +712,7 @@ class _$PayKaspiImpl implements _PayKaspi {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
   }) {
     return payKaspi(body);
   }
@@ -703,6 +728,7 @@ class _$PayKaspiImpl implements _PayKaspi {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
   }) {
     return payKaspi?.call(body);
   }
@@ -717,6 +743,7 @@ class _$PayKaspiImpl implements _PayKaspi {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (payKaspi != null) {
@@ -735,6 +762,7 @@ class _$PayKaspiImpl implements _PayKaspi {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
   }) {
     return payKaspi(this);
   }
@@ -749,6 +777,7 @@ class _$PayKaspiImpl implements _PayKaspi {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
   }) {
     return payKaspi?.call(this);
   }
@@ -763,6 +792,7 @@ class _$PayKaspiImpl implements _PayKaspi {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (payKaspi != null) {
@@ -855,6 +885,7 @@ class _$CheckKapiPayStatusImpl implements _CheckKapiPayStatus {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
   }) {
     return checkKapiPayStatus(orderId);
   }
@@ -870,6 +901,7 @@ class _$CheckKapiPayStatusImpl implements _CheckKapiPayStatus {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
   }) {
     return checkKapiPayStatus?.call(orderId);
   }
@@ -884,6 +916,7 @@ class _$CheckKapiPayStatusImpl implements _CheckKapiPayStatus {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (checkKapiPayStatus != null) {
@@ -902,6 +935,7 @@ class _$CheckKapiPayStatusImpl implements _CheckKapiPayStatus {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
   }) {
     return checkKapiPayStatus(this);
   }
@@ -916,6 +950,7 @@ class _$CheckKapiPayStatusImpl implements _CheckKapiPayStatus {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
   }) {
     return checkKapiPayStatus?.call(this);
   }
@@ -930,6 +965,7 @@ class _$CheckKapiPayStatusImpl implements _CheckKapiPayStatus {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (checkKapiPayStatus != null) {
@@ -1023,6 +1059,7 @@ class _$FetchScreenSaversImpl implements _FetchScreenSavers {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
   }) {
     return fetchScreenSavers(deviceId);
   }
@@ -1038,6 +1075,7 @@ class _$FetchScreenSaversImpl implements _FetchScreenSavers {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
   }) {
     return fetchScreenSavers?.call(deviceId);
   }
@@ -1052,6 +1090,7 @@ class _$FetchScreenSaversImpl implements _FetchScreenSavers {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (fetchScreenSavers != null) {
@@ -1070,6 +1109,7 @@ class _$FetchScreenSaversImpl implements _FetchScreenSavers {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
   }) {
     return fetchScreenSavers(this);
   }
@@ -1084,6 +1124,7 @@ class _$FetchScreenSaversImpl implements _FetchScreenSavers {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
   }) {
     return fetchScreenSavers?.call(this);
   }
@@ -1098,6 +1139,7 @@ class _$FetchScreenSaversImpl implements _FetchScreenSavers {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (fetchScreenSavers != null) {
@@ -1163,6 +1205,7 @@ class _$TechWorkImpl implements _TechWork {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
   }) {
     return techWork();
   }
@@ -1178,6 +1221,7 @@ class _$TechWorkImpl implements _TechWork {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
   }) {
     return techWork?.call();
   }
@@ -1192,6 +1236,7 @@ class _$TechWorkImpl implements _TechWork {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (techWork != null) {
@@ -1210,6 +1255,7 @@ class _$TechWorkImpl implements _TechWork {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
   }) {
     return techWork(this);
   }
@@ -1224,6 +1270,7 @@ class _$TechWorkImpl implements _TechWork {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
   }) {
     return techWork?.call(this);
   }
@@ -1238,6 +1285,7 @@ class _$TechWorkImpl implements _TechWork {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     required TResult orElse(),
   }) {
     if (techWork != null) {
@@ -1249,6 +1297,180 @@ class _$TechWorkImpl implements _TechWork {
 
 abstract class _TechWork implements KioskEvent {
   const factory _TechWork() = _$TechWorkImpl;
+}
+
+/// @nodoc
+abstract class _$$DisconnectKioskImplCopyWith<$Res> {
+  factory _$$DisconnectKioskImplCopyWith(_$DisconnectKioskImpl value,
+          $Res Function(_$DisconnectKioskImpl) then) =
+      __$$DisconnectKioskImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String deviceId});
+}
+
+/// @nodoc
+class __$$DisconnectKioskImplCopyWithImpl<$Res>
+    extends _$KioskEventCopyWithImpl<$Res, _$DisconnectKioskImpl>
+    implements _$$DisconnectKioskImplCopyWith<$Res> {
+  __$$DisconnectKioskImplCopyWithImpl(
+      _$DisconnectKioskImpl _value, $Res Function(_$DisconnectKioskImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? deviceId = null,
+  }) {
+    return _then(_$DisconnectKioskImpl(
+      deviceId: null == deviceId
+          ? _value.deviceId
+          : deviceId // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$DisconnectKioskImpl implements _DisconnectKiosk {
+  const _$DisconnectKioskImpl({required this.deviceId});
+
+  @override
+  final String deviceId;
+
+  @override
+  String toString() {
+    return 'KioskEvent.disconnectKiosk(deviceId: $deviceId)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$DisconnectKioskImpl &&
+            (identical(other.deviceId, deviceId) ||
+                other.deviceId == deviceId));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, deviceId);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$DisconnectKioskImplCopyWith<_$DisconnectKioskImpl> get copyWith =>
+      __$$DisconnectKioskImplCopyWithImpl<_$DisconnectKioskImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(KioskRequest body) register,
+    required TResult Function(String deviceId) checkKiosk,
+    required TResult Function(KioskStatusRequest body, String deviceId)
+        sendStatusKiosk,
+    required TResult Function(MenuCheckoutRequest body) payKaspi,
+    required TResult Function(int orderId) checkKapiPayStatus,
+    required TResult Function(String deviceId) fetchScreenSavers,
+    required TResult Function() techWork,
+    required TResult Function(String deviceId) disconnectKiosk,
+  }) {
+    return disconnectKiosk(deviceId);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(KioskRequest body)? register,
+    TResult? Function(String deviceId)? checkKiosk,
+    TResult? Function(KioskStatusRequest body, String deviceId)?
+        sendStatusKiosk,
+    TResult? Function(MenuCheckoutRequest body)? payKaspi,
+    TResult? Function(int orderId)? checkKapiPayStatus,
+    TResult? Function(String deviceId)? fetchScreenSavers,
+    TResult? Function()? techWork,
+    TResult? Function(String deviceId)? disconnectKiosk,
+  }) {
+    return disconnectKiosk?.call(deviceId);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(KioskRequest body)? register,
+    TResult Function(String deviceId)? checkKiosk,
+    TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(MenuCheckoutRequest body)? payKaspi,
+    TResult Function(int orderId)? checkKapiPayStatus,
+    TResult Function(String deviceId)? fetchScreenSavers,
+    TResult Function()? techWork,
+    TResult Function(String deviceId)? disconnectKiosk,
+    required TResult orElse(),
+  }) {
+    if (disconnectKiosk != null) {
+      return disconnectKiosk(deviceId);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Register value) register,
+    required TResult Function(_CheckKiosk value) checkKiosk,
+    required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_PayKaspi value) payKaspi,
+    required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
+    required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
+    required TResult Function(_TechWork value) techWork,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
+  }) {
+    return disconnectKiosk(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Register value)? register,
+    TResult? Function(_CheckKiosk value)? checkKiosk,
+    TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_PayKaspi value)? payKaspi,
+    TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
+    TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
+    TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
+  }) {
+    return disconnectKiosk?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Register value)? register,
+    TResult Function(_CheckKiosk value)? checkKiosk,
+    TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_PayKaspi value)? payKaspi,
+    TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
+    TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
+    TResult Function(_TechWork value)? techWork,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
+    required TResult orElse(),
+  }) {
+    if (disconnectKiosk != null) {
+      return disconnectKiosk(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _DisconnectKiosk implements KioskEvent {
+  const factory _DisconnectKiosk({required final String deviceId}) =
+      _$DisconnectKioskImpl;
+
+  String get deviceId;
+  @JsonKey(ignore: true)
+  _$$DisconnectKioskImplCopyWith<_$DisconnectKioskImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -1266,6 +1488,7 @@ mixin _$KioskState {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) =>
       throw _privateConstructorUsedError;
@@ -1281,6 +1504,7 @@ mixin _$KioskState {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) =>
       throw _privateConstructorUsedError;
@@ -1296,6 +1520,7 @@ mixin _$KioskState {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) =>
@@ -1312,6 +1537,8 @@ mixin _$KioskState {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) =>
       throw _privateConstructorUsedError;
@@ -1327,6 +1554,7 @@ mixin _$KioskState {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) =>
       throw _privateConstructorUsedError;
@@ -1342,6 +1570,7 @@ mixin _$KioskState {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) =>
@@ -1415,6 +1644,7 @@ class _$InitialImpl implements _Initial {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return initial();
@@ -1433,6 +1663,7 @@ class _$InitialImpl implements _Initial {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return initial?.call();
@@ -1451,6 +1682,7 @@ class _$InitialImpl implements _Initial {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -1473,6 +1705,8 @@ class _$InitialImpl implements _Initial {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return initial(this);
@@ -1491,6 +1725,7 @@ class _$InitialImpl implements _Initial {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return initial?.call(this);
@@ -1509,6 +1744,7 @@ class _$InitialImpl implements _Initial {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -1572,6 +1808,7 @@ class _$LoadingImpl implements _Loading {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return loading();
@@ -1590,6 +1827,7 @@ class _$LoadingImpl implements _Loading {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return loading?.call();
@@ -1608,6 +1846,7 @@ class _$LoadingImpl implements _Loading {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -1630,6 +1869,8 @@ class _$LoadingImpl implements _Loading {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return loading(this);
@@ -1648,6 +1889,7 @@ class _$LoadingImpl implements _Loading {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return loading?.call(this);
@@ -1666,6 +1908,7 @@ class _$LoadingImpl implements _Loading {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -1729,6 +1972,7 @@ class _$LoadingPayImpl implements _LoadingPay {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return loadingPay();
@@ -1747,6 +1991,7 @@ class _$LoadingPayImpl implements _LoadingPay {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return loadingPay?.call();
@@ -1765,6 +2010,7 @@ class _$LoadingPayImpl implements _LoadingPay {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -1787,6 +2033,8 @@ class _$LoadingPayImpl implements _LoadingPay {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return loadingPay(this);
@@ -1805,6 +2053,7 @@ class _$LoadingPayImpl implements _LoadingPay {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return loadingPay?.call(this);
@@ -1823,6 +2072,7 @@ class _$LoadingPayImpl implements _LoadingPay {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -1914,6 +2164,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return successKioskStatus(response);
@@ -1932,6 +2183,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return successKioskStatus?.call(response);
@@ -1950,6 +2202,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -1972,6 +2225,8 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return successKioskStatus(this);
@@ -1990,6 +2245,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return successKioskStatus?.call(this);
@@ -2008,6 +2264,7 @@ class _$SuccessKioskStatusImpl implements _SuccessKioskStatus {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -2104,6 +2361,7 @@ class _$SuccessImpl implements _Success {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return success(response);
@@ -2122,6 +2380,7 @@ class _$SuccessImpl implements _Success {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return success?.call(response);
@@ -2140,6 +2399,7 @@ class _$SuccessImpl implements _Success {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -2162,6 +2422,8 @@ class _$SuccessImpl implements _Success {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return success(this);
@@ -2180,6 +2442,7 @@ class _$SuccessImpl implements _Success {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return success?.call(this);
@@ -2198,6 +2461,7 @@ class _$SuccessImpl implements _Success {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -2295,6 +2559,7 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return checkKioskSuccess(response);
@@ -2313,6 +2578,7 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return checkKioskSuccess?.call(response);
@@ -2331,6 +2597,7 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -2353,6 +2620,8 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return checkKioskSuccess(this);
@@ -2371,6 +2640,7 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return checkKioskSuccess?.call(this);
@@ -2389,6 +2659,7 @@ class _$CheckKioskSuccessImpl implements _CheckKioskSuccess {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -2486,6 +2757,7 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return successPayData(response);
@@ -2504,6 +2776,7 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return successPayData?.call(response);
@@ -2522,6 +2795,7 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -2544,6 +2818,8 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return successPayData(this);
@@ -2562,6 +2838,7 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return successPayData?.call(this);
@@ -2580,6 +2857,7 @@ class _$SuccessPayDataImpl implements _SuccessPayData {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -2676,6 +2954,7 @@ class _$SuccessPayImpl implements _SuccessPay {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return successPay(response);
@@ -2694,6 +2973,7 @@ class _$SuccessPayImpl implements _SuccessPay {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return successPay?.call(response);
@@ -2712,6 +2992,7 @@ class _$SuccessPayImpl implements _SuccessPay {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -2734,6 +3015,8 @@ class _$SuccessPayImpl implements _SuccessPay {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return successPay(this);
@@ -2752,6 +3035,7 @@ class _$SuccessPayImpl implements _SuccessPay {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return successPay?.call(this);
@@ -2770,6 +3054,7 @@ class _$SuccessPayImpl implements _SuccessPay {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -2867,6 +3152,7 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return successScreenSavers(response);
@@ -2885,6 +3171,7 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return successScreenSavers?.call(response);
@@ -2903,6 +3190,7 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -2925,6 +3213,8 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return successScreenSavers(this);
@@ -2943,6 +3233,7 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return successScreenSavers?.call(this);
@@ -2961,6 +3252,7 @@ class _$SuccessScreenSaversImpl implements _SuccessScreenSavers {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -3059,6 +3351,7 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return successTechWork(response);
@@ -3077,6 +3370,7 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return successTechWork?.call(response);
@@ -3095,6 +3389,7 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -3117,6 +3412,8 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return successTechWork(this);
@@ -3135,6 +3432,7 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return successTechWork?.call(this);
@@ -3153,6 +3451,7 @@ class _$SuccessTechWorkImpl implements _SuccessTechWork {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {
@@ -3171,6 +3470,173 @@ abstract class _SuccessTechWork implements KioskState {
   @JsonKey(ignore: true)
   _$$SuccessTechWorkImplCopyWith<_$SuccessTechWorkImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$SuccessDisconnectKioskImplCopyWith<$Res> {
+  factory _$$SuccessDisconnectKioskImplCopyWith(
+          _$SuccessDisconnectKioskImpl value,
+          $Res Function(_$SuccessDisconnectKioskImpl) then) =
+      __$$SuccessDisconnectKioskImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$SuccessDisconnectKioskImplCopyWithImpl<$Res>
+    extends _$KioskStateCopyWithImpl<$Res, _$SuccessDisconnectKioskImpl>
+    implements _$$SuccessDisconnectKioskImplCopyWith<$Res> {
+  __$$SuccessDisconnectKioskImplCopyWithImpl(
+      _$SuccessDisconnectKioskImpl _value,
+      $Res Function(_$SuccessDisconnectKioskImpl) _then)
+      : super(_value, _then);
+}
+
+/// @nodoc
+
+class _$SuccessDisconnectKioskImpl implements _SuccessDisconnectKiosk {
+  const _$SuccessDisconnectKioskImpl();
+
+  @override
+  String toString() {
+    return 'KioskState.successDisconnectKiosk()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SuccessDisconnectKioskImpl);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() initial,
+    required TResult Function() loading,
+    required TResult Function() loadingPay,
+    required TResult Function(KioskStatus response) successKioskStatus,
+    required TResult Function(KioskResponse response) success,
+    required TResult Function(KioskResponse response) checkKioskSuccess,
+    required TResult Function(PayModel response) successPayData,
+    required TResult Function(KaspiStatus response) successPay,
+    required TResult Function(ScreenSaversResponse response)
+        successScreenSavers,
+    required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
+    required TResult Function(String message, int? errorCode) failed,
+  }) {
+    return successDisconnectKiosk();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? initial,
+    TResult? Function()? loading,
+    TResult? Function()? loadingPay,
+    TResult? Function(KioskStatus response)? successKioskStatus,
+    TResult? Function(KioskResponse response)? success,
+    TResult? Function(KioskResponse response)? checkKioskSuccess,
+    TResult? Function(PayModel response)? successPayData,
+    TResult? Function(KaspiStatus response)? successPay,
+    TResult? Function(ScreenSaversResponse response)? successScreenSavers,
+    TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
+    TResult? Function(String message, int? errorCode)? failed,
+  }) {
+    return successDisconnectKiosk?.call();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? initial,
+    TResult Function()? loading,
+    TResult Function()? loadingPay,
+    TResult Function(KioskStatus response)? successKioskStatus,
+    TResult Function(KioskResponse response)? success,
+    TResult Function(KioskResponse response)? checkKioskSuccess,
+    TResult Function(PayModel response)? successPayData,
+    TResult Function(KaspiStatus response)? successPay,
+    TResult Function(ScreenSaversResponse response)? successScreenSavers,
+    TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
+    TResult Function(String message, int? errorCode)? failed,
+    required TResult orElse(),
+  }) {
+    if (successDisconnectKiosk != null) {
+      return successDisconnectKiosk();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Initial value) initial,
+    required TResult Function(_Loading value) loading,
+    required TResult Function(_LoadingPay value) loadingPay,
+    required TResult Function(_SuccessKioskStatus value) successKioskStatus,
+    required TResult Function(_Success value) success,
+    required TResult Function(_CheckKioskSuccess value) checkKioskSuccess,
+    required TResult Function(_SuccessPayData value) successPayData,
+    required TResult Function(_SuccessPay value) successPay,
+    required TResult Function(_SuccessScreenSavers value) successScreenSavers,
+    required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
+    required TResult Function(_Failed value) failed,
+  }) {
+    return successDisconnectKiosk(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Initial value)? initial,
+    TResult? Function(_Loading value)? loading,
+    TResult? Function(_LoadingPay value)? loadingPay,
+    TResult? Function(_SuccessKioskStatus value)? successKioskStatus,
+    TResult? Function(_Success value)? success,
+    TResult? Function(_CheckKioskSuccess value)? checkKioskSuccess,
+    TResult? Function(_SuccessPayData value)? successPayData,
+    TResult? Function(_SuccessPay value)? successPay,
+    TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
+    TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
+    TResult? Function(_Failed value)? failed,
+  }) {
+    return successDisconnectKiosk?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Initial value)? initial,
+    TResult Function(_Loading value)? loading,
+    TResult Function(_LoadingPay value)? loadingPay,
+    TResult Function(_SuccessKioskStatus value)? successKioskStatus,
+    TResult Function(_Success value)? success,
+    TResult Function(_CheckKioskSuccess value)? checkKioskSuccess,
+    TResult Function(_SuccessPayData value)? successPayData,
+    TResult Function(_SuccessPay value)? successPay,
+    TResult Function(_SuccessScreenSavers value)? successScreenSavers,
+    TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
+    TResult Function(_Failed value)? failed,
+    required TResult orElse(),
+  }) {
+    if (successDisconnectKiosk != null) {
+      return successDisconnectKiosk(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _SuccessDisconnectKiosk implements KioskState {
+  const factory _SuccessDisconnectKiosk() = _$SuccessDisconnectKioskImpl;
 }
 
 /// @nodoc
@@ -3258,6 +3724,7 @@ class _$FailedImpl implements _Failed {
     required TResult Function(ScreenSaversResponse response)
         successScreenSavers,
     required TResult Function(TechWorkResponse response) successTechWork,
+    required TResult Function() successDisconnectKiosk,
     required TResult Function(String message, int? errorCode) failed,
   }) {
     return failed(message, errorCode);
@@ -3276,6 +3743,7 @@ class _$FailedImpl implements _Failed {
     TResult? Function(KaspiStatus response)? successPay,
     TResult? Function(ScreenSaversResponse response)? successScreenSavers,
     TResult? Function(TechWorkResponse response)? successTechWork,
+    TResult? Function()? successDisconnectKiosk,
     TResult? Function(String message, int? errorCode)? failed,
   }) {
     return failed?.call(message, errorCode);
@@ -3294,6 +3762,7 @@ class _$FailedImpl implements _Failed {
     TResult Function(KaspiStatus response)? successPay,
     TResult Function(ScreenSaversResponse response)? successScreenSavers,
     TResult Function(TechWorkResponse response)? successTechWork,
+    TResult Function()? successDisconnectKiosk,
     TResult Function(String message, int? errorCode)? failed,
     required TResult orElse(),
   }) {
@@ -3316,6 +3785,8 @@ class _$FailedImpl implements _Failed {
     required TResult Function(_SuccessPay value) successPay,
     required TResult Function(_SuccessScreenSavers value) successScreenSavers,
     required TResult Function(_SuccessTechWork value) successTechWork,
+    required TResult Function(_SuccessDisconnectKiosk value)
+        successDisconnectKiosk,
     required TResult Function(_Failed value) failed,
   }) {
     return failed(this);
@@ -3334,6 +3805,7 @@ class _$FailedImpl implements _Failed {
     TResult? Function(_SuccessPay value)? successPay,
     TResult? Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult? Function(_SuccessTechWork value)? successTechWork,
+    TResult? Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult? Function(_Failed value)? failed,
   }) {
     return failed?.call(this);
@@ -3352,6 +3824,7 @@ class _$FailedImpl implements _Failed {
     TResult Function(_SuccessPay value)? successPay,
     TResult Function(_SuccessScreenSavers value)? successScreenSavers,
     TResult Function(_SuccessTechWork value)? successTechWork,
+    TResult Function(_SuccessDisconnectKiosk value)? successDisconnectKiosk,
     TResult Function(_Failed value)? failed,
     required TResult orElse(),
   }) {

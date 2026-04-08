@@ -71,6 +71,10 @@ class QrMenuSliverAppBar extends StatelessWidget {
         ),
       ),
       actions: [
+        _KioskSectionBadge(
+          groupName: viewModel.kioskSection?.groupName,
+          number: viewModel.kioskSection?.number,
+        ),
         GestureDetector(
           onTap: onLanguageTap,
           child: Padding(
@@ -98,6 +102,66 @@ class QrMenuSliverAppBar extends StatelessWidget {
             )
           : null,
       bottom: QrMenuCategoryTabs(viewModel: viewModel),
+    );
+  }
+}
+
+class _KioskSectionBadge extends StatelessWidget {
+  const _KioskSectionBadge({
+    required this.groupName,
+    required this.number,
+  });
+
+  final String? groupName;
+  final String? number;
+
+  @override
+  Widget build(BuildContext context) {
+    final g = groupName?.trim() ?? '';
+    final n = number?.trim() ?? '';
+    if (g.isEmpty && n.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 14),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.primitiveNeutralcold1000.withOpacity(0.82),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.primitiveNeutralwarm0.withOpacity(0.15),
+            width: 1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (g.isNotEmpty)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 180),
+                  child: Text(
+                    g,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodyMStrong.copyWith(
+                      color: AppColors.primitiveNeutralcold0,
+                    ),
+                  ),
+                ),
+              if (g.isNotEmpty && n.isNotEmpty) const SizedBox(width: 10),
+              if (n.isNotEmpty)
+                Text(
+                  n,
+                  style: AppTextStyles.headingH3.copyWith(
+                    color: AppColors.primitiveNeutralcold0,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
