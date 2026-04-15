@@ -1,21 +1,10 @@
+import 'dart:async';
 import 'dart:developer';
-import 'dart:ui';
-import 'package:easy_localization/easy_localization.dart';
+
 import 'package:flutter/material.dart';
-import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
-import 'package:qr_pay_app/src/core/resources/app_components.dart';
-import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
-import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
-// import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
-import 'package:qr_pay_app/src/core/widgets/custom_loader.dart';
-import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
-import 'package:qr_pay_app/src/features/home/vm/service/screen_saver_cache.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/video_cache.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/screen_savers_response.dart';
-import 'package:sizer/sizer.dart';
 import 'package:video_player/video_player.dart';
-
-import 'dart:async';
 
 // class AdFullScreen extends StatefulWidget {
 //   final ScreenSaversDatum banner;
@@ -625,13 +614,16 @@ class _AdFullScreenState extends State<AdFullScreen> {
   VideoPlayerController? _nextController;
 
   Timer? _switchTimer;
+  Timer? _videoSafetyTimer;
+
+  VoidCallback? _videoEndListener;
+  bool _goNextCoalesceScheduled = false;
+  bool _nextPreloadInFlight = false;
 
   ScreenSaversDatum get _current => widget.items[_index];
 
   ScreenSaversDatum get _next =>
       widget.items[(_index + 1) % widget.items.length];
-
-  bool get _hasVideo => (_current.video ?? '').trim().isNotEmpty;
 
   bool get _hasImage => (_current.image ?? '').trim().isNotEmpty;
 
@@ -652,59 +644,168 @@ class _AdFullScreenState extends State<AdFullScreen> {
   }
 
   Future<void> _bootstrap() async {
-    await _initCurrent();
-    await _preloadNext();
-    _startTimer();
+    try {
+      await _initCurrent();
+      await _preloadNext();
+      if (!mounted) return;
+      _scheduleSlideEnd();
+    } catch (e, st) {
+      log('AdFullScreen bootstrap failed: $e\n$st');
+      if (mounted) _scheduleSlideEnd();
+    }
   }
 
   @override
   void dispose() {
-    _switchTimer?.cancel();
+    _cancelSlideTimers();
+    _detachVideoEndListener();
     _currentController?.dispose();
     _nextController?.dispose();
     super.dispose();
   }
 
-  /// ─────────────────────────────────────────────────────────────
-  /// TIMER
-  /// ─────────────────────────────────────────────────────────────
-
-  void _startTimer() {
+  void _cancelSlideTimers() {
     _switchTimer?.cancel();
+    _switchTimer = null;
+    _videoSafetyTimer?.cancel();
+    _videoSafetyTimer = null;
+  }
 
+  /// Сливает повторные вызовы (конец ролика + safety-таймер в один кадр).
+  void _requestGoNext() {
+    if (!mounted) return;
+    if (_goNextCoalesceScheduled) return;
+    _goNextCoalesceScheduled = true;
+    scheduleMicrotask(() {
+      _goNextCoalesceScheduled = false;
+      if (!mounted) return;
+      _goNext();
+    });
+  }
+
+  /// ─────────────────────────────────────────────────────────────
+  /// Длительность слайда: видео — до конца ролика; картинка — displayDuration с бэка
+  /// ─────────────────────────────────────────────────────────────
+
+  void _detachVideoEndListener() {
+    if (_videoEndListener != null && _currentController != null) {
+      _currentController!.removeListener(_videoEndListener!);
+    }
+    _videoEndListener = null;
+  }
+
+  /// Запасной предел, если duration не пришёл или плеер «завис».
+  Duration _videoSafetyTimeout(VideoPlayerController c) {
+    const maxCap = Duration(minutes: 25);
+    final d = c.value.duration;
+    if (d <= Duration.zero) return const Duration(seconds: 120);
+    final withBuffer = d + const Duration(seconds: 15);
+    return withBuffer > maxCap ? maxCap : withBuffer;
+  }
+
+  void _scheduleSlideEnd() {
+    _cancelSlideTimers();
+    _detachVideoEndListener();
+
+    final videoUrl = (_current.video ?? '').trim();
+    final c = _currentController;
+    final canPlayVideo = videoUrl.isNotEmpty &&
+        c != null &&
+        c.value.isInitialized &&
+        !c.value.hasError;
+
+    if (canPlayVideo) {
+      _attachVideoEndListener(c);
+      _videoSafetyTimer = Timer(_videoSafetyTimeout(c), _requestGoNext);
+    } else {
+      _startImageTimer();
+    }
+  }
+
+  void _startImageTimer() {
     final seconds = (_current.displayDuration ?? 8).clamp(2, 60);
+    _switchTimer = Timer(Duration(seconds: seconds), _requestGoNext);
+  }
 
-    _switchTimer = Timer(
-      Duration(seconds: seconds),
-      _goNext,
-    );
+  void _attachVideoEndListener(VideoPlayerController controller) {
+    _videoEndListener = () {
+      if (!mounted) return;
+      final v = controller.value;
+      if (v.hasError) {
+        log('AdFullScreen current video error: ${v.errorDescription}');
+        _detachVideoEndListener();
+        _cancelSlideTimers();
+        _requestGoNext();
+        return;
+      }
+      if (!v.isInitialized) return;
+      if (v.duration <= Duration.zero) return;
+      final nearEnd =
+          v.position >= v.duration - const Duration(milliseconds: 300);
+      if (nearEnd) {
+        _detachVideoEndListener();
+        _cancelSlideTimers();
+        _requestGoNext();
+      }
+    };
+    controller.addListener(_videoEndListener!);
   }
 
   /// ─────────────────────────────────────────────────────────────
   /// SWITCH
   /// ─────────────────────────────────────────────────────────────
 
-  void _goNext() {
-    final nextUrl = (_next.video ?? '').trim();
-    final nextReady = _nextController?.value.isInitialized ?? false;
+  bool _shouldWaitForNextVideo(String nextUrl, VideoPlayerController? nextCtrl) {
+    if (nextUrl.isEmpty) return false;
+    if (nextCtrl != null) {
+      if (nextCtrl.value.hasError) return false;
+      return !nextCtrl.value.isInitialized;
+    }
+    return _nextPreloadInFlight;
+  }
 
-    // если следующий видео, но не успел инициализироваться — подождём
-    if (nextUrl.isNotEmpty && !nextReady) {
+  void _goNext() {
+    if (!mounted) return;
+
+    final nextUrl = (_next.video ?? '').trim();
+    final nextCtrl = _nextController;
+
+    if (_shouldWaitForNextVideo(nextUrl, nextCtrl)) {
+      // Не трогаем safety / listener текущего слайда — только откладываем смену.
       _switchTimer?.cancel();
-      _switchTimer = Timer(const Duration(seconds: 1), _goNext);
+      _switchTimer = Timer(const Duration(seconds: 1), _requestGoNext);
       return;
     }
 
-    _currentController?.dispose();
-    _currentController = _nextController;
+    _cancelSlideTimers();
+    _detachVideoEndListener();
+
+    try {
+      _currentController?.dispose();
+    } catch (e, st) {
+      log('AdFullScreen dispose current failed: $e\n$st');
+    }
+    _currentController = nextCtrl;
     _nextController = null;
 
     _index = (_index + 1) % widget.items.length;
 
-    _currentController?.play();
+    final cur = _currentController;
+    if (cur != null && cur.value.isInitialized && !cur.value.hasError) {
+      cur.seekTo(Duration.zero).then((_) {
+        if (!mounted) return;
+        cur.play();
+      }).catchError((Object e, StackTrace st) {
+        log('AdFullScreen seek/play failed: $e\n$st');
+        if (mounted) _requestGoNext();
+      });
+    } else {
+      cur?.dispose();
+      _currentController = null;
+    }
 
     _preloadNext();
-    _startTimer();
+    _scheduleSlideEnd();
 
     if (mounted) setState(() {});
   }
@@ -717,12 +818,30 @@ class _AdFullScreenState extends State<AdFullScreen> {
     final url = (_current.video ?? '').trim();
     if (url.isEmpty) return;
 
-    _currentController?.dispose();
-    _currentController = await _prepareController(url);
+    try {
+      _currentController?.dispose();
+    } catch (e, st) {
+      log('AdFullScreen dispose before init: $e\n$st');
+    }
+    _currentController = null;
+
+    try {
+      _currentController = await _prepareController(url);
+    } catch (e, st) {
+      log('AdFullScreen _initCurrent: $e\n$st');
+      _currentController = null;
+    }
     if (!mounted) return;
 
-    _currentController?.play();
-    setState(() {});
+    final c = _currentController;
+    if (c != null && c.value.isInitialized && !c.value.hasError) {
+      try {
+        await c.play();
+      } catch (e, st) {
+        log('AdFullScreen initial play failed: $e\n$st');
+      }
+    }
+    if (mounted) setState(() {});
   }
 
   /// ─────────────────────────────────────────────────────────────
@@ -731,11 +850,34 @@ class _AdFullScreenState extends State<AdFullScreen> {
 
   Future<void> _preloadNext() async {
     final url = (_next.video ?? '').trim();
-    if (url.isEmpty) return;
+    if (url.isEmpty) {
+      _nextPreloadInFlight = false;
+      return;
+    }
 
-    _nextController?.dispose();
-    _nextController = await _prepareController(url);
-    _nextController?.pause();
+    _nextPreloadInFlight = true;
+    try {
+      try {
+        _nextController?.dispose();
+      } catch (e, st) {
+        log('AdFullScreen dispose next before preload: $e\n$st');
+      }
+      _nextController = null;
+
+      try {
+        _nextController = await _prepareController(url);
+      } catch (e, st) {
+        log('AdFullScreen _preloadNext: $e\n$st');
+        _nextController = null;
+      }
+      try {
+        await _nextController?.pause();
+      } catch (e, st) {
+        log('AdFullScreen preload pause: $e\n$st');
+      }
+    } finally {
+      _nextPreloadInFlight = false;
+    }
   }
 
   /// ─────────────────────────────────────────────────────────────
@@ -751,20 +893,18 @@ class _AdFullScreenState extends State<AdFullScreen> {
           : VideoPlayerController.networkUrl(Uri.parse(url));
 
       controller
-        ..setLooping(true)
+        ..setLooping(false)
         ..setVolume(0);
 
-      controller.addListener(() {
-        final v = controller.value;
-        if (v.hasError) {
-          log('Ad video error ($url): ${v.errorDescription}');
-        }
-      });
-
       await controller.initialize();
+      if (controller.value.hasError) {
+        log('Ad video init error ($url): ${controller.value.errorDescription}');
+        await controller.dispose();
+        return null;
+      }
       return controller;
-    } catch (e) {
-      log('Ad prepareController failed ($url): $e');
+    } catch (e, st) {
+      log('Ad prepareController failed ($url): $e\n$st');
       return null;
     }
   }
@@ -799,7 +939,7 @@ class _AdFullScreenState extends State<AdFullScreen> {
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
-                        Colors.black.withOpacity(0.4),
+                        Colors.black.withValues(alpha: 0.4),
                         Colors.transparent,
                       ],
                     ),
@@ -839,8 +979,9 @@ class _AdFullScreenState extends State<AdFullScreen> {
   }
 
   Widget _buildImage() {
+    final imageUrl = (_current.image ?? '').trim();
     return Image.network(
-      _current.image!,
+      imageUrl,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
@@ -849,6 +990,6 @@ class _AdFullScreenState extends State<AdFullScreen> {
   }
 
   Widget _buildFallbackText() {
-    return SizedBox.shrink();
+    return const SizedBox.shrink();
   }
 }

@@ -9,6 +9,7 @@ import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/inactivity_watcher.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
 import 'package:qr_pay_app/src/features/home/widgets/ad_fulll_screen.dart';
+import 'package:qr_pay_app/src/features/home/widgets/ad_logo_coin_shine.dart';
 import 'package:qr_pay_app/src/features/home/widgets/category_header.dart';
 import 'package:qr_pay_app/src/features/home/widgets/grid_menu.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_bottom_bar.dart';
@@ -64,6 +65,7 @@ class QrMenuPageState extends State<QrMenuPage>
   final TextEditingController _exitConfirmController = TextEditingController();
   bool _exitInProgress = false;
   bool _lastAdVisible = false;
+  bool _managedKioskDisableHandled = false;
 
   @override
   void initState() {
@@ -109,7 +111,12 @@ class QrMenuPageState extends State<QrMenuPage>
     if (args is! Map) return null;
     final config = Map<String, dynamic>.from(args);
     final kioskDisable = config['kiosk_disable'] == true;
-    if (!kioskDisable) return null;
+    if (!kioskDisable) {
+      _managedKioskDisableHandled = false;
+      return null;
+    }
+    if (_managedKioskDisableHandled) return null;
+    _managedKioskDisableHandled = true;
 
     if (_exitInProgress) return null;
     setState(() => _exitInProgress = true);
@@ -426,10 +433,24 @@ class QrMenuPageState extends State<QrMenuPage>
                 viewModel.kioskService.isAdVisible &&
                 viewModel.kioskService.currentScreenSaver != null)
               Positioned.fill(
-                child: AdFullScreen(
-                  items: viewModel.kioskService.screenSavers?.data ?? [],
-                  // banner: viewModel.kioskService!.currentScreenSaver!,
-                  onTap: viewModel.kioskService.onUserInteraction,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    AdFullScreen(
+                      items: viewModel.kioskService.screenSavers?.data ?? [],
+                      onTap: viewModel.kioskService.onUserInteraction,
+                    ),
+                    const Positioned(
+                      top: 0,
+                      left: 0,
+                      child: SafeArea(
+                        minimum: EdgeInsets.fromLTRB(24, 48, 0, 0),
+                        child: IgnorePointer(
+                          child: AdLogoCoinShine(height: 24),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],

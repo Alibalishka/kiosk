@@ -3,14 +3,15 @@
 abstract class AppUrls {
   /// Переключатель окружения в одном месте.
   /// false = dev, true = prod.
-  static const bool isProd = false;
+  static const bool isProd = true;
 
   static String get _apiZone => isProd ? 'admin' : 'dev';
   static String get _otaChannel => isProd ? 'prod' : 'dev';
 
   static String get devUrl => 'https://sandyq.$_apiZone.qrpay.kz/api';
   static String get kBaseUrl => devUrl;
-  static String apiByHost(String host) => 'https://$host.$_apiZone.qrpay.kz/api';
+  static String apiByHost(String host) =>
+      'https://$host.$_apiZone.qrpay.kz/api';
   static String get otaApkUrl => 'https://kiosk.qrpay.kz/apk/app/$_otaChannel';
 
   // static const kBaseUrl = 'https://chayla.admin.qrpay.kz/api';

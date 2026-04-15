@@ -2,6 +2,7 @@ package dd.qrPay
 
 import android.app.PendingIntent
 import android.app.admin.DevicePolicyManager
+import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -9,10 +10,12 @@ import android.content.IntentFilter
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.content.RestrictionsManager
+import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
@@ -222,6 +225,10 @@ class MainActivity : FlutterActivity() {
             }
           }
 
+          "getDeviceMetrics" -> {
+            result.success(readDeviceMetrics())
+          }
+
           else -> result.notImplemented()
         }
       }
@@ -347,6 +354,34 @@ class MainActivity : FlutterActivity() {
         else -> value.toString()
       }
     }
+
+    return result
+  }
+
+  private fun readDeviceMetrics(): HashMap<String, Any?> {
+    val result = HashMap<String, Any?>()
+    try {
+      val battery = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+      val tempTenthC = battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
+      if (tempTenthC != null && tempTenthC != Int.MIN_VALUE) {
+        result["temperature_c"] = tempTenthC / 10.0
+      }
+    } catch (_: Throwable) {}
+
+    try {
+      val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+      val mem = ActivityManager.MemoryInfo()
+      am.getMemoryInfo(mem)
+      val totalMb = (mem.totalMem / (1024L * 1024L)).toInt()
+      val availMb = (mem.availMem / (1024L * 1024L)).toInt()
+      result["ram_total_mb"] = totalMb
+      result["ram_available_mb"] = availMb
+      result["ram_used_mb"] = (totalMb - availMb).coerceAtLeast(0)
+    } catch (_: Throwable) {}
+
+    try {
+      result["uptime_sec"] = (SystemClock.elapsedRealtime() / 1000L).toInt()
+    } catch (_: Throwable) {}
 
     return result
   }

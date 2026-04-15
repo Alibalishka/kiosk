@@ -80,11 +80,8 @@ class AdbConfigReceiver : BroadcastReceiver() {
     if (kioskDisable) {
       Log.i(
         "AdbConfigReceiver",
-        "kiosk_disable=true, waiting Flutter disconnect then clearDeviceOwner fallback",
+        "kiosk_disable=true; waiting explicit clear flow from Flutter",
       )
-      Handler(Looper.getMainLooper()).postDelayed({
-        MainActivity.clearDeviceOwnerFromAnyContext(context.applicationContext)
-      }, 12_000)
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
@@ -15,6 +16,7 @@ import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
 
 class KioskService {
+  static const MethodChannel _dpcChannel = MethodChannel('dpc');
   final void Function() notifyUi;
   final KioskBloc kioskBloc;
 
@@ -181,11 +183,12 @@ class KioskService {
     final state = await battery.batteryState;
 
     // 🔋 уровень батареи (0–100)
-    // final int level = 100;
-    final int level = await battery.batteryLevel;
+    final int level = 100;
+    // final int level = await battery.batteryLevel;
 
     // ✅ UUID из secure storage
     final deviceId = await _getDeviceId();
+    final metrics = await _readDeviceMetrics();
 
     kioskBloc.add(
       KioskEvent.sendStatusKiosk(
@@ -196,10 +199,27 @@ class KioskService {
           networkType: _getNetworkType(result),
           screenStatus: 'active',
           status: 'online',
+          temperatureC: (metrics['temperature_c'] as num?)?.toDouble(),
+          ramTotalMb: (metrics['ram_total_mb'] as num?)?.toInt(),
+          ramAvailableMb: (metrics['ram_available_mb'] as num?)?.toInt(),
+          ramUsedMb: (metrics['ram_used_mb'] as num?)?.toInt(),
+          uptimeSec: (metrics['uptime_sec'] as num?)?.toInt(),
         ),
         deviceId: deviceId,
       ),
     );
+  }
+
+  Future<Map<String, dynamic>> _readDeviceMetrics() async {
+    try {
+      final data = await _dpcChannel.invokeMethod<dynamic>('getDeviceMetrics');
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+    } catch (_) {
+      // ignore метрики, если канал недоступен
+    }
+    return const <String, dynamic>{};
   }
 
   Future<void> checkKiosk() async {
