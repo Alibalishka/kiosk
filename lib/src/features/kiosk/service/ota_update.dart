@@ -51,7 +51,8 @@ class OtaUpdateService {
 
     status.value = const OtaStatus.downloading(0);
 
-    const url = 'https://kiosk.admin.qrpay.kz/ota.apk';
+    // const url = 'https://kiosk.admin.qrpay.kz/ota.apk';
+    const url = 'https://kiosk.qrpay.kz/apk/app/dev ';
 
     final dir = await getTemporaryDirectory();
     final filePath = p.join(dir.path, 'ota.apk');
