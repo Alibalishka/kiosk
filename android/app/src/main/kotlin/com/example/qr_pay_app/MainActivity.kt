@@ -207,6 +207,16 @@ class MainActivity : FlutterActivity() {
             }
           }
 
+          "clearInstallResult" -> {
+            val prefs = getSharedPreferences("ota_prefs", MODE_PRIVATE)
+            prefs.edit()
+              .remove("install_timestamp")
+              .remove("install_status")
+              .remove("install_message")
+              .apply()
+            result.success(true)
+          }
+
           "getManagedConfig" -> {
             result.success(readManagedConfig())
           }

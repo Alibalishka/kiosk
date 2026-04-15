@@ -65,6 +65,10 @@ class OtaUpdateService {
     ));
 
     try {
+      // Очищаем возможный "хвост" прошлого OTA результата, чтобы polling
+      // не получил устаревший SUCCESS/FAIL от предыдущей попытки.
+      await _dpc.invokeMethod('clearInstallResult');
+
       final resp = await dio.download(
         url,
         filePath,

@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 
@@ -148,15 +149,25 @@ class DeviceInfoDialog {
                                       ScaffoldMessenger.of(ctx).showSnackBar(
                                         const SnackBar(
                                           content:
-                                              Text('Обновление запущено…'),
+                                              Text('Обновление завершено'),
+                                        ),
+                                      );
+                                    } on PlatformException catch (e) {
+                                      if (!ctx.mounted) return;
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            e.message?.trim().isNotEmpty == true
+                                                ? e.message!
+                                                : 'Не удалось обновить',
+                                          ),
                                         ),
                                       );
                                     } catch (_) {
                                       if (!ctx.mounted) return;
                                       ScaffoldMessenger.of(ctx).showSnackBar(
                                         const SnackBar(
-                                          content:
-                                              Text('Не удалось обновить'),
+                                          content: Text('Не удалось обновить'),
                                         ),
                                       );
                                     } finally {

@@ -197,7 +197,7 @@ class _KioskRegisterState extends State<KioskRegister>
       await sl<OtaUpdateService>().downloadAndInstall();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Обновление запущено…')),
+        const SnackBar(content: Text('Обновление завершено')),
       );
     } on PlatformException catch (e) {
       if (!mounted) return;
