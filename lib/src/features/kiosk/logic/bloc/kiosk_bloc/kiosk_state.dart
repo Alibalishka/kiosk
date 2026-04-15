@@ -21,6 +21,8 @@ class KioskState with _$KioskState {
   const factory KioskState.successTechWork(
       {required TechWorkResponse response}) = _SuccessTechWork;
 
+  const factory KioskState.successDisconnectKiosk() = _SuccessDisconnectKiosk;
+
   const factory KioskState.failed({
     @Default('Произошла ошибка') String message,
     int? errorCode,

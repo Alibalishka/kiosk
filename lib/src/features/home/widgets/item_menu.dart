@@ -36,11 +36,19 @@ class ItemMenu extends StatelessWidget {
           children: [
             if (item.image?.isNotEmpty ?? false)
               GestureDetector(
-                  onTap: () => context.router.push(
-                        ProductPageRoute(
+                  onTap: () => showCustomSheet(
+                        context,
+                        child: ProductPage(
                           item: item,
+                          // isSubscription: viewModel.isSubscription,
+                          // isMenuPage: true,
                         ),
                       ),
+                  // context.router.push(
+                  //       ProductPageRoute(
+                  //         item: item,
+                  //       ),
+                  //     ),
                   // showCustomSheet(
                   //       context,
                   //       child: ProductPage(
@@ -93,11 +101,19 @@ class ItemMenu extends StatelessWidget {
             // const RowSpacer(2),
             Flexible(
               child: GestureDetector(
-                onTap: () => context.router.push(
-                  ProductPageRoute(
+                onTap: () => showCustomSheet(
+                  context,
+                  child: ProductPage(
                     item: item,
+                    // isSubscription: viewModel.isSubscription,
+                    // isMenuPage: true,
                   ),
                 ),
+                //  context.router.push(
+                //   ProductPageRoute(
+                //     item: item,
+                //   ),
+                // ),
                 // Navigator.push(
                 //   context,
                 //   MaterialPageRoute(

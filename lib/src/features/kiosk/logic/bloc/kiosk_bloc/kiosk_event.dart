@@ -19,4 +19,7 @@ class KioskEvent with _$KioskEvent {
       _FetchScreenSavers;
 
   const factory KioskEvent.techWork() = _TechWork;
+
+  const factory KioskEvent.disconnectKiosk({required String deviceId}) =
+      _DisconnectKiosk;
 }

@@ -18,6 +18,7 @@ abstract class KioskRepository {
     required KioskStatusRequest body,
     required String deviceId,
   });
+  Future<Result<KioskResponse>> disconnectKiosk({required String deviceId});
   Future<Result<PayModel>> payKaspi({required MenuCheckoutRequest body});
   Future<Result<KaspiStatus>> checkKapiPayStatus({required int orderId});
   Future<Result<ScreenSaversResponse>> fetchScreenSavers(
@@ -54,6 +55,15 @@ class KioskRepositoryImpl implements KioskRepository {
     return await client.execute(
       route: KioskApi.sendStatusKiosk(body: body, deviceId: deviceId),
       responseType: KioskStatus(),
+    );
+  }
+
+  @override
+  Future<Result<KioskResponse>> disconnectKiosk(
+      {required String deviceId}) async {
+    return await client.execute(
+      route: KioskApi.disconnectKiosk(deviceId: deviceId),
+      responseType: KioskResponse(),
     );
   }
 

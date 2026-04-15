@@ -41,7 +41,7 @@ class HomeAppBar extends StatelessWidget {
             Padding(
               padding: AppPaddings.horizontal16,
               child: Container(
-                color: AppColors.none,
+                color: AppColors.primitiveBlue700,
                 child: Row(
                   children: [
                     // Image.asset(
@@ -50,8 +50,8 @@ class HomeAppBar extends StatelessWidget {
                     // ),
                     GestureDetector(
                       onTap: () async {
-                        const _dpc = MethodChannel('dpc');
-                        await _dpc.invokeMethod('clearDeviceOwner');
+                        // const _dpc = MethodChannel('dpc');
+                        // await _dpc.invokeMethod('clearDeviceOwner');
                       },
                       child: Text(
                         'Qr Pay',

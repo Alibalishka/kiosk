@@ -1,4 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
+import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
@@ -200,6 +202,7 @@ class BasketService {
     required int indexType,
     int? addressId,
     dynamic inHall,
+    required dynamic organizationSecondId,
   }) {
     return MenuCheckoutRequest(
       organizationId: organizationId,
@@ -210,6 +213,9 @@ class BasketService {
       //         ? DeliveryType.delivery
       //         : DeliveryType.pickup
       //     : DeliveryType.delivery,
+      raw: parseUrlParams(
+        '${_kioskAdminOrigin()}/?r=kiosk&i=$organizationSecondId',
+      ),
       addressId: addressId,
       inHall: inHall,
       items: basket.map((item) {
@@ -242,6 +248,20 @@ class BasketService {
         );
       }).toList(),
     );
+  }
+
+  /// Как [DioSettings.dioKiosk]: `https://{host}.admin.qrpay.kz` без `/api`.
+  String _kioskAdminOrigin() {
+    final h = sl<HostStorage>().getHost()?.trim();
+    if (h == null || h.isEmpty) {
+      return 'https://kiosk.admin.qrpay.kz';
+    }
+    return 'https://$h.admin.qrpay.kz';
+  }
+
+  Map<String, String> parseUrlParams(String url) {
+    final uri = Uri.parse(url);
+    return uri.queryParameters;
   }
 
   bool _areModifiersEqual(List<Modifier>? mods1, List<Modifier>? mods2) {

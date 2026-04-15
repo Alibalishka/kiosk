@@ -1,4 +1,5 @@
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_pay_app/src/core/constants/app_url.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
@@ -12,6 +13,8 @@ import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class DioSettings {
+  static const MethodChannel _dpc = MethodChannel('dpc');
+  static const String _keyboardPackage = 'rkr.simplekeyboard.inputmethod';
   late final PackageInfo packageInfo;
   late final Dio dioKiosk;
   // final Dio dio = Dio();
@@ -31,14 +34,13 @@ class DioSettings {
     )
     ..interceptors.addAll(
       <Interceptor>[
-        // TalkerDioLogger(
-        //   talker: sl<Talker>(),
-        //   settings: const TalkerDioLoggerSettings(
-        //     printRequestHeaders: true,
-        //     printResponseHeaders: true,
-        //     printRequestData: true,
-        //     printResponseData: true,
-        //   ),
+        // LogInterceptor(
+        //   request: true,
+        //   requestHeader: true,
+        //   requestBody: true,
+        //   responseHeader: true,
+        //   responseBody: true,
+        //   error: true,
         // ),
       ],
     );
@@ -46,11 +48,8 @@ class DioSettings {
   DioSettings() {
     dioKiosk = Dio(
       BaseOptions(
-        // baseUrl: 'https://${sl<HostStorage>().getHost()}.finsider.asia/api',
-        // baseUrl: 'https://aidos.finsider.asia/api',
-        // baseUrl: 'https://${sl<HostStorage>().getHost()}.dev.qrpay.kz/api',
-        baseUrl: 'https://${sl<HostStorage>().getHost()}.admin.qrpay.kz/api',
-        headers: <String, String>{
+        baseUrl: AppUrls.apiByHost(sl<HostStorage>().getHost() ?? 'sandyq'),
+        headers: <String, dynamic>{
           'accept': 'application/json',
           "content-type": "application/json",
           // authorization ставится динамически в KioskAuthInterceptor.onRequest
@@ -58,9 +57,11 @@ class DioSettings {
               sl<SharedPreferences>().getString('locale')?.split('_')[0] ??
                   'ru',
           'X-App-Version': sl<PackageInfo>().version,
+          'X-Keyboard-Version': null,
         },
       ),
     );
+    _initKeyboardVersionHeader();
 
     dioKiosk.interceptors.addAll([
       RetryOnConnectionErrorInterceptor(dio: dioKiosk),
@@ -74,6 +75,27 @@ class DioSettings {
       //     printResponseData: true,
       //   ),
       // ),
+      // LogInterceptor(
+      //   request: true,
+      //   requestHeader: true,
+      //   requestBody: true,
+      //   responseHeader: true,
+      //   responseBody: true,
+      //   error: true,
+      // ),
     ]);
+  }
+
+  Future<void> _initKeyboardVersionHeader() async {
+    try {
+      final dynamic raw = await _dpc.invokeMethod(
+        'getPackageVersion',
+        <String, dynamic>{'packageName': _keyboardPackage},
+      );
+      dioKiosk.options.headers['X-Keyboard-Version'] =
+          (raw is String && raw.trim().isNotEmpty) ? raw.trim() : null;
+    } catch (_) {
+      dioKiosk.options.headers['X-Keyboard-Version'] = null;
+    }
   }
 }

@@ -22,6 +22,7 @@ mixin _$KioskApi {
     required TResult Function(String deviceId) checkKiosk,
     required TResult Function(KioskStatusRequest body, String deviceId)
         sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
     required TResult Function(MenuCheckoutRequest body) payKaspi,
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
@@ -34,6 +35,7 @@ mixin _$KioskApi {
     TResult? Function(String deviceId)? checkKiosk,
     TResult? Function(KioskStatusRequest body, String deviceId)?
         sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
     TResult? Function(MenuCheckoutRequest body)? payKaspi,
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
@@ -45,6 +47,7 @@ mixin _$KioskApi {
     TResult Function(KioskRequest body)? register,
     TResult Function(String deviceId)? checkKiosk,
     TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
     TResult Function(MenuCheckoutRequest body)? payKaspi,
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
@@ -57,6 +60,7 @@ mixin _$KioskApi {
     required TResult Function(_Register value) register,
     required TResult Function(_CheckKiosk value) checkKiosk,
     required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
     required TResult Function(_PayKaspi value) payKaspi,
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
@@ -68,6 +72,7 @@ mixin _$KioskApi {
     TResult? Function(_Register value)? register,
     TResult? Function(_CheckKiosk value)? checkKiosk,
     TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult? Function(_PayKaspi value)? payKaspi,
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -79,6 +84,7 @@ mixin _$KioskApi {
     TResult Function(_Register value)? register,
     TResult Function(_CheckKiosk value)? checkKiosk,
     TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult Function(_PayKaspi value)? payKaspi,
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -173,6 +179,7 @@ class _$RegisterImpl extends _Register {
     required TResult Function(String deviceId) checkKiosk,
     required TResult Function(KioskStatusRequest body, String deviceId)
         sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
     required TResult Function(MenuCheckoutRequest body) payKaspi,
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
@@ -188,6 +195,7 @@ class _$RegisterImpl extends _Register {
     TResult? Function(String deviceId)? checkKiosk,
     TResult? Function(KioskStatusRequest body, String deviceId)?
         sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
     TResult? Function(MenuCheckoutRequest body)? payKaspi,
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
@@ -202,6 +210,7 @@ class _$RegisterImpl extends _Register {
     TResult Function(KioskRequest body)? register,
     TResult Function(String deviceId)? checkKiosk,
     TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
     TResult Function(MenuCheckoutRequest body)? payKaspi,
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
@@ -220,6 +229,7 @@ class _$RegisterImpl extends _Register {
     required TResult Function(_Register value) register,
     required TResult Function(_CheckKiosk value) checkKiosk,
     required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
     required TResult Function(_PayKaspi value) payKaspi,
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
@@ -234,6 +244,7 @@ class _$RegisterImpl extends _Register {
     TResult? Function(_Register value)? register,
     TResult? Function(_CheckKiosk value)? checkKiosk,
     TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult? Function(_PayKaspi value)? payKaspi,
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -248,6 +259,7 @@ class _$RegisterImpl extends _Register {
     TResult Function(_Register value)? register,
     TResult Function(_CheckKiosk value)? checkKiosk,
     TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult Function(_PayKaspi value)? payKaspi,
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -340,6 +352,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     required TResult Function(String deviceId) checkKiosk,
     required TResult Function(KioskStatusRequest body, String deviceId)
         sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
     required TResult Function(MenuCheckoutRequest body) payKaspi,
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
@@ -355,6 +368,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     TResult? Function(String deviceId)? checkKiosk,
     TResult? Function(KioskStatusRequest body, String deviceId)?
         sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
     TResult? Function(MenuCheckoutRequest body)? payKaspi,
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
@@ -369,6 +383,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     TResult Function(KioskRequest body)? register,
     TResult Function(String deviceId)? checkKiosk,
     TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
     TResult Function(MenuCheckoutRequest body)? payKaspi,
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
@@ -387,6 +402,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     required TResult Function(_Register value) register,
     required TResult Function(_CheckKiosk value) checkKiosk,
     required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
     required TResult Function(_PayKaspi value) payKaspi,
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
@@ -401,6 +417,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     TResult? Function(_Register value)? register,
     TResult? Function(_CheckKiosk value)? checkKiosk,
     TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult? Function(_PayKaspi value)? payKaspi,
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -415,6 +432,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     TResult Function(_Register value)? register,
     TResult Function(_CheckKiosk value)? checkKiosk,
     TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult Function(_PayKaspi value)? payKaspi,
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -518,6 +536,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     required TResult Function(String deviceId) checkKiosk,
     required TResult Function(KioskStatusRequest body, String deviceId)
         sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
     required TResult Function(MenuCheckoutRequest body) payKaspi,
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
@@ -533,6 +552,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     TResult? Function(String deviceId)? checkKiosk,
     TResult? Function(KioskStatusRequest body, String deviceId)?
         sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
     TResult? Function(MenuCheckoutRequest body)? payKaspi,
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
@@ -547,6 +567,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     TResult Function(KioskRequest body)? register,
     TResult Function(String deviceId)? checkKiosk,
     TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
     TResult Function(MenuCheckoutRequest body)? payKaspi,
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
@@ -565,6 +586,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     required TResult Function(_Register value) register,
     required TResult Function(_CheckKiosk value) checkKiosk,
     required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
     required TResult Function(_PayKaspi value) payKaspi,
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
@@ -579,6 +601,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     TResult? Function(_Register value)? register,
     TResult? Function(_CheckKiosk value)? checkKiosk,
     TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult? Function(_PayKaspi value)? payKaspi,
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -593,6 +616,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     TResult Function(_Register value)? register,
     TResult Function(_CheckKiosk value)? checkKiosk,
     TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult Function(_PayKaspi value)? payKaspi,
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -616,6 +640,181 @@ abstract class _SendStatusKiosk extends KioskApi {
   String get deviceId;
   @JsonKey(ignore: true)
   _$$SendStatusKioskImplCopyWith<_$SendStatusKioskImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$DisconnectKioskImplCopyWith<$Res> {
+  factory _$$DisconnectKioskImplCopyWith(_$DisconnectKioskImpl value,
+          $Res Function(_$DisconnectKioskImpl) then) =
+      __$$DisconnectKioskImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String deviceId});
+}
+
+/// @nodoc
+class __$$DisconnectKioskImplCopyWithImpl<$Res>
+    extends _$KioskApiCopyWithImpl<$Res, _$DisconnectKioskImpl>
+    implements _$$DisconnectKioskImplCopyWith<$Res> {
+  __$$DisconnectKioskImplCopyWithImpl(
+      _$DisconnectKioskImpl _value, $Res Function(_$DisconnectKioskImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? deviceId = null,
+  }) {
+    return _then(_$DisconnectKioskImpl(
+      deviceId: null == deviceId
+          ? _value.deviceId
+          : deviceId // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$DisconnectKioskImpl extends _DisconnectKiosk {
+  const _$DisconnectKioskImpl({required this.deviceId}) : super._();
+
+  @override
+  final String deviceId;
+
+  @override
+  String toString() {
+    return 'KioskApi.disconnectKiosk(deviceId: $deviceId)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$DisconnectKioskImpl &&
+            (identical(other.deviceId, deviceId) ||
+                other.deviceId == deviceId));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, deviceId);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$DisconnectKioskImplCopyWith<_$DisconnectKioskImpl> get copyWith =>
+      __$$DisconnectKioskImplCopyWithImpl<_$DisconnectKioskImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(KioskRequest body) register,
+    required TResult Function(String deviceId) checkKiosk,
+    required TResult Function(KioskStatusRequest body, String deviceId)
+        sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
+    required TResult Function(MenuCheckoutRequest body) payKaspi,
+    required TResult Function(int orderId) checkKapiPayStatus,
+    required TResult Function(String deviceId) fetchScreenSavers,
+    required TResult Function() techWork,
+  }) {
+    return disconnectKiosk(deviceId);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(KioskRequest body)? register,
+    TResult? Function(String deviceId)? checkKiosk,
+    TResult? Function(KioskStatusRequest body, String deviceId)?
+        sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
+    TResult? Function(MenuCheckoutRequest body)? payKaspi,
+    TResult? Function(int orderId)? checkKapiPayStatus,
+    TResult? Function(String deviceId)? fetchScreenSavers,
+    TResult? Function()? techWork,
+  }) {
+    return disconnectKiosk?.call(deviceId);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(KioskRequest body)? register,
+    TResult Function(String deviceId)? checkKiosk,
+    TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
+    TResult Function(MenuCheckoutRequest body)? payKaspi,
+    TResult Function(int orderId)? checkKapiPayStatus,
+    TResult Function(String deviceId)? fetchScreenSavers,
+    TResult Function()? techWork,
+    required TResult orElse(),
+  }) {
+    if (disconnectKiosk != null) {
+      return disconnectKiosk(deviceId);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Register value) register,
+    required TResult Function(_CheckKiosk value) checkKiosk,
+    required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
+    required TResult Function(_PayKaspi value) payKaspi,
+    required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
+    required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
+    required TResult Function(_TechWork value) techWork,
+  }) {
+    return disconnectKiosk(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Register value)? register,
+    TResult? Function(_CheckKiosk value)? checkKiosk,
+    TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
+    TResult? Function(_PayKaspi value)? payKaspi,
+    TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
+    TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
+    TResult? Function(_TechWork value)? techWork,
+  }) {
+    return disconnectKiosk?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Register value)? register,
+    TResult Function(_CheckKiosk value)? checkKiosk,
+    TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
+    TResult Function(_PayKaspi value)? payKaspi,
+    TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
+    TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
+    TResult Function(_TechWork value)? techWork,
+    required TResult orElse(),
+  }) {
+    if (disconnectKiosk != null) {
+      return disconnectKiosk(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _DisconnectKiosk extends KioskApi {
+  const factory _DisconnectKiosk({required final String deviceId}) =
+      _$DisconnectKioskImpl;
+  const _DisconnectKiosk._() : super._();
+
+  String get deviceId;
+  @JsonKey(ignore: true)
+  _$$DisconnectKioskImplCopyWith<_$DisconnectKioskImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -687,6 +886,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     required TResult Function(String deviceId) checkKiosk,
     required TResult Function(KioskStatusRequest body, String deviceId)
         sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
     required TResult Function(MenuCheckoutRequest body) payKaspi,
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
@@ -702,6 +902,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     TResult? Function(String deviceId)? checkKiosk,
     TResult? Function(KioskStatusRequest body, String deviceId)?
         sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
     TResult? Function(MenuCheckoutRequest body)? payKaspi,
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
@@ -716,6 +917,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     TResult Function(KioskRequest body)? register,
     TResult Function(String deviceId)? checkKiosk,
     TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
     TResult Function(MenuCheckoutRequest body)? payKaspi,
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
@@ -734,6 +936,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     required TResult Function(_Register value) register,
     required TResult Function(_CheckKiosk value) checkKiosk,
     required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
     required TResult Function(_PayKaspi value) payKaspi,
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
@@ -748,6 +951,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     TResult? Function(_Register value)? register,
     TResult? Function(_CheckKiosk value)? checkKiosk,
     TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult? Function(_PayKaspi value)? payKaspi,
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -762,6 +966,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     TResult Function(_Register value)? register,
     TResult Function(_CheckKiosk value)? checkKiosk,
     TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult Function(_PayKaspi value)? payKaspi,
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -855,6 +1060,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     required TResult Function(String deviceId) checkKiosk,
     required TResult Function(KioskStatusRequest body, String deviceId)
         sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
     required TResult Function(MenuCheckoutRequest body) payKaspi,
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
@@ -870,6 +1076,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     TResult? Function(String deviceId)? checkKiosk,
     TResult? Function(KioskStatusRequest body, String deviceId)?
         sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
     TResult? Function(MenuCheckoutRequest body)? payKaspi,
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
@@ -884,6 +1091,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     TResult Function(KioskRequest body)? register,
     TResult Function(String deviceId)? checkKiosk,
     TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
     TResult Function(MenuCheckoutRequest body)? payKaspi,
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
@@ -902,6 +1110,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     required TResult Function(_Register value) register,
     required TResult Function(_CheckKiosk value) checkKiosk,
     required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
     required TResult Function(_PayKaspi value) payKaspi,
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
@@ -916,6 +1125,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     TResult? Function(_Register value)? register,
     TResult? Function(_CheckKiosk value)? checkKiosk,
     TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult? Function(_PayKaspi value)? payKaspi,
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -930,6 +1140,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     TResult Function(_Register value)? register,
     TResult Function(_CheckKiosk value)? checkKiosk,
     TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult Function(_PayKaspi value)? payKaspi,
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -1024,6 +1235,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     required TResult Function(String deviceId) checkKiosk,
     required TResult Function(KioskStatusRequest body, String deviceId)
         sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
     required TResult Function(MenuCheckoutRequest body) payKaspi,
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
@@ -1039,6 +1251,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     TResult? Function(String deviceId)? checkKiosk,
     TResult? Function(KioskStatusRequest body, String deviceId)?
         sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
     TResult? Function(MenuCheckoutRequest body)? payKaspi,
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
@@ -1053,6 +1266,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     TResult Function(KioskRequest body)? register,
     TResult Function(String deviceId)? checkKiosk,
     TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
     TResult Function(MenuCheckoutRequest body)? payKaspi,
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
@@ -1071,6 +1285,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     required TResult Function(_Register value) register,
     required TResult Function(_CheckKiosk value) checkKiosk,
     required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
     required TResult Function(_PayKaspi value) payKaspi,
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
@@ -1085,6 +1300,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     TResult? Function(_Register value)? register,
     TResult? Function(_CheckKiosk value)? checkKiosk,
     TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult? Function(_PayKaspi value)? payKaspi,
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -1099,6 +1315,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     TResult Function(_Register value)? register,
     TResult Function(_CheckKiosk value)? checkKiosk,
     TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult Function(_PayKaspi value)? payKaspi,
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -1165,6 +1382,7 @@ class _$TechWorkImpl extends _TechWork {
     required TResult Function(String deviceId) checkKiosk,
     required TResult Function(KioskStatusRequest body, String deviceId)
         sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
     required TResult Function(MenuCheckoutRequest body) payKaspi,
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
@@ -1180,6 +1398,7 @@ class _$TechWorkImpl extends _TechWork {
     TResult? Function(String deviceId)? checkKiosk,
     TResult? Function(KioskStatusRequest body, String deviceId)?
         sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
     TResult? Function(MenuCheckoutRequest body)? payKaspi,
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
@@ -1194,6 +1413,7 @@ class _$TechWorkImpl extends _TechWork {
     TResult Function(KioskRequest body)? register,
     TResult Function(String deviceId)? checkKiosk,
     TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
     TResult Function(MenuCheckoutRequest body)? payKaspi,
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
@@ -1212,6 +1432,7 @@ class _$TechWorkImpl extends _TechWork {
     required TResult Function(_Register value) register,
     required TResult Function(_CheckKiosk value) checkKiosk,
     required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
     required TResult Function(_PayKaspi value) payKaspi,
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
@@ -1226,6 +1447,7 @@ class _$TechWorkImpl extends _TechWork {
     TResult? Function(_Register value)? register,
     TResult? Function(_CheckKiosk value)? checkKiosk,
     TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult? Function(_PayKaspi value)? payKaspi,
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
@@ -1240,6 +1462,7 @@ class _$TechWorkImpl extends _TechWork {
     TResult Function(_Register value)? register,
     TResult Function(_CheckKiosk value)? checkKiosk,
     TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
     TResult Function(_PayKaspi value)? payKaspi,
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,

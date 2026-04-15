@@ -19,6 +19,9 @@ abstract class KioskApi extends BaseClientGenerator with _$KioskApi {
     required String deviceId,
   }) = _SendStatusKiosk;
 
+  const factory KioskApi.disconnectKiosk({required String deviceId}) =
+      _DisconnectKiosk;
+
   const factory KioskApi.payKaspi({required MenuCheckoutRequest body}) =
       _PayKaspi;
 
@@ -43,6 +46,7 @@ abstract class KioskApi extends BaseClientGenerator with _$KioskApi {
         register: (_) => 'POST',
         sendStatusKiosk: (_, __) => 'POST',
         payKaspi: (_) => 'POST',
+        disconnectKiosk: (_) => 'POST',
       );
 
   /// Пути всех запросов (после [kBaseUrl])
@@ -51,6 +55,7 @@ abstract class KioskApi extends BaseClientGenerator with _$KioskApi {
         register: (_) => '/kiosks/connect',
         checkKiosk: (deviceId) => '/kiosks/$deviceId',
         sendStatusKiosk: (_, deviceId) => '/kiosks/$deviceId/status',
+        disconnectKiosk: (deviceId) => '/kiosks/$deviceId/disconnect',
         payKaspi: (_) => '/orders/pay-order',
         checkKapiPayStatus: (orderId) => '/orders/$orderId/kaspi',
         fetchScreenSavers: (deviceId) => '/kiosks/$deviceId/screensavers',

@@ -4,10 +4,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 
+import 'package:qr_pay_app/src/core/utils/device_display_name.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/kiosk_exit_confirm_dialog.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/ota_update.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
@@ -23,27 +27,36 @@ class DeviceInfoDialog {
     required TextEditingController exitConfirmController,
     required Future<void> Function() onExitFromKiosk,
   }) async {
+    var otaRunning = false;
     final deviceInfo = DeviceInfoPlugin();
     final deviceId = await const DeviceIdService().getOrCreate();
     final org = viewModel.menuData?.organization;
 
-    String model = '';
+    String displayName = '';
+    String deviceModel = '';
     String osVersion = '';
 
     try {
       if (Platform.isAndroid) {
         final info = await deviceInfo.androidInfo;
-        model = info.model;
+        displayName = await androidDeviceDisplayNameResolved(info);
+        deviceModel = androidBuildPropModel(info);
         osVersion =
             'Android ${info.version.release} (SDK ${info.version.sdkInt})';
       } else if (Platform.isIOS) {
         final info = await deviceInfo.iosInfo;
-        model = info.name;
+        displayName = iosDeviceDisplayName(info);
+        deviceModel = info.utsname.machine;
         osVersion = '${info.systemName} ${info.systemVersion}';
       }
     } catch (_) {
       // ignore: avoid_catches_without_on_clauses
     }
+
+    displayName = displayName.trim();
+    if (displayName.isEmpty) displayName = '-';
+    deviceModel = deviceModel.trim();
+    if (deviceModel.isEmpty) deviceModel = '-';
 
     final platform = Platform.isAndroid
         ? 'Android'
@@ -64,7 +77,8 @@ class DeviceInfoDialog {
       ..writeln('Platform: $platform')
       ..writeln('OS: $osVersion')
       ..writeln('Device ID: $deviceId')
-      ..writeln('Model: $model')
+      ..writeln('Name: $displayName')
+      ..writeln('Model: $deviceModel')
       ..writeln('App version: ${appVersion ?? '-'}')
       ..writeln('Locale: $locale');
 
@@ -73,17 +87,18 @@ class DeviceInfoDialog {
     await showDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) => Center(
-        child: Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) => Center(
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                   QrImageView(
                     data: deviceId,
                     version: QrVersions.auto,
@@ -112,8 +127,8 @@ class DeviceInfoDialog {
                                     exitInProgress: exitInProgress,
                                   );
 
-                                  if (!context.mounted ||
-                                      confirmed != true) return;
+                                  if (!context.mounted || confirmed != true)
+                                    return;
 
                                   ctx.router.pop();
                                   await onExitFromKiosk();
@@ -121,6 +136,53 @@ class DeviceInfoDialog {
                           child: const Text('Выйти из киоска'),
                         ),
                         const SizedBox(height: 8),
+                        if (!Platform.isIOS)
+                          FilledButton(
+                            onPressed: otaRunning
+                                ? null
+                                : () async {
+                                    setStateDialog(() => otaRunning = true);
+                                    try {
+                                      await sl<OtaUpdateService>()
+                                          .downloadAndInstall();
+                                      if (!ctx.mounted) return;
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(
+                                          content:
+                                              Text('Обновление завершено'),
+                                        ),
+                                      );
+                                    } on PlatformException catch (e) {
+                                      if (!ctx.mounted) return;
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            e.message?.trim().isNotEmpty == true
+                                                ? e.message!
+                                                : 'Не удалось обновить',
+                                          ),
+                                        ),
+                                      );
+                                    } catch (_) {
+                                      if (!ctx.mounted) return;
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Не удалось обновить'),
+                                        ),
+                                      );
+                                    } finally {
+                                      if (ctx.mounted) {
+                                        setStateDialog(() => otaRunning = false);
+                                      }
+                                    }
+                                  },
+                            child: Text(
+                              otaRunning
+                                  ? 'Обновление…'
+                                  : 'Обновить приложение',
+                            ),
+                          ),
+                        if (!Platform.isIOS) const SizedBox(height: 8),
                         TextButton(
                           onPressed: () => ctx.router.pop(),
                           child: Text(LocaleKeys.close.tr()),
@@ -128,7 +190,8 @@ class DeviceInfoDialog {
                       ],
                     ),
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -137,4 +200,3 @@ class DeviceInfoDialog {
     );
   }
 }
-

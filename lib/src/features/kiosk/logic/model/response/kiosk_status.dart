@@ -19,8 +19,12 @@ class KioskStatus extends BaseModel<KioskStatus> {
 @JsonSerializable()
 class KioskStatusDatum extends BaseModel<KioskStatusDatum> {
   final String? version;
+  final SectionData? section;
 
-  KioskStatusDatum({this.version});
+  KioskStatusDatum({
+    this.version,
+    this.section,
+  });
 
   factory KioskStatusDatum.fromJson(Map<String, dynamic> json) =>
       _$KioskStatusDatumFromJson(json);
@@ -28,4 +32,31 @@ class KioskStatusDatum extends BaseModel<KioskStatusDatum> {
   @override
   KioskStatusDatum fromJson(Map<String, dynamic> json) =>
       KioskStatusDatum.fromJson(json);
+}
+
+@JsonSerializable()
+class SectionData extends BaseModel<SectionData> {
+  final int? id;
+  final int? itemId;
+  final String? number;
+  final dynamic tableId;
+  final dynamic terminalGroupId;
+  final String? groupName;
+  final String? posId;
+
+  SectionData({
+    this.id,
+    this.itemId,
+    this.number,
+    this.tableId,
+    this.terminalGroupId,
+    this.groupName,
+    this.posId,
+  });
+
+  factory SectionData.fromJson(Map<String, dynamic> json) =>
+      _$SectionDataFromJson(json);
+
+  @override
+  SectionData fromJson(Map<String, dynamic> json) => SectionData.fromJson(json);
 }

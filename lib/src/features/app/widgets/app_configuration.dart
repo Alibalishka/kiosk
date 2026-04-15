@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/resources/app_theme.dart';
+import 'package:qr_pay_app/src/core/utils/battery_overlay.dart';
+import 'package:qr_pay_app/src/core/utils/battery_status_service.dart';
 import 'package:qr_pay_app/src/core/utils/network_overlay.dart';
 import 'package:qr_pay_app/src/core/utils/network_status_service.dart';
 import 'package:qr_pay_app/src/core/widgets/ota_update_overlay.dart';
@@ -16,6 +18,7 @@ class AppConfiguration extends StatelessWidget {
 
   // Один сервис на всё приложение
   static final _networkService = NetworkStatusService();
+  static final _batteryService = BatteryStatusService();
 
   @override
   Widget build(BuildContext context) => AppRouterBuilder(
@@ -29,11 +32,14 @@ class AppConfiguration extends StatelessWidget {
             supportedLocales: context.supportedLocales,
             locale: context.locale,
             theme: AppTheme.light,
-            builder: (context, child) => OtaUpdateOverlay(
-              service: sl<OtaUpdateService>(),
-              child: NetworkOverlay(
-                service: _networkService,
-                child: child!,
+            builder: (context, child) => BatteryOverlay(
+              service: _batteryService,
+              child: OtaUpdateOverlay(
+                service: sl<OtaUpdateService>(),
+                child: NetworkOverlay(
+                  service: _networkService,
+                  child: child!,
+                ),
               ),
             ),
           ),

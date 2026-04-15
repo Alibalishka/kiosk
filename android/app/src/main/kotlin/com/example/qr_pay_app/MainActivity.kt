@@ -2,15 +2,22 @@ package dd.qrPay
 
 import android.app.PendingIntent
 import android.app.admin.DevicePolicyManager
+import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageInstaller
+import android.content.pm.PackageManager
+import android.content.RestrictionsManager
+import android.os.BatteryManager
+import android.os.Bundle
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
@@ -25,17 +32,91 @@ import android.content.pm.ActivityInfo
 
 class MainActivity : FlutterActivity() {
 
+  companion object {
+    @Volatile private var instance: MainActivity? = null
+    private const val PREFS = "kiosk_prefs"
+    private const val KEY_KIOSK_DISABLED = "kiosk_disabled"
+
+    fun notifyManagedConfigChanged() {
+      instance?.pushManagedConfigChanged()
+        ?: Log.i("MainActivity", "Managed config changed, but activity is not active")
+    }
+
+    fun clearDeviceOwnerFromAnyContext(context: Context) {
+      val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+      val admin = ComponentName(context, DeviceAdminReceiver::class.java)
+      val packageName = context.packageName
+
+      context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .putBoolean(KEY_KIOSK_DISABLED, true)
+        .apply()
+
+      try { dpm.setStatusBarDisabled(admin, false) } catch (_: Throwable) {}
+      try { dpm.setKeyguardDisabled(admin, false) } catch (_: Throwable) {}
+      try { dpm.clearPackagePersistentPreferredActivities(admin, packageName) } catch (_: Throwable) {}
+      try { dpm.setLockTaskPackages(admin, emptyArray()) } catch (_: Throwable) {}
+
+      try {
+        context.startActivity(
+          Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+      } catch (_: Throwable) {
+        try {
+          context.startActivity(
+            Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+          )
+        } catch (_: Throwable) {}
+      }
+
+      Handler(Looper.getMainLooper()).postDelayed({
+        try { dpm.clearDeviceOwnerApp(packageName) } catch (_: Throwable) {}
+      }, 800)
+    }
+  }
+
   private val DPC_CHANNEL = "dpc"
 
-  // Чтобы “CLEAR” не включал киоск снова (onResume), пока мы снимаем DO
-  private val PREFS = "kiosk_prefs"
-  private val KEY_KIOSK_DISABLED = "kiosk_disabled"
+  private fun readSystemDeviceDisplayName(): String? {
+    return try {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+        val name = Settings.Global.getString(contentResolver, Settings.Global.DEVICE_NAME)
+        if (!name.isNullOrBlank()) name.trim() else null
+      } else {
+        null
+      }
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
+  private fun readPackageVersion(targetPackage: String): String? {
+    return try {
+      val info = packageManager.getPackageInfo(targetPackage, 0)
+      info.versionName
+    } catch (_: PackageManager.NameNotFoundException) {
+      null
+    } catch (_: Throwable) {
+      null
+    }
+  }
 
   private fun isKioskDisabled(): Boolean =
     getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_KIOSK_DISABLED, false)
 
   private fun setKioskDisabled(v: Boolean) {
     getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_KIOSK_DISABLED, v).apply()
+  }
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    DeviceOwnerPermissionHelper.grantWifiPermissionsIfDeviceOwner(applicationContext)
+    instance = this
+  }
+
+  override fun onDestroy() {
+    if (instance === this) instance = null
+    super.onDestroy()
   }
 
   override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
@@ -62,47 +143,9 @@ class MainActivity : FlutterActivity() {
           // ✅ Админ-выход: корректно снимаем киоск и DO
           "clearDeviceOwner" -> {
             try {
-              val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-              val admin = ComponentName(this, DeviceAdminReceiver::class.java)
-
-              // 0) Фиксируем “режим выхода”, чтобы onResume больше не включал киоск
-              setKioskDisabled(true)
-
-              // 1) выходим из lock task
+              // 0) Выходим из lock task на активити, если активна
               try { stopLockTask() } catch (_: Throwable) {}
-
-              // 2) возвращаем статус-бар / keyguard (если было отключено)
-              try { dpm.setStatusBarDisabled(admin, false) } catch (_: Throwable) {}
-              try { dpm.setKeyguardDisabled(admin, false) } catch (_: Throwable) {}
-
-              // 3) снимаем все DPC-настройки, чтобы приложение перестало быть “домом”
-              try { dpm.clearPackagePersistentPreferredActivities(admin, packageName) } catch (_: Throwable) {}
-              try { dpm.setLockTaskPackages(admin, emptyArray()) } catch (_: Throwable) {}
-
-              // 4) открываем настройки выбора Home (иначе после снятия DO устройство может
-              //    продолжить возвращаться в твой “дом”, особенно если ты добавил HOME-filter)
-              try {
-                startActivity(
-                  Intent(Settings.ACTION_HOME_SETTINGS)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-              } catch (_: Throwable) {
-                // fallback, если HOME_SETTINGS нет на прошивке
-                try {
-                  startActivity(
-                    Intent(Settings.ACTION_SETTINGS)
-                      .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                  )
-                } catch (_: Throwable) {}
-              }
-
-              // 5) снимаем Device Owner чуть позже (после открытия настроек)
-              Handler(Looper.getMainLooper()).postDelayed({
-                try {
-                  dpm.clearDeviceOwnerApp(packageName)
-                } catch (_: Throwable) {}
-              }, 800)
-
+              clearDeviceOwnerFromAnyContext(this)
               result.success(true)
             } catch (e: Throwable) {
               result.error("CLEAR_DO_FAILED", e.message, null)
@@ -162,6 +205,38 @@ class MainActivity : FlutterActivity() {
             } else {
               result.success(null)
             }
+          }
+
+          "clearInstallResult" -> {
+            val prefs = getSharedPreferences("ota_prefs", MODE_PRIVATE)
+            prefs.edit()
+              .remove("install_timestamp")
+              .remove("install_status")
+              .remove("install_message")
+              .apply()
+            result.success(true)
+          }
+
+          "getManagedConfig" -> {
+            result.success(readManagedConfig())
+          }
+
+          // Имя из «Настройки → О телефоне / Имя устройства» (Settings.Global.DEVICE_NAME).
+          "getDeviceDisplayName" -> {
+            result.success(readSystemDeviceDisplayName())
+          }
+
+          "getPackageVersion" -> {
+            val targetPackage = call.argument<String>("packageName")
+            if (targetPackage.isNullOrBlank()) {
+              result.success(null)
+            } else {
+              result.success(readPackageVersion(targetPackage))
+            }
+          }
+
+          "getDeviceMetrics" -> {
+            result.success(readDeviceMetrics())
           }
 
           else -> result.notImplemented()
@@ -263,6 +338,62 @@ class MainActivity : FlutterActivity() {
           or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
           or View.SYSTEM_UI_FLAG_LAYOUT_STABLE)
     }
+  }
+
+  private fun pushManagedConfigChanged() {
+    runOnUiThread {
+      val config = readManagedConfig()
+      val engine = flutterEngine ?: return@runOnUiThread
+      MethodChannel(engine.dartExecutor.binaryMessenger, DPC_CHANNEL)
+        .invokeMethod("managedConfigChanged", config)
+    }
+  }
+
+  private fun readManagedConfig(): HashMap<String, Any?> {
+    val restrictionsManager =
+      getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
+    val restrictions = restrictionsManager.applicationRestrictions ?: Bundle()
+    val result = HashMap<String, Any?>()
+
+    for (key in restrictions.keySet()) {
+      val value = restrictions.get(key)
+      result[key] = when (value) {
+        is String, is Boolean, is Int, is Long, is Double -> value
+        is Float -> value.toDouble()
+        null -> null
+        else -> value.toString()
+      }
+    }
+
+    return result
+  }
+
+  private fun readDeviceMetrics(): HashMap<String, Any?> {
+    val result = HashMap<String, Any?>()
+    try {
+      val battery = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+      val tempTenthC = battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
+      if (tempTenthC != null && tempTenthC != Int.MIN_VALUE) {
+        result["temperature_c"] = tempTenthC / 10.0
+      }
+    } catch (_: Throwable) {}
+
+    try {
+      val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+      val mem = ActivityManager.MemoryInfo()
+      am.getMemoryInfo(mem)
+      val totalMb = (mem.totalMem / (1024L * 1024L)).toInt()
+      val availMb = (mem.availMem / (1024L * 1024L)).toInt()
+      result["ram_total_mb"] = totalMb
+      result["ram_available_mb"] = availMb
+      result["ram_used_mb"] = (totalMb - availMb).coerceAtLeast(0)
+    } catch (_: Throwable) {}
+
+    try {
+      result["uptime_sec"] = (SystemClock.elapsedRealtime() / 1000L).toInt()
+    } catch (_: Throwable) {}
+
+    return result
   }
 
   // ✅ Тихая установка APK через PackageInstaller session (Device Owner)

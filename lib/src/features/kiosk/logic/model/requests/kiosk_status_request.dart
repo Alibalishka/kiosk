@@ -10,6 +10,11 @@ class KioskStatusRequest {
   final String networkType;
   final String screenStatus;
   final String status;
+  final double? temperatureC;
+  final int? ramTotalMb;
+  final int? ramAvailableMb;
+  final int? ramUsedMb;
+  final int? uptimeSec;
 
   KioskStatusRequest({
     required this.batteryLevel,
@@ -18,6 +23,11 @@ class KioskStatusRequest {
     required this.networkType,
     required this.screenStatus,
     required this.status,
+    this.temperatureC,
+    this.ramTotalMb,
+    this.ramAvailableMb,
+    this.ramUsedMb,
+    this.uptimeSec,
   });
 
   Map<String, dynamic> toJson() => _$KioskStatusRequestToJson(this);

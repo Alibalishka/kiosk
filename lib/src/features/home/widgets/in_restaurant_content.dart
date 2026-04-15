@@ -214,20 +214,27 @@ class _InRestaurantContentState extends State<InRestaurantContent>
                                                   value.getRecommended()[index],
                                                   1,
                                                 )
-                                              :context.router.push(
-                                                          ProductPageRoute(
-                                                            item: value
+                                              : showCustomSheet(
+                                                  context,
+                                                  child: ProductPage(
+                                                      item: value
                                                               .getRecommended()[
-                                                          index],
-                                                          ),
-                                                        ),
-                                              // showCustomSheet(
-                                              //     context,
-                                              //     child: ProductPage(
-                                              //         item: value
-                                              //                 .getRecommended()[
-                                              //             index]),
-                                              //   ),
+                                                          index]),
+                                                ),
+                                          // context.router.push(
+                                          //     ProductPageRoute(
+                                          //       item:
+                                          //           value.getRecommended()[
+                                          //               index],
+                                          //     ),
+                                          //   ),
+                                          // showCustomSheet(
+                                          //     context,
+                                          //     child: ProductPage(
+                                          //         item: value
+                                          //                 .getRecommended()[
+                                          //             index]),
+                                          //   ),
                                           child: Container(
                                               height: 40,
                                               padding:
@@ -324,20 +331,27 @@ class _InRestaurantContentState extends State<InRestaurantContent>
                                                               index],
                                                           1,
                                                         )
-                                                      :context.router.push(
-                                                          ProductPageRoute(
-                                                            item: value
-                                                                    .getRecommended()[
-                                                                index],
-                                                          ),
+                                                      : showCustomSheet(
+                                                          context,
+                                                          child: ProductPage(
+                                                              item: value
+                                                                      .getRecommended()[
+                                                                  index]),
                                                         ),
-                                                      //  showCustomSheet(
-                                                      //     context,
-                                                      //     child: ProductPage(
-                                                      //         item: value
-                                                      //                 .getRecommended()[
-                                                      //             index]),
-                                                      //   ),
+                                                  // context.router.push(
+                                                  //     ProductPageRoute(
+                                                  //       item: value
+                                                  //               .getRecommended()[
+                                                  //           index],
+                                                  //     ),
+                                                  //   ),
+                                                  //  showCustomSheet(
+                                                  //     context,
+                                                  //     child: ProductPage(
+                                                  //         item: value
+                                                  //                 .getRecommended()[
+                                                  //             index]),
+                                                  //   ),
                                                   child: Container(
                                                     // width: 40,
                                                     height: 40,
@@ -394,17 +408,17 @@ class ItemRecomended extends StatelessWidget {
           DefaultCacheManager().getSingleFile(url);
         }
         viewModel.preloadVideoForItem(item!);
-        // showCustomSheet(
-        //   context,
-        //   child: ProductPage(
-        //     item: item!,
-        //     preloadedVideo: viewModel.getCachedVideoController(item!.id),
-        //   ),
-        //   onClose: () {
-        //     viewModel.videoService.videoPlayerController?.play();
-        //     viewModel.returnVideoController(item!.id);
-        //   },
-        // );
+        showCustomSheet(
+          context,
+          child: ProductPage(
+            item: item!,
+            preloadedVideo: viewModel.getCachedVideoController(item!.id),
+          ),
+          onClose: () {
+            viewModel.videoService.videoPlayerController?.play();
+            viewModel.returnVideoController(item!.id);
+          },
+        );
         // Navigator.of(context)
         //     .push(
         //   MaterialPageRoute(
@@ -414,17 +428,17 @@ class ItemRecomended extends StatelessWidget {
         //     ),
         //   ),
         // )
-        context.router
-            .push(
-          ProductPageRoute(
-            item: item!,
-            preloadedVideo: viewModel.getCachedVideoController(item!.id),
-          ),
-        )
-            .whenComplete(() {
-          viewModel.videoService.videoPlayerController?.play();
-          viewModel.returnVideoController(item!.id);
-        });
+        // context.router
+        //     .push(
+        //   ProductPageRoute(
+        //     item: item!,
+        //     preloadedVideo: viewModel.getCachedVideoController(item!.id),
+        //   ),
+        // )
+        //     .whenComplete(() {
+        //   viewModel.videoService.videoPlayerController?.play();
+        //   viewModel.returnVideoController(item!.id);
+        // });
       },
       child: Container(
         decoration: BoxDecoration(
