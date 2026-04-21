@@ -236,6 +236,17 @@ class QrMenuPageState extends State<QrMenuPage>
                         if (!Platform.isIOS) {
                           viewModel.checkAndUpdateIfNeeded(serverVersion);
                         }
+
+                        if (response.data?.menuEtag !=
+                            viewModel.menuData?.organization?.menuEtag) {
+                          viewModel.fetchMenu();
+                        }
+
+                        if (response.data?.advertisementEtag !=
+                            viewModel
+                                .kioskService.screenSavers?.advertisementEtag) {
+                          viewModel.kioskService.fetchScreenSavers();
+                        }
                         return null;
 
                         // if (context.router.currentPath == 'kiosk-tech-work') {
@@ -444,7 +455,7 @@ class QrMenuPageState extends State<QrMenuPage>
                       top: 0,
                       left: 0,
                       child: SafeArea(
-                        minimum: EdgeInsets.fromLTRB(24, 48, 0, 0),
+                        minimum: EdgeInsets.fromLTRB(24, 24, 0, 0),
                         child: IgnorePointer(
                           child: AdLogoCoinShine(height: 24),
                         ),

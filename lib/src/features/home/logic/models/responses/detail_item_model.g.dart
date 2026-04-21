@@ -48,6 +48,11 @@ DetailItemDatum _$DetailItemDatumFromJson(Map<String, dynamic> json) =>
           ?.map((e) => GraphicWorkDatum.fromJson(e as Map<String, dynamic>))
           .toList(),
       inHall: json['in_hall'],
+      menuVersion: (json['menu_version'] as num?)?.toInt(),
+      menuEtag: json['menu_etag'] as String?,
+      menuLastModified: json['menu_last_modified'] == null
+          ? null
+          : DateTime.parse(json['menu_last_modified'] as String),
     );
 
 Map<String, dynamic> _$DetailItemDatumToJson(DetailItemDatum instance) =>
@@ -74,6 +79,9 @@ Map<String, dynamic> _$DetailItemDatumToJson(DetailItemDatum instance) =>
       'can_reserve': instance.canReserve,
       'graphic_works': instance.graphicWorks,
       'in_hall': instance.inHall,
+      'menu_version': instance.menuVersion,
+      'menu_etag': instance.menuEtag,
+      'menu_last_modified': instance.menuLastModified?.toIso8601String(),
     };
 
 GraphicWorkDatum _$GraphicWorkDatumFromJson(Map<String, dynamic> json) =>

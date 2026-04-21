@@ -36,7 +36,7 @@ class GridMenuWidget extends StatelessWidget {
                   height: (Platform.isIOS
                       ? 50.1.sh
                       : context.screenSize.width > 600
-                          ? 44.5.sh
+                          ? 42.5.sh
                           : 51.sh),
                   // height: viewModel.isTablet
                   //     ? (Platform.isIOS ? 50.1.sh : 44.5.sh)

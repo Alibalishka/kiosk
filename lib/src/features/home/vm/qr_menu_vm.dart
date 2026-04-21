@@ -185,7 +185,7 @@ class QrMenuVm extends ViewModel {
     bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
     // _menuTimer?.cancel();
     if (isKioskMode) {
-      _menuTimer = Timer.periodic(const Duration(hours: 1), (_) {
+      _menuTimer = Timer.periodic(const Duration(hours: 5), (_) {
         bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
       });
     }

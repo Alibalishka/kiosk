@@ -315,6 +315,7 @@ class _KioskRegisterState extends State<KioskRegister>
           orElse: () => null,
           failed: (error, _) {
             _logUserMessage('topSnack (kiosk bloc): $error');
+            viewModel.clearData();
             showTopSnackBar(
               Overlay.of(context),
               CustomSnackBar.error(

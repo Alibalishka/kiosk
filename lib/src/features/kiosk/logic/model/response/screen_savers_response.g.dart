@@ -13,6 +13,11 @@ ScreenSaversResponse _$ScreenSaversResponseFromJson(
           ?.map((e) => ScreenSaversDatum.fromJson(e as Map<String, dynamic>))
           .toList(),
       idleTimeout: (json['idle_timeout'] as num?)?.toInt(),
+      advertisementVersion: (json['advertisement_version'] as num?)?.toInt(),
+      advertisementEtag: json['advertisement_etag'] as String?,
+      advertisementLastModified: json['advertisement_last_modified'] == null
+          ? null
+          : DateTime.parse(json['advertisement_last_modified'] as String),
     );
 
 Map<String, dynamic> _$ScreenSaversResponseToJson(
@@ -20,6 +25,10 @@ Map<String, dynamic> _$ScreenSaversResponseToJson(
     <String, dynamic>{
       'data': instance.data,
       'idle_timeout': instance.idleTimeout,
+      'advertisement_version': instance.advertisementVersion,
+      'advertisement_etag': instance.advertisementEtag,
+      'advertisement_last_modified':
+          instance.advertisementLastModified?.toIso8601String(),
     };
 
 ScreenSaversDatum _$ScreenSaversDatumFromJson(Map<String, dynamic> json) =>

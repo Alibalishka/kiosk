@@ -465,7 +465,7 @@ class ItemRecomended extends StatelessWidget {
                       // width: 150,
                       height: context.isDesktop
                           ? 500 / 2.8
-                          : context.mediaQuery.size.width / 2.7,
+                          : context.mediaQuery.size.width / 3,
                       imageUrl: item?.image?.first.path ??
                           item?.image?.first.file ??
                           '',

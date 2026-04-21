@@ -44,6 +44,12 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  String _capitalizeFirstLetter(String value) {
+    if (value.isEmpty) return value;
+    final normalized = value.toLowerCase();
+    return normalized[0].toUpperCase() + normalized.substring(1);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -246,7 +252,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                             height: (Platform.isIOS
                                 ? 50.1.sh
                                 : context.screenSize.width > 600
-                                    ? 44.5.sh
+                                    ? 42.5.sh
                                     : 51.sh),
                             child: ListView.separated(
                               shrinkWrap: true,
@@ -495,6 +501,18 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                       inputFormatters: [
                                         FilteringTextInputFormatter.allow(
                                             RegExp(r'[a-zA-Zа-яА-Я]')),
+                                        TextInputFormatter.withFunction(
+                                            (oldValue, newValue) {
+                                          final transformed =
+                                              _capitalizeFirstLetter(
+                                                  newValue.text);
+                                          return newValue.copyWith(
+                                            text: transformed,
+                                            selection: TextSelection.collapsed(
+                                              offset: transformed.length,
+                                            ),
+                                          );
+                                        }),
                                       ],
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 16, horizontal: 16),
@@ -606,20 +624,23 @@ class _TabBarSliverDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primitiveNeutralcold0,
-        boxShadow: overlapsContent
-            ? [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
+    return SizedBox(
+      height: height,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.primitiveNeutralcold0,
+          boxShadow: overlapsContent
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: child,
       ),
-      child: child,
     );
   }
 

@@ -251,6 +251,7 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
                                     Positioned.fill(
                                       left: -2,
                                       right: -2,
+                                      // top: -100,
                                       child: _buildPoster(item),
                                     ),
                                     if (isCurrent &&
