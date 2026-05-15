@@ -590,34 +590,54 @@ class _ProductMediaBackground extends StatelessWidget {
           Stack(
             alignment: Alignment.center,
             children: [
-              if (item.image?[0].filePreview != null &&
-                  !(videoController?.value.isInitialized == true &&
-                      videoController?.value.isPlaying == true))
-                SafeNetworkImage(
-                  key: const ValueKey('preview'),
-                  imageUrl: normalizeQrPayInsecureImageUrl(
-                    item.image?[0].filePreview ?? '',
-                    targetWidthPx: heroProxyPx.widthPx,
-                    targetHeightPx: heroProxyPx.heightPx,
-                  ),
-                  imageBuilder: (context, provider) => Container(
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(8),
-                      ),
-                      image: DecorationImage(
-                        image: ResizeImage(provider, height: cacheHeight),
-                        fit: BoxFit.cover,
-                      ),
+              // if ((videoController?.value.isInitialized == false &&
+              //     videoController?.value.isPlaying == false))
+              // Positioned.fill(
+              //   child: Container(
+              //     decoration: const BoxDecoration(
+              //       color: AppColors.primitiveNeutral1000,
+              //       borderRadius: BorderRadius.all(Radius.circular(8)),
+              //     ),
+              //   ),
+              // ),
+              SafeNetworkImage(
+                key: const ValueKey('preview'),
+                imageUrl:
+                    item.image?[0].filePreview ?? item.image?[0].path ?? '',
+                // normalizeQrPayInsecureImageUrl(
+                //   item.image?[0].path ?? item.image?[0].filePreview ?? '',
+                //   targetWidthPx: heroProxyPx.widthPx,
+                //   targetHeightPx: heroProxyPx.heightPx,
+                // ),
+                imageBuilder: (context, provider) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(8),
                     ),
-                  ),
-                  placeholder: Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.primitiveNeutral0,
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    image: DecorationImage(
+                      image: ResizeImage(provider, height: cacheHeight),
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
+                errorWidget: Container(
+                  height: 300,
+                  width: 300,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                    image: DecorationImage(
+                      image: AssetImage(AppWebpImages.emptyStatus),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                placeholder: Container(
+                  decoration: const BoxDecoration(
+                    color: AppColors.primitiveNeutral0,
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                ),
+              ),
               if (videoController?.value.isInitialized ?? false)
                 Positioned.fill(
                   child: ClipRRect(
@@ -640,11 +660,12 @@ class _ProductMediaBackground extends StatelessWidget {
           )
         else if (item.image?.isNotEmpty ?? false)
           SafeNetworkImage(
-            imageUrl: normalizeQrPayInsecureImageUrl(
-              item.image?[0].file ?? item.image?[0].path ?? '',
-              targetWidthPx: heroProxyPx.widthPx,
-              targetHeightPx: heroProxyPx.heightPx,
-            ),
+            imageUrl: item.image?[0].file ?? item.image?[0].path ?? '',
+            // normalizeQrPayInsecureImageUrl(
+            //   item.image?[0].file ?? item.image?[0].path ?? '',
+            //   targetWidthPx: heroProxyPx.widthPx,
+            //   targetHeightPx: heroProxyPx.heightPx,
+            // ),
             placeholder: Container(
               decoration: const BoxDecoration(
                 color: AppColors.primitiveNeutral0,
@@ -656,7 +677,10 @@ class _ProductMediaBackground extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(8),
                 ),
-                image: DecorationImage(image: provider, fit: BoxFit.cover),
+                image: DecorationImage(
+                  image: ResizeImage(provider, height: cacheHeight),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           )

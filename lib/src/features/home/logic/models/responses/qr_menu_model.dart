@@ -124,7 +124,8 @@ class Modifier extends BaseModel<Modifier> {
   int? max;
   bool? required;
   bool? multiple;
-  String? iikoId;
+  // String? iikoId;
+  String? posId;
   List<Items>? items;
 
   Modifier({
@@ -135,7 +136,8 @@ class Modifier extends BaseModel<Modifier> {
     this.max,
     this.required,
     this.multiple,
-    this.iikoId,
+    // this.iikoId,
+    this.posId,
     this.items,
   });
 
@@ -153,7 +155,8 @@ class Modifier extends BaseModel<Modifier> {
     int? max,
     bool? required,
     bool? multiple,
-    String? iikoId,
+    // String? iikoId,
+    String? posId,
     List<Items>? items,
   }) {
     return Modifier(
@@ -164,7 +167,8 @@ class Modifier extends BaseModel<Modifier> {
       max: max ?? this.max,
       required: required ?? this.required,
       multiple: multiple ?? this.multiple,
-      iikoId: iikoId ?? this.iikoId,
+      // iikoId: iikoId ?? this.iikoId,
+      posId: posId ?? this.posId,
       items:
           items != null ? items.map((e) => e.copyWith()).toList() : this.items,
     );

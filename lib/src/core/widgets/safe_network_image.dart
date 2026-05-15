@@ -112,9 +112,14 @@ class _SafeNetworkImageState extends State<SafeNetworkImage> {
 
   Widget _defaultErrorWidget() {
     return SizedBox(
-      height: widget.height,
-      width: widget.width,
-      child: Image.asset(AppWebpImages.placeholderMenu, fit: BoxFit.cover),
+      // height: widget.height,
+      // width: widget.width,
+      width: 300,
+      height: 300,
+      child: Image.asset(
+        AppWebpImages.emptyStatus,
+        fit: BoxFit.cover,
+      ),
     );
   }
 }

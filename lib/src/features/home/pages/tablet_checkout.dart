@@ -273,11 +273,16 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                   bottom: count == 0
                                       ? GestureDetector(
                                           onTap: () => hasModifiers
-                                              ? showCustomSheet(
-                                                  context,
-                                                  child: ProductPage(
-                                                      item: recommended),
+                                              ? context.router.push(
+                                                  ProductPageRoute(
+                                                    item: recommended,
+                                                  ),
                                                 )
+                                              // showCustomSheet(
+                                              //     context,
+                                              //     child: ProductPage(
+                                              //         item: recommended),
+                                              //   )
                                               // context.router.push(
                                               //     ProductPageRoute(
                                               //       item: recommended,
@@ -357,12 +362,17 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                               Expanded(
                                                 child: GestureDetector(
                                                   onTap: () => hasModifiers
-                                                      ? showCustomSheet(
-                                                          context,
-                                                          child: ProductPage(
-                                                              item:
-                                                                  recommended),
+                                                      ? context.router.push(
+                                                          ProductPageRoute(
+                                                            item: recommended,
+                                                          ),
                                                         )
+                                                      // showCustomSheet(
+                                                      //     context,
+                                                      //     child: ProductPage(
+                                                      //         item:
+                                                      //             recommended),
+                                                      //   )
                                                       //  context.router.push(
                                                       //     ProductPageRoute(
                                                       //       item: recommended,

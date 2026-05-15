@@ -25,56 +25,77 @@ class ProductInfoWidget extends StatelessWidget {
     final vm = context.read<QrMenuVm>();
     final isTablet = vm.isTablet;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          item.name ?? '',
-          style: AppTextStyles.headingH1.copyWith(
-              fontSize: isTablet ? 18.sp : null,
-              color: AppComponents.listitemTitleColorDefault),
-        ),
-        const ColumnSpacer(1.6),
-        Text(
-          '${priceFormat(((item.price ?? 0) + vm.getModifierTotalSum()).toString())} ₸',
-          style: AppTextStyles.headingH3.copyWith(
-              fontSize: isTablet ? 16.sp : null,
-              color: AppComponents.blockBlocktitleTitleColorDefault),
-        ),
-        const ColumnSpacer(1.2),
-        Text(
-          item.description ?? '',
-          style: AppTextStyles.bodyXl.copyWith(
-              fontSize: isTablet ? 15.sp : null,
-              color: AppColors.semanticFgSofter),
-        ),
-        item.characteristics?.isNotEmpty ?? false
-            ? ColumnSpacer(isTablet ? 2 : 1.2)
-            : const SizedBox.shrink(),
-        AlignedGridView.count(
-          crossAxisCount: 4,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: item.characteristics?.length ?? 0,
-          itemBuilder: (context, index) => NutritionListTitle(
-            title: item.characteristics?[index].textValue ?? '',
-            subtitle: item.characteristics?[index].name ?? '',
+    return Consumer<QrMenuVm>(builder: (context, value, child) {
+      final characteristics = item.characteristics;
+      final showCharacteristicsGrid = characteristics != null &&
+          characteristics.isNotEmpty &&
+          !characteristics.every((c) => c.textValue == '0');
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            item.name ?? '',
+            style: AppTextStyles.headingH1.copyWith(
+                fontSize: isTablet ? 18.sp : null,
+                color: AppComponents.listitemTitleColorDefault),
           ),
-        ),
-        item.characteristics?.isNotEmpty ?? false
-            ? Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  LocaleKeys.gram100.tr(),
-                  style: AppTextStyles.bodyS.copyWith(
-                      fontSize: isTablet ? 13.sp : null,
-                      color: AppColors.semanticFgSoft),
-                ),
-              )
-            : const SizedBox.shrink()
-      ],
-    );
+          const ColumnSpacer(1.6),
+          Text(
+            '${priceFormat(((item.price ?? 0) + vm.getModifierTotalSum()).toString())} ₸',
+            style: AppTextStyles.headingH3.copyWith(
+                fontSize: isTablet ? 16.sp : null,
+                color: AppComponents.blockBlocktitleTitleColorDefault),
+          ),
+          const ColumnSpacer(1.2),
+          Text(
+            item.description ?? '',
+            style: AppTextStyles.bodyXl.copyWith(
+                fontSize: isTablet ? 15.sp : null,
+                color: AppColors.semanticFgSofter),
+          ),
+          // item.characteristics?.isNotEmpty ?? false
+          //     ? ColumnSpacer(isTablet ? 2 : 1.2)
+          //     : const SizedBox.shrink(),
+          // AlignedGridView.count(
+          //   crossAxisCount: 4,
+          //   mainAxisSpacing: 8,
+          //   crossAxisSpacing: 8,
+          //   physics: const NeverScrollableScrollPhysics(),
+          //   shrinkWrap: true,
+          //   itemCount: item.characteristics?.length ?? 0,
+          //   itemBuilder: (context, index) => NutritionListTitle(
+          //     title: item.characteristics?[index].textValue ?? '',
+          //     subtitle: item.characteristics?[index].name ?? '',
+          //   ),
+          // ),
+          if (showCharacteristicsGrid) ...[
+            const ColumnSpacer(1.2),
+            AlignedGridView.count(
+              crossAxisCount: 4,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: characteristics.length,
+              itemBuilder: (context, index) => NutritionListTitle(
+                title: characteristics[index].textValue ?? '',
+                subtitle: characteristics[index].name ?? '',
+              ),
+            ),
+          ],
+          item.characteristics?.isNotEmpty ?? false
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    LocaleKeys.gram100.tr(),
+                    style: AppTextStyles.bodyS.copyWith(
+                        fontSize: isTablet ? 13.sp : null,
+                        color: AppColors.semanticFgSoft),
+                  ),
+                )
+              : const SizedBox.shrink()
+        ],
+      );
+    });
   }
 }

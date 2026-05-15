@@ -22,7 +22,7 @@ ChekoutDatum _$ChekoutDatumFromJson(Map<String, dynamic> json) => ChekoutDatum(
       totalPrice: (json['total_price'] as num?)?.toInt(),
       number: (json['number'] as num?)?.toInt(),
       tableId: json['table_id'] as String?,
-      iikoOrderId: json['iiko_order_id'] as String?,
+      posOrderId: json['pos_order_id'] as String?,
       serviceSum: (json['service_sum'] as num?)?.toDouble(),
       discounts: (json['discounts'] as List<dynamic>?)
           ?.map((e) => Discount.fromJson(e as Map<String, dynamic>))
@@ -49,7 +49,7 @@ Map<String, dynamic> _$ChekoutDatumToJson(ChekoutDatum instance) =>
       'total_price': instance.totalPrice,
       'number': instance.number,
       'table_id': instance.tableId,
-      'iiko_order_id': instance.iikoOrderId,
+      'pos_order_id': instance.posOrderId,
       'service_sum': instance.serviceSum,
       'discounts': instance.discounts,
       'VAT': instance.vat,

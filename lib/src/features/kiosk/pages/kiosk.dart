@@ -23,6 +23,7 @@ import 'package:qr_pay_app/src/features/kiosk/vm/kiosk_vm.dart';
 import 'package:qr_pay_app/src/features/qr/widgets/custom_appbar.dart';
 import 'package:qr_pay_app/src/features/qr/widgets/custom_button.dart';
 import 'package:sizer/sizer.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class KioskRegister extends StatefulWidget {
   const KioskRegister({
@@ -218,6 +219,14 @@ class _KioskRegisterState extends State<KioskRegister>
     }
   }
 
+  void _openTalkerLogs() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TalkerScreen(talker: sl<Talker>()),
+      ),
+    );
+  }
+
   Future<void> _showClearDeviceOwnerDialog() async {
     _confirmController.clear();
 
@@ -315,7 +324,7 @@ class _KioskRegisterState extends State<KioskRegister>
           orElse: () => null,
           failed: (error, _) {
             _logUserMessage('topSnack (kiosk bloc): $error');
-            viewModel.clearData();
+
             showTopSnackBar(
               Overlay.of(context),
               CustomSnackBar.error(
@@ -399,15 +408,15 @@ class _KioskRegisterState extends State<KioskRegister>
                             color: AppColors.primitiveNeutralcold500,
                           ),
                         ),
-                        const ColumnSpacer(1),
-                        Text(
-                          _managedConfigText,
-                          style: AppTextStyles.bodyM.copyWith(
-                            fontSize: 11.sp,
-                            color: AppColors.primitiveNeutralcold600,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                        // const ColumnSpacer(1),
+                        // Text(
+                        //   _managedConfigText,
+                        //   style: AppTextStyles.bodyM.copyWith(
+                        //     fontSize: 11.sp,
+                        //     color: AppColors.primitiveNeutralcold600,
+                        //   ),
+                        //   textAlign: TextAlign.center,
+                        // ),
                         const ColumnSpacer(3),
 
                         // ✅ Регистрация: без интернета кнопка отключена
@@ -429,6 +438,19 @@ class _KioskRegisterState extends State<KioskRegister>
                           fontSize: 16.sp,
                           onPressed: _openWifi,
                         ),
+                        const ColumnSpacer(1),
+                        CustomButton(
+                          text: 'Очистить данные',
+                          fontSize: 16.sp,
+                          onPressed: () => viewModel.clearData(),
+                        ),
+                        const ColumnSpacer(1),
+
+                        // CustomButton(
+                        //   text: 'Логи (Talker)',
+                        //   fontSize: 16.sp,
+                        //   onPressed: _openTalkerLogs,
+                        // ),
 
                         const ColumnSpacer(1),
 

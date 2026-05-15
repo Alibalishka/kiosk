@@ -5,6 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:qr_pay_app/src/core/constants/app_url.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
@@ -34,11 +35,34 @@ class KioskAuthInterceptor extends Interceptor {
 
   static const _retryKey = '__retry__';
 
+  /// [HostStorage] обновляется при регистрации, но [Dio.options.baseUrl]
+  /// задаётся один раз в [DioSettings] — без синхронизации уходит старый tenant.
+  String? _syncHostsFromStorage() {
+    final host = sl<HostStorage>().getHost()?.trim();
+    if (host == null || host.isEmpty) return null;
+
+    final baseUrl = AppUrls.apiByHost(host);
+    _dio.options.baseUrl = baseUrl;
+    _refreshDio.options.baseUrl = baseUrl;
+    _refreshDio.options.headers['Host'] = '${host}.admin.qrpay.kz';
+    return host;
+  }
+
+  void _applyHostFromStorage(RequestOptions options) {
+    final host = _syncHostsFromStorage();
+    if (host == null) return;
+
+    options.baseUrl = AppUrls.apiByHost(host);
+    options.headers['Host'] = '${host}.admin.qrpay.kz';
+  }
+
   /// Динамически подставляем актуальный токен из KTokenStorage
   /// на каждый исходящий запрос (вместо статического значения в BaseOptions).
   /// Также динамически обновляем Accept-Language из SharedPreferences.
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    _applyHostFromStorage(options);
+
     final token = sl<KTokenStorage>().getToken();
     if (token != null && token.isNotEmpty) {
       options.headers['authorization'] = 'Bearer $token';
@@ -102,6 +126,8 @@ DATA: ${req.data}
 
   Future<String?> _refreshToken() async {
     try {
+      _syncHostsFromStorage();
+
       // Подставляем актуальный токен перед refresh-запросом
       final currentToken = sl<KTokenStorage>().getToken();
       if (currentToken != null && currentToken.isNotEmpty) {

@@ -39,7 +39,8 @@ class OrderDetailData extends BaseModel<OrderDetailData> {
   int? number;
   dynamic numberGenerated;
   String? tableId;
-  String? iikoOrderId;
+  // String? iikoOrderId;
+  String? posOrderId;
   int? serviceSum;
   DateTime? createdAt;
   Item? item;
@@ -63,7 +64,8 @@ class OrderDetailData extends BaseModel<OrderDetailData> {
     this.number,
     this.numberGenerated,
     this.tableId,
-    this.iikoOrderId,
+    // this.iikoOrderId,
+    this.posOrderId,
     this.serviceSum,
     this.createdAt,
     this.item,

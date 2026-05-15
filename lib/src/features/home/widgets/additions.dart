@@ -87,7 +87,8 @@ class AdditionsWidget extends StatelessWidget {
                     name: modifierData[i].name,
                     min: modifierData[i].min,
                     max: modifierData[i].max,
-                    iikoId: modifierData[i].iikoId,
+                    // iikoId: modifierData[i].iikoId,
+                    posId: modifierData[i].posId,
                     items: List.from(items ?? []),
                   );
                   viewModel.saveModifier(m);

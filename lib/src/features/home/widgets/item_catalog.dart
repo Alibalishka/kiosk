@@ -116,10 +116,15 @@ class _ItemCard extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: GestureDetector(
-          onTap: () => showCustomSheet(
-            context,
-            child: ProductPage(item: item),
+          onTap: () => context.router.push(
+            ProductPageRoute(
+              item: item,
+            ),
           ),
+          // showCustomSheet(
+          //   context,
+          //   child: ProductPage(item: item),
+          // ),
           // context.router.push(
           //   ProductPageRoute(
           //     item: item,

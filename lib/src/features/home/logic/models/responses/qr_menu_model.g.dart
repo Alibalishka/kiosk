@@ -97,7 +97,7 @@ Modifier _$ModifierFromJson(Map<String, dynamic> json) => Modifier(
       max: (json['max'] as num?)?.toInt(),
       required: json['required'] as bool?,
       multiple: json['multiple'] as bool?,
-      iikoId: json['iiko_id'] as String?,
+      posId: json['pos_id'] as String?,
       items: (json['items'] as List<dynamic>?)
           ?.map((e) => Items.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -111,7 +111,7 @@ Map<String, dynamic> _$ModifierToJson(Modifier instance) => <String, dynamic>{
       'max': instance.max,
       'required': instance.required,
       'multiple': instance.multiple,
-      'iiko_id': instance.iikoId,
+      'pos_id': instance.posId,
       'items': instance.items,
     };
 

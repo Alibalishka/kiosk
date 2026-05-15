@@ -233,7 +233,8 @@ class BasketService {
               modifiersMap[modItemId] = MenuCheckoutItemModif(
                 itemId: modItem.id,
                 amount: delta,
-                itemGroupId: mod.iikoId,
+                // itemGroupId: mod.iikoId,
+                itemGroupId: mod.posId,
               );
             }
           });

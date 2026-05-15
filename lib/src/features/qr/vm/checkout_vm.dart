@@ -270,8 +270,12 @@ class CheckoutVm extends ViewModel {
     bool isFastpay,
     bool isKaspipay,
   ) {
-    if (checkout.data?.iikoOrderId == null) {
-      debugPrint("Ошибка: iikoOrderId отсутствует");
+    // if (checkout.data?.iikoOrderId == null) {
+    //   debugPrint("Ошибка: iikoOrderId отсутствует");
+    //   return;
+    // }
+     if (checkout.data?.posOrderId == null) {
+      debugPrint("Ошибка: posOrderId отсутствует");
       return;
     }
 
@@ -280,7 +284,8 @@ class CheckoutVm extends ViewModel {
         body: PayRequest(
           filters: Filter(
             organizationId: organizationId!,
-            iikoOrderId: checkout.data!.iikoOrderId!,
+            // iikoOrderId: checkout.data!.iikoOrderId!,
+            posOrderId: checkout.data!.posOrderId!,
           ),
           isFastpay: isFastpay,
           isKaspipay: isKaspipay,

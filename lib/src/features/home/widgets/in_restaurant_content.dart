@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
+import 'package:qr_pay_app/src/core/formatters/text_formats.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
@@ -15,16 +16,17 @@ import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_divider.dart';
-import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
-import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_checkout.dart';
 import 'package:qr_pay_app/src/features/profile/widgets/not_auth_profile.dart';
 import 'package:sizer/sizer.dart';
+
+/// Предотвращает несколько одновременных `push` на экран товара (двойной тап / несколько пальцев).
+bool _productPageNavigationLocked = false;
 
 class InRestaurantContent extends StatefulWidget {
   const InRestaurantContent({
@@ -204,23 +206,41 @@ class _InRestaurantContentState extends State<InRestaurantContent>
                                               0) ==
                                           0
                                       ? GestureDetector(
-                                          onTap: () => value
-                                                      .getRecommended()[index]
-                                                      .modifiers
-                                                      ?.isEmpty ??
-                                                  true
-                                              ? value.addToBasket(
-                                                  context,
-                                                  value.getRecommended()[index],
-                                                  1,
-                                                )
-                                              : showCustomSheet(
-                                                  context,
-                                                  child: ProductPage(
-                                                      item: value
-                                                              .getRecommended()[
-                                                          index]),
+                                          onTap: () {
+                                            final rec =
+                                                value.getRecommended()[index];
+                                            if (rec.modifiers?.isEmpty ??
+                                                true) {
+                                              value.addToBasket(
+                                                context,
+                                                rec,
+                                                1,
+                                              );
+                                            } else {
+                                              if (_productPageNavigationLocked) {
+                                                return;
+                                              }
+                                              _productPageNavigationLocked =
+                                                  true;
+                                              context.router
+                                                  .push(
+                                                ProductPageRoute(
+                                                  item: rec,
                                                 ),
+                                              )
+                                                  .whenComplete(() {
+                                                _productPageNavigationLocked =
+                                                    false;
+                                              });
+                                            }
+                                          },
+                                          // showCustomSheet(
+                                          //     context,
+                                          //     child: ProductPage(
+                                          //         item: value
+                                          //                 .getRecommended()[
+                                          //             index]),
+                                          //   ),
                                           // context.router.push(
                                           //     ProductPageRoute(
                                           //       item:
@@ -319,25 +339,43 @@ class _InRestaurantContentState extends State<InRestaurantContent>
                                               ),
                                               Expanded(
                                                 child: GestureDetector(
-                                                  onTap: () => value
-                                                              .getRecommended()[
-                                                                  index]
-                                                              .modifiers
-                                                              ?.isEmpty ??
-                                                          true
-                                                      ? value.addToBasket(
-                                                          context,
-                                                          value.getRecommended()[
-                                                              index],
-                                                          1,
-                                                        )
-                                                      : showCustomSheet(
-                                                          context,
-                                                          child: ProductPage(
-                                                              item: value
-                                                                      .getRecommended()[
-                                                                  index]),
+                                                  onTap: () {
+                                                    final rec =
+                                                        value.getRecommended()[
+                                                            index];
+                                                    if (rec.modifiers
+                                                            ?.isEmpty ??
+                                                        true) {
+                                                      value.addToBasket(
+                                                        context,
+                                                        rec,
+                                                        1,
+                                                      );
+                                                    } else {
+                                                      if (_productPageNavigationLocked) {
+                                                        return;
+                                                      }
+                                                      _productPageNavigationLocked =
+                                                          true;
+                                                      context.router
+                                                          .push(
+                                                        ProductPageRoute(
+                                                          item: rec,
                                                         ),
+                                                      )
+                                                          .whenComplete(() {
+                                                        _productPageNavigationLocked =
+                                                            false;
+                                                      });
+                                                    }
+                                                  },
+                                                  // showCustomSheet(
+                                                  //     context,
+                                                  //     child: ProductPage(
+                                                  //         item: value
+                                                  //                 .getRecommended()[
+                                                  //             index]),
+                                                  //   ),
                                                   // context.router.push(
                                                   //     ProductPageRoute(
                                                   //       item: value
@@ -395,50 +433,51 @@ class ItemRecomended extends StatelessWidget {
   final Items? item;
   final Widget? bottom;
 
+  String _resolveImageUrl() {
+    final images = item?.image;
+    if (images == null || images.isEmpty) return '';
+
+    for (final img in images) {
+      final candidates = <String?>[
+        img.path,
+        img.file,
+        img.filePreview,
+        img.image,
+      ];
+      for (final candidate in candidates) {
+        final value = candidate?.trim() ?? '';
+        if (value.isNotEmpty) return value;
+      }
+    }
+
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<QrMenuVm>(context, listen: false);
+    final imageUrl = _resolveImageUrl();
     return GestureDetector(
       onTap: () {
-        final url = item?.image?.first.filePreview ??
-            item?.image?.first.file ??
-            item?.image?.first.path ??
-            '';
+        if (_productPageNavigationLocked) return;
+        _productPageNavigationLocked = true;
+        final url = imageUrl;
         if (url.isNotEmpty) {
           DefaultCacheManager().getSingleFile(url);
         }
         viewModel.preloadVideoForItem(item!);
-        showCustomSheet(
-          context,
-          child: ProductPage(
+        context.router
+            .push(
+          ProductPageRoute(
             item: item!,
             preloadedVideo: viewModel.getCachedVideoController(item!.id),
           ),
-          onClose: () {
-            viewModel.videoService.videoPlayerController?.play();
-            viewModel.returnVideoController(item!.id);
-          },
-        );
-        // Navigator.of(context)
-        //     .push(
-        //   MaterialPageRoute(
-        //     builder: (_) => ProductPage(
-        //       item: item!,
-        //       preloadedVideo: viewModel.getCachedVideoController(item!.id),
-        //     ),
-        //   ),
-        // )
-        // context.router
-        //     .push(
-        //   ProductPageRoute(
-        //     item: item!,
-        //     preloadedVideo: viewModel.getCachedVideoController(item!.id),
-        //   ),
-        // )
-        //     .whenComplete(() {
-        //   viewModel.videoService.videoPlayerController?.play();
-        //   viewModel.returnVideoController(item!.id);
-        // });
+        )
+            .whenComplete(() {
+          _productPageNavigationLocked = false;
+          viewModel.videoService.videoPlayerController?.play();
+          viewModel.returnVideoController(item!.id);
+        });
       },
       child: Container(
         decoration: BoxDecoration(
@@ -453,7 +492,7 @@ class ItemRecomended extends StatelessWidget {
             children: [
               const ColumnSpacer(1.6),
 
-              item?.image?.isEmpty ?? true
+              imageUrl.isEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Image.asset(
@@ -466,9 +505,9 @@ class ItemRecomended extends StatelessWidget {
                       height: context.isDesktop
                           ? 500 / 2.8
                           : context.mediaQuery.size.width / 3,
-                      imageUrl: item?.image?.first.path ??
-                          item?.image?.first.file ??
-                          '',
+                      imageUrl: imageUrl,
+                      // item?.image?.first.path ?? '',
+
                       imageBuilder: (context, placeholder) => Container(
                         height: context.isDesktop
                             ? 500 / 2.8
@@ -496,15 +535,14 @@ class ItemRecomended extends StatelessWidget {
               const ColumnSpacer(0.4),
               Container(
                 alignment: Alignment.topLeft,
-                child: Text(item?.name ?? '',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    style: AppTextStyles.bodyLStrong.copyWith(
-                      fontSize: 15.sp,
-                      // fontSize: viewModel.isTablet ? 15.sp : null,
-                    )
-                    // .copyWith(color: AppColors.primitiveNeutralwarm0),
-                    ),
+                child: Text(
+                  formatMenuItemTitle(item?.name),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  style: AppTextStyles.bodyLStrong.copyWith(
+                    fontSize: 15.sp,
+                  ),
+                ),
               ),
               const ColumnSpacer(0.4),
               Text(item?.description ?? '',
