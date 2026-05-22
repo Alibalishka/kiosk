@@ -1,6 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qr_pay_app/src/core/base/view_model_mixin.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
@@ -16,30 +21,28 @@ import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
-import 'package:qr_pay_app/src/features/kiosk/vm/kiosk_kaspi_vm.dart';
+import 'package:qr_pay_app/src/features/kiosk/vm/kiosk_card_vm.dart';
+import 'package:qr_pay_app/src/features/profile/logic/bloc/history_order_bloc/history_order_bloc.dart';
 import 'package:qr_pay_app/src/features/qr/widgets/custom_appbar.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
-class KioskKaspiPayPage extends StatefulWidget {
-  const KioskKaspiPayPage({
+class KioskCardPayPage extends StatefulWidget {
+  const KioskCardPayPage({
     super.key,
     required this.viewModel,
   });
-  final KioskKaspiVm viewModel;
+
+  final KioskCardVm viewModel;
 
   @override
-  State<KioskKaspiPayPage> createState() => _KioskKaspiPayPageState();
+  State<KioskCardPayPage> createState() => _KioskCardPayPageState();
 }
 
-class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
-    with ViewModelMixin<KioskKaspiPayPage, KioskKaspiVm> {
+class _KioskCardPayPageState extends State<KioskCardPayPage>
+    with ViewModelMixin<KioskCardPayPage, KioskCardVm> {
   @override
-  KioskKaspiVm get viewModel => widget.viewModel;
+  KioskCardVm get viewModel => widget.viewModel;
 
   @override
   Widget build(BuildContext context) {
@@ -78,19 +81,24 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
                         },
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 18),
+                            horizontal: 24,
+                            vertical: 18,
+                          ),
                           backgroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                             side: const BorderSide(
-                                color: Color(0xFFE2E2E2), width: 1.5),
+                              color: Color(0xFFE2E2E2),
+                              width: 1.5,
+                            ),
                           ),
                         ),
                         child: Text(
                           LocaleKeys.cancelPurchaseButton.tr(),
                           style: AppTextStyles.bodyM.copyWith(
-                              fontSize: 18,
-                              color: AppColors.primitiveNeutralcold1000),
+                            fontSize: 18,
+                            color: AppColors.primitiveNeutralcold1000,
+                          ),
                         ),
                       ),
                     ),
@@ -103,13 +111,16 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 24),
+                            vertical: 12,
+                            horizontal: 24,
+                          ),
                           child: Text(
                             LocaleKeys.tryAgainButton.tr(),
                             style: AppTextStyles.bodyM.copyWith(
-                                fontSize: 18,
-                                color: AppComponents
-                                    .buttongroupButtonPrimaryTextColorDefault),
+                              fontSize: 18,
+                              color: AppComponents
+                                  .buttongroupButtonPrimaryTextColorDefault,
+                            ),
                           ),
                         ),
                       ),
@@ -119,11 +130,11 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
               ),
             )
           : null,
-      body: BlocConsumer<KioskBloc, KioskState>(
-        bloc: viewModel.kioskBloc,
+      body: BlocListener<HistoryOrderBloc, HistoryOrderState>(
+        bloc: viewModel.historyOrderBloc,
         listener: (context, state) => state.maybeWhen(
           orElse: () => null,
-          failed: (error, _) {
+          failed: (error) {
             showTopSnackBar(
               Overlay.of(context),
               CustomSnackBar.error(
@@ -132,55 +143,73 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
               ),
               dismissType: DismissType.onSwipe,
             );
-            context.router.pop();
             return null;
           },
-          successPayData: (response) => viewModel.saveData(response),
-          successPay: (response) => viewModel.savePayStatus(context, response),
+          successDetail: (data) => viewModel.saveOrderDetail(context, data),
         ),
-        builder: (context, state) => state.maybeWhen(
-          loading: () => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Text(
-                  LocaleKeys.preparingToAcceptPayment.tr(),
-                  style: AppTextStyles.headingH3.copyWith(
-                    fontSize: 36,
+        child: BlocConsumer<KioskBloc, KioskState>(
+          bloc: viewModel.kioskBloc,
+          listener: (context, state) => state.maybeWhen(
+            orElse: () => null,
+            failed: (error, _) {
+              showTopSnackBar(
+                Overlay.of(context),
+                CustomSnackBar.error(
+                  textAlign: TextAlign.start,
+                  message: error,
+                ),
+                dismissType: DismissType.onSwipe,
+              );
+              context.router.pop();
+              return null;
+            },
+            successPayData: (response) => viewModel.saveData(response),
+          ),
+          builder: (context, state) => state.maybeWhen(
+            loading: () => Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    LocaleKeys.preparingToAcceptPayment.tr(),
+                    style: AppTextStyles.headingH3.copyWith(
+                      fontSize: 36,
+                    ),
                   ),
                 ),
-              ),
-              const ColumnSpacer(3),
-              const SizedBox(
-                height: 64,
-                width: 64,
-                child: CircularProgressIndicator(
-                  color: Color(0xffF14635),
-                  strokeWidth: 4,
+                const ColumnSpacer(3),
+                const SizedBox(
+                  height: 64,
+                  width: 64,
+                  child: CircularProgressIndicator(
+                    color: Color(0xffF14635),
+                    strokeWidth: 4,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          orElse: () => Align(
-            alignment: Alignment.center,
-            child: _buildContent(viewModel.payStatus.data?.status ?? ''),
+              ],
+            ),
+            orElse: () => Align(
+              alignment: Alignment.center,
+              child: _buildContent(viewModel.payStatus.data?.status ?? ''),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildContent(String ststus) {
-    switch (ststus) {
+  Widget _buildContent(String status) {
+    switch (status) {
       case 'QrTokenCreated':
+        final redirectUrl = viewModel.payData.redirectUrl ?? '';
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset(
-              AppSvgImages.qr,
-              height: 120,
-            ),
+            // SvgPicture.asset(
+            //   AppSvgImages.qr,
+            //   height: 120,
+            // ),
             const ColumnSpacer(1.2),
             Text(
               LocaleKeys.scanAndPay.tr(),
@@ -195,15 +224,21 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
                 fontSize: 100,
               ),
             ),
-            QrImageView(
-              data: viewModel.payData.redirectUrl ?? '',
-              version: QrVersions.auto,
-              size: 400.0,
-              embeddedImage: const AssetImage(AppWebpImages.kaspiOutline),
-              embeddedImageStyle: const QrEmbeddedImageStyle(
-                size: Size(82, 82),
+            if (redirectUrl.isNotEmpty)
+              QrImageView(
+                data: redirectUrl,
+                version: QrVersions.auto,
+                size: 400,
+              )
+            else
+              const SizedBox(
+                height: 64,
+                width: 64,
+                child: CircularProgressIndicator(
+                  color: Color(0xffF14635),
+                  strokeWidth: 4,
+                ),
               ),
-            ),
             const ColumnSpacer(1.2),
             Text(
               LocaleKeys.paymentMethods.tr(),
@@ -213,8 +248,17 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
             ),
             const ColumnSpacer(1.2),
             SvgPicture.asset(
-              AppSvgImages.kaspiGold,
+              AppSvgImages.card,
               height: 64,
+              color: AppColors.primitiveNeutralcold1000,
+            ),
+            const ColumnSpacer(0.6),
+            Text(
+              'Оплатить картой',
+              style: AppTextStyles.bodyMStrong.copyWith(
+                fontSize: 28,
+                color: AppColors.primitiveNeutralcold1000,
+              ),
             ),
           ],
         );
@@ -227,30 +271,6 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
             strokeWidth: 4,
           ),
         );
-      // Column(
-      //   mainAxisAlignment: MainAxisAlignment.center,
-      //   children: [
-      //     Text(
-      //       'Подтвердите оплату в приложении',
-      //       style: AppTextStyles.headingH3.copyWith(
-      //         fontSize: 36,
-      //       ),
-      //     ),
-      //     const ColumnSpacer(1.2),
-      //     Text(
-      //       'Происходит списание средств',
-      //       style: AppTextStyles.bodyM.copyWith(
-      //         fontSize: 24,
-      //         color: AppColors.primitiveNeutralcold500,
-      //       ),
-      //     ),
-      //     const ColumnSpacer(10),
-      //     SvgPicture.asset(
-      //       AppSvgImages.kaspiCompact,
-      //       height: 148,
-      //     ),
-      //   ],
-      // );
       case 'Error':
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -278,10 +298,6 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // SvgPicture.asset(
-            //   AppSvgImages.ok,
-            //   height: 250,
-            // ),
             Lottie.asset(
               AppLottie.success,
               height: 30.h,

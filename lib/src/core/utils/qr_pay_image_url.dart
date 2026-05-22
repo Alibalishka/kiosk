@@ -35,9 +35,9 @@ String normalizeQrPayInsecureImageUrl(
   if (!hasH || !hasW || !hasQ) return url;
 
   final w =
-      targetWidthPx != null && targetHeightPx != null ? targetWidthPx : 1200;
+      targetWidthPx != null && targetHeightPx != null ? targetWidthPx : 1500;
   final h =
-      targetWidthPx != null && targetHeightPx != null ? targetHeightPx : 1200;
+      targetWidthPx != null && targetHeightPx != null ? targetHeightPx : 1500;
 
   return url
       .replaceFirst(RegExp(r'h:\d+'), 'h:$h')

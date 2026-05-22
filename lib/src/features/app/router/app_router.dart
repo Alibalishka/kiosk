@@ -21,6 +21,7 @@ import 'package:qr_pay_app/src/features/home/vm/detail_vm.dart';
 import 'package:qr_pay_app/src/features/home/vm/story_vm.dart';
 import 'package:qr_pay_app/src/features/kiosk/pages/kiosk_success.dart';
 import 'package:qr_pay_app/src/features/kiosk/pages/kiosk_tech_work.dart';
+import 'package:qr_pay_app/src/features/kiosk/provider/kiosk_card_provider.dart';
 import 'package:qr_pay_app/src/features/kiosk/provider/kiosk_kaspi_provider.dart';
 import 'package:qr_pay_app/src/features/kiosk/provider/kiosk_provider.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/responses/reservation_response.dart';
@@ -96,6 +97,7 @@ part 'app_router.gr.dart';
     AutoRoute(page: WebViewPage, path: 'webview-page'),
     AutoRoute(page: TabletCheckoutPage, path: 'tablet-checkout'),
     AutoRoute(page: KioskKaspiProvider, path: 'kiosk-kaspi-pay'),
+    AutoRoute(page: KioskCardProvider, path: 'kiosk-card-pay'),
     AutoRoute(page: KioskSuccessPage, path: 'kiosk-success'),
     AutoRoute(page: KioskTechWorkPage, path: 'kiosk-tech-work'),
     CustomRoute(

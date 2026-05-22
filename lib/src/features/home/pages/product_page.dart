@@ -603,12 +603,12 @@ class _ProductMediaBackground extends StatelessWidget {
               SafeNetworkImage(
                 key: const ValueKey('preview'),
                 imageUrl:
-                    item.image?[0].filePreview ?? item.image?[0].path ?? '',
-                // normalizeQrPayInsecureImageUrl(
-                //   item.image?[0].path ?? item.image?[0].filePreview ?? '',
-                //   targetWidthPx: heroProxyPx.widthPx,
-                //   targetHeightPx: heroProxyPx.heightPx,
-                // ),
+                    // item.image?[0].filePreview ?? item.image?[0].path ?? '',
+                    normalizeQrPayInsecureImageUrl(
+                  item.image?[0].filePreview ?? item.image?[0].path ?? '',
+                  targetWidthPx: heroProxyPx.widthPx,
+                  targetHeightPx: heroProxyPx.heightPx,
+                ),
                 imageBuilder: (context, provider) => Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.vertical(
@@ -660,12 +660,13 @@ class _ProductMediaBackground extends StatelessWidget {
           )
         else if (item.image?.isNotEmpty ?? false)
           SafeNetworkImage(
-            imageUrl: item.image?[0].file ?? item.image?[0].path ?? '',
-            // normalizeQrPayInsecureImageUrl(
-            //   item.image?[0].file ?? item.image?[0].path ?? '',
-            //   targetWidthPx: heroProxyPx.widthPx,
-            //   targetHeightPx: heroProxyPx.heightPx,
-            // ),
+            imageUrl:
+                // item.image?[0].file ?? item.image?[0].path ?? '',
+                normalizeQrPayInsecureImageUrl(
+              item.image?[0].file ?? item.image?[0].path ?? '',
+              targetWidthPx: heroProxyPx.widthPx,
+              targetHeightPx: heroProxyPx.heightPx,
+            ),
             placeholder: Container(
               decoration: const BoxDecoration(
                 color: AppColors.primitiveNeutral0,

@@ -43,6 +43,7 @@ class TabletCheckoutPage extends StatefulWidget {
 class _TabletCheckoutPageState extends State<TabletCheckoutPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _pendingKaspiCheckout = true;
 
   String _capitalizeFirstLetter(String value) {
     if (value.isEmpty) return value;
@@ -136,36 +137,75 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                         ],
                       ),
                       const ColumnSpacer(1.2),
-                      CupertinoButton(
-                        borderRadius: BorderRadius.circular(16),
-                        onPressed: () => value.nameController.text.isEmpty
-                            ? _showNameInputDialog(context)
-                            : context.read<QrMenuVm>().tabletCheckout(context,
-                                indexType: _tabController.index),
-                        color: const Color(0xffF24634),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 24),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                LocaleKeys.payWith.tr(),
-                                style: AppTextStyles.bodyMStrong.copyWith(
-                                    fontSize: vmQrMenu.isTablet ? 15.sp : null,
-                                    color: AppComponents
-                                        .buttongroupButtonPrimaryTextColorDefault),
-                              ),
-                              const RowSpacer(0.4),
-                              SvgPicture.asset(
-                                AppSvgImages.kaspiQr,
-                                height: 2.5.sh,
-                              ),
-                            ],
+                      if (value.hasKaspiPay) ...[
+                        CupertinoButton(
+                          borderRadius: BorderRadius.circular(16),
+                          onPressed: () => _onCheckoutPressed(
+                            context,
+                            isKaspiPay: true,
+                          ),
+                          color: const Color(0xffF24634),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  LocaleKeys.payWith.tr(),
+                                  style: AppTextStyles.bodyMStrong.copyWith(
+                                      fontSize:
+                                          vmQrMenu.isTablet ? 15.sp : null,
+                                      color: AppComponents
+                                          .buttongroupButtonPrimaryTextColorDefault),
+                                ),
+                                const RowSpacer(0.4),
+                                SvgPicture.asset(
+                                  AppSvgImages.kaspiQr,
+                                  height: 2.5.sh,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                        if (value.hasAirbaPay) const ColumnSpacer(1.2),
+                      ],
+                      if (value.hasAirbaPay)
+                        CupertinoButton(
+                          borderRadius: BorderRadius.circular(16),
+                          onPressed: () => _onCheckoutPressed(
+                            context,
+                            isKaspiPay: false,
+                          ),
+                          color: AppComponents
+                              .buttongroupButtonPrimaryBgColorDefault,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  AppSvgImages.card,
+                                  height: vmQrMenu.isTablet ? 2.2.sh : 24,
+                                  color: AppComponents
+                                      .buttongroupButtonPrimaryTextColorDefault,
+                                ),
+                                const RowSpacer(0.4),
+                                Text(
+                                  'Оплатить картой',
+                                  style: AppTextStyles.bodyMStrong.copyWith(
+                                    fontSize: vmQrMenu.isTablet ? 15.sp : null,
+                                    color: AppComponents
+                                        .buttongroupButtonPrimaryTextColorDefault,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   );
                 },
@@ -450,6 +490,23 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
     );
   }
 
+  void _onCheckoutPressed(
+    BuildContext context, {
+    required bool isKaspiPay,
+  }) {
+    final viewModel = context.read<QrMenuVm>();
+    if (viewModel.nameController.text.isEmpty) {
+      _pendingKaspiCheckout = isKaspiPay;
+      _showNameInputDialog(context);
+      return;
+    }
+    viewModel.tabletCheckout(
+      context,
+      indexType: _tabController.index,
+      isKaspiPay: isKaspiPay,
+    );
+  }
+
   void _showNameInputDialog(BuildContext context) {
     final viewModel = context.read<QrMenuVm>();
     final controller = viewModel.nameController;
@@ -570,6 +627,8 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                               viewModel.tabletCheckout(
                                                 context,
                                                 indexType: _tabController.index,
+                                                isKaspiPay:
+                                                    _pendingKaspiCheckout,
                                               );
                                             },
                                       child: Text(

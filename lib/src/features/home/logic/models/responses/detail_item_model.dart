@@ -48,6 +48,7 @@ class DetailItemDatum extends BaseModel<DetailItemDatum> {
   int? menuVersion;
   String? menuEtag;
   DateTime? menuLastModified;
+  List<String>? availablePayments;
 
   DetailItemDatum({
     this.id,
@@ -75,6 +76,7 @@ class DetailItemDatum extends BaseModel<DetailItemDatum> {
     this.menuVersion,
     this.menuEtag,
     this.menuLastModified,
+    this.availablePayments,
   });
 
   factory DetailItemDatum.fromJson(Map<String, dynamic> json) =>
