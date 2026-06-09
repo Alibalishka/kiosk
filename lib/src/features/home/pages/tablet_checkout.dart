@@ -184,25 +184,13 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 12, horizontal: 24),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SvgPicture.asset(
-                                  AppSvgImages.card,
-                                  height: vmQrMenu.isTablet ? 2.2.sh : 24,
-                                  color: AppComponents
-                                      .buttongroupButtonPrimaryTextColorDefault,
-                                ),
-                                const RowSpacer(0.4),
-                                Text(
-                                  'Оплатить картой',
-                                  style: AppTextStyles.bodyMStrong.copyWith(
-                                    fontSize: vmQrMenu.isTablet ? 15.sp : null,
-                                    color: AppComponents
-                                        .buttongroupButtonPrimaryTextColorDefault,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              'Оплата картой | Apple Pay | Google Pay',
+                              style: AppTextStyles.bodyMStrong.copyWith(
+                                fontSize: vmQrMenu.isTablet ? 15.sp : null,
+                                color: AppComponents
+                                    .buttongroupButtonPrimaryTextColorDefault,
+                              ),
                             ),
                           ),
                         ),
@@ -637,6 +625,29 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                           fontSize: 18,
                                           color:
                                               AppColors.primitiveNeutralcold0,
+                                        ),
+                                      ),
+                                    ),
+                                    const ColumnSpacer(1.2),
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      onPressed: () {
+                                        viewModel.nameController.clear();
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus();
+                                        Navigator.of(context).pop();
+                                        viewModel.tabletCheckout(
+                                          context,
+                                          indexType: _tabController.index,
+                                          isKaspiPay: _pendingKaspiCheckout,
+                                        );
+                                      },
+                                      child: Text(
+                                        'Пропустить',
+                                        style: AppTextStyles.bodyM.copyWith(
+                                          fontSize: 18,
+                                          color: AppComponents
+                                              .buttongroupButtonPrimaryBgColorDefault,
                                         ),
                                       ),
                                     ),

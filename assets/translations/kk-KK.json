@@ -267,10 +267,6 @@
     "inTheHall":"Залда",
     "selectExactCount": "{max} таңдаңыз",
     "selectUpToCount": "{max}-ке дейін таңдауға болады",
-    "selectFromToCount": "{min}-ден {max}-ке дейін таңдаңыз"
-
-
-
-
-
+    "selectFromToCount": "{min}-ден {max}-ке дейін таңдаңыз",
+    "scanAndTrackOrder": "Тапсырысты қадағалау үшін QR сканерлеңіз"
 }

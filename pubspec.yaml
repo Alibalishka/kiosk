@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: "none"
 
-version: 2.0.8+93
+version: 2.0.9+94
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -111,6 +111,7 @@ dependencies:
   path_provider: ^2.1.2
   path: ^1.9.0
   internet_connection_checker: ^3.0.1
+  pretty_qr_code: ^3.6.0
 
 dev_dependencies:
   flutter_test:

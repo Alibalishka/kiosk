@@ -267,5 +267,6 @@
     "inTheHall" : "In the hall",
     "selectExactCount": "Choose {max}",
     "selectUpToCount": "You can choose up to {max}",
-    "selectFromToCount": "Choose from {min} to {max}"
+    "selectFromToCount": "Choose from {min} to {max}",
+    "scanAndTrackOrder": "Scan the QR to track your order"
 }

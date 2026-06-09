@@ -24,7 +24,6 @@ import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.d
 import 'package:qr_pay_app/src/features/kiosk/vm/kiosk_card_vm.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/history_order_bloc/history_order_bloc.dart';
 import 'package:qr_pay_app/src/features/qr/widgets/custom_appbar.dart';
-import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class KioskCardPayPage extends StatefulWidget {
@@ -210,25 +209,69 @@ class _KioskCardPayPageState extends State<KioskCardPayPage>
             //   AppSvgImages.qr,
             //   height: 120,
             // ),
-            const ColumnSpacer(1.2),
-            Text(
-              LocaleKeys.scanAndPay.tr(),
-              style: AppTextStyles.bodyM.copyWith(
-                fontSize: 40,
+            // const ColumnSpacer(1.2),
+            // Text(
+            //   LocaleKeys.scanAndPay.tr(),
+            //   style: AppTextStyles.bodyM.copyWith(
+            //     fontSize: 40,
+            //   ),
+            // ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  AppSvgImages.qrIconKiosk,
+                  height: 80,
+                ),
+                const RowSpacer(1.6),
+                const Text(
+                  'Оплата по QR',
+                  style: TextStyle(
+                    fontSize: 52,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const ColumnSpacer(0.8),
+            const Text(
+              'Наведите камеру на QR-код,  чтобы оплатить заказ',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 28,
+                color: AppColors.semanticStatus04Default,
               ),
             ),
-            const ColumnSpacer(1.2),
+            const ColumnSpacer(2.4),
             Text(
               '${priceFormat(viewModel.payData.totalPrice!.toInt().toString())} ₸',
               style: AppTextStyles.headingH3.copyWith(
                 fontSize: 100,
               ),
             ),
+            const ColumnSpacer(4),
             if (redirectUrl.isNotEmpty)
-              QrImageView(
-                data: redirectUrl,
-                version: QrVersions.auto,
-                size: 400,
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SvgPicture.asset(
+                    AppSvgImages.borderQr,
+                    height: 500,
+                  ),
+                  QrImageView(
+                    data: redirectUrl,
+                    version: QrVersions.auto,
+                    size: 450,
+                    dataModuleStyle: const QrDataModuleStyle(
+                      dataModuleShape: QrDataModuleShape.circle,
+                      color: Colors.black,
+                    ),
+                    eyeStyle: const QrEyeStyle(
+                      eyeShape: QrEyeShape.square,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               )
             else
               const SizedBox(
@@ -239,27 +282,39 @@ class _KioskCardPayPageState extends State<KioskCardPayPage>
                   strokeWidth: 4,
                 ),
               ),
-            const ColumnSpacer(1.2),
+            const ColumnSpacer(5),
             Text(
               LocaleKeys.paymentMethods.tr(),
               style: AppTextStyles.bodyM.copyWith(
                 fontSize: 24,
+                color: AppColors.semanticStatus04Default,
               ),
             ),
-            const ColumnSpacer(1.2),
-            SvgPicture.asset(
-              AppSvgImages.card,
-              height: 64,
-              color: AppColors.primitiveNeutralcold1000,
-            ),
-            const ColumnSpacer(0.6),
-            Text(
-              'Оплатить картой',
-              style: AppTextStyles.bodyMStrong.copyWith(
-                fontSize: 28,
-                color: AppColors.primitiveNeutralcold1000,
-              ),
-            ),
+            const ColumnSpacer(1.6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  AppSvgImages.mastercard,
+                  height: 32,
+                ),
+                const RowSpacer(0.8),
+                SvgPicture.asset(
+                  AppSvgImages.visa,
+                  height: 32,
+                ),
+                const RowSpacer(0.8),
+                SvgPicture.asset(
+                  AppSvgImages.gPay,
+                  height: 32,
+                ),
+                const RowSpacer(0.8),
+                SvgPicture.asset(
+                  AppSvgImages.applePay,
+                  height: 32,
+                ),
+              ],
+            )
           ],
         );
       case 'Wait':

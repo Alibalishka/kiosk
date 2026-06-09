@@ -7,7 +7,8 @@ class AppSvgImages {
   static const String okError = 'assets/images/svg/OK_error.svg';
   static const String qr = 'assets/images/svg/QR.svg';
   static const String addCircle = 'assets/images/svg/add_circle.svg';
-  static const String applePay = 'assets/images/svg/applePay.svg';
+  // static const String applePay = 'assets/images/svg/applePay.svg';
+  static const String applePay = 'assets/images/svg/apple_pay.svg';
   static const String arrowLeft = 'assets/images/svg/arrowLeft.svg';
   static const String attachment = 'assets/images/svg/attachment.svg';
   static const String barcode = 'assets/images/svg/barcode.svg';
@@ -60,6 +61,7 @@ class AppSvgImages {
   static const String flashlightOn = 'assets/images/svg/flashlightOn.svg';
   static const String freeCoffee = 'assets/images/svg/freeCoffee.svg';
   static const String gPay = 'assets/images/svg/gPay.svg';
+  static const String gpayCopy = 'assets/images/svg/gpay copy.svg';
   static const String gridview = 'assets/images/svg/gridview.svg';
   static const String heart = 'assets/images/svg/heart.svg';
   static const String history = 'assets/images/svg/history.svg';
@@ -90,6 +92,7 @@ class AppSvgImages {
   static const String logoShopan = 'assets/images/svg/logoShopan.svg';
   static const String logoMastercard = 'assets/images/svg/logo_mastercard.svg';
   static const String logoVisa = 'assets/images/svg/logo_visa.svg';
+  static const String mastercard = 'assets/images/svg/mastercard.svg';
   static const String minus = 'assets/images/svg/minus.svg';
   static const String navigation = 'assets/images/svg/navigation.svg';
   static const String noneStroke = 'assets/images/svg/none_stroke.svg';
@@ -102,6 +105,7 @@ class AppSvgImages {
   static const String plus = 'assets/images/svg/plus.svg';
   static const String point = 'assets/images/svg/point.svg';
   static const String qrIcon = 'assets/images/svg/qrIcon.svg';
+  static const String qrIconKiosk = 'assets/images/svg/qr_icon_kiosk.svg';
   static const String qrpayLogo = 'assets/images/svg/qrpay_logo.svg';
   static const String radiobuttonOff = 'assets/images/svg/radiobutton_off.svg';
   static const String radiobuttonOn = 'assets/images/svg/radiobutton_on.svg';
@@ -143,8 +147,11 @@ class AppSvgImages {
   static const String userFill = 'assets/images/svg/userFill.svg';
   static const String userPlus = 'assets/images/svg/userPlus.svg';
   static const String verifiedUser = 'assets/images/svg/verified_user.svg';
+  static const String visa = 'assets/images/svg/visa.svg';
   static const String walk = 'assets/images/svg/walk.svg';
   static const String wallet = 'assets/images/svg/wallet.svg';
   static const String warning = 'assets/images/svg/warning.svg';
   static const String warningFill = 'assets/images/svg/warningFill.svg';
+  static const String borderQr = 'assets/images/svg/border_qr.svg';
+  static const String arrow = 'assets/images/svg/arrow.svg';
 }
