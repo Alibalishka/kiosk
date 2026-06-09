@@ -282,7 +282,8 @@ class CodegenLoader extends AssetLoader{
   "inTheHall": "Залда",
   "selectExactCount": "{max} таңдаңыз",
   "selectUpToCount": "{max}-ке дейін таңдауға болады",
-  "selectFromToCount": "{min}-ден {max}-ке дейін таңдаңыз"
+  "selectFromToCount": "{min}-ден {max}-ке дейін таңдаңыз",
+  "scanAndTrackOrder": "Тапсырысты қадағалау үшін QR сканерлеңіз"
 };
 static const Map<String,dynamic> _ru_RU = {
   "selectCity": "Выберите город",
@@ -553,7 +554,8 @@ static const Map<String,dynamic> _ru_RU = {
   "inTheHall": "В зале",
   "selectExactCount": "Выберите {max}",
   "selectUpToCount": "Можно выбрать до {max}",
-  "selectFromToCount": "Выберите от {min} до {max}"
+  "selectFromToCount": "Выберите от {min} до {max}",
+  "scanAndTrackOrder": "Отсканируйте QR и отслеживайте заказ"
 };
 static const Map<String,dynamic> _en_US = {
   "selectCity": "Select a city",
@@ -823,7 +825,8 @@ static const Map<String,dynamic> _en_US = {
   "inTheHall": "In the hall",
   "selectExactCount": "Choose {max}",
   "selectUpToCount": "You can choose up to {max}",
-  "selectFromToCount": "Choose from {min} to {max}"
+  "selectFromToCount": "Choose from {min} to {max}",
+  "scanAndTrackOrder": "Scan the QR to track your order"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"kk_KK": _kk_KK, "ru_RU": _ru_RU, "en_US": _en_US};
 }

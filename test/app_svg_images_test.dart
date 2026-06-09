@@ -10,6 +10,7 @@ void main() {
     expect(File(AppSvgImages.qr).existsSync(), isTrue);
     expect(File(AppSvgImages.addCircle).existsSync(), isTrue);
     expect(File(AppSvgImages.applePay).existsSync(), isTrue);
+    expect(File(AppSvgImages.applePay).existsSync(), isTrue);
     expect(File(AppSvgImages.arrowLeft).existsSync(), isTrue);
     expect(File(AppSvgImages.attachment).existsSync(), isTrue);
     expect(File(AppSvgImages.barcode).existsSync(), isTrue);
@@ -55,6 +56,7 @@ void main() {
     expect(File(AppSvgImages.flashlightOn).existsSync(), isTrue);
     expect(File(AppSvgImages.freeCoffee).existsSync(), isTrue);
     expect(File(AppSvgImages.gPay).existsSync(), isTrue);
+    expect(File(AppSvgImages.gpayCopy).existsSync(), isTrue);
     expect(File(AppSvgImages.gridview).existsSync(), isTrue);
     expect(File(AppSvgImages.heart).existsSync(), isTrue);
     expect(File(AppSvgImages.history).existsSync(), isTrue);
@@ -84,6 +86,7 @@ void main() {
     expect(File(AppSvgImages.logoShopan).existsSync(), isTrue);
     expect(File(AppSvgImages.logoMastercard).existsSync(), isTrue);
     expect(File(AppSvgImages.logoVisa).existsSync(), isTrue);
+    expect(File(AppSvgImages.mastercard).existsSync(), isTrue);
     expect(File(AppSvgImages.minus).existsSync(), isTrue);
     expect(File(AppSvgImages.navigation).existsSync(), isTrue);
     expect(File(AppSvgImages.noneStroke).existsSync(), isTrue);
@@ -95,6 +98,7 @@ void main() {
     expect(File(AppSvgImages.people).existsSync(), isTrue);
     expect(File(AppSvgImages.plus).existsSync(), isTrue);
     expect(File(AppSvgImages.point).existsSync(), isTrue);
+    expect(File(AppSvgImages.qrIcon).existsSync(), isTrue);
     expect(File(AppSvgImages.qrIcon).existsSync(), isTrue);
     expect(File(AppSvgImages.qrpayLogo).existsSync(), isTrue);
     expect(File(AppSvgImages.radiobuttonOff).existsSync(), isTrue);
@@ -133,6 +137,7 @@ void main() {
     expect(File(AppSvgImages.userFill).existsSync(), isTrue);
     expect(File(AppSvgImages.userPlus).existsSync(), isTrue);
     expect(File(AppSvgImages.verifiedUser).existsSync(), isTrue);
+    expect(File(AppSvgImages.visa).existsSync(), isTrue);
     expect(File(AppSvgImages.walk).existsSync(), isTrue);
     expect(File(AppSvgImages.wallet).existsSync(), isTrue);
     expect(File(AppSvgImages.warning).existsSync(), isTrue);

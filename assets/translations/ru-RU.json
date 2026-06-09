@@ -267,7 +267,6 @@
     "inTheHall":"В зале",
     "selectExactCount": "Выберите {max}",
     "selectUpToCount": "Можно выбрать до {max}",
-    "selectFromToCount": "Выберите от {min} до {max}"
-
-
+    "selectFromToCount": "Выберите от {min} до {max}",
+    "scanAndTrackOrder": "Отсканируйте QR и отслеживайте заказ"
 }

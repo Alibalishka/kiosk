@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
+import 'package:qr_pay_app/src/core/formatters/text_formats.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_paddings.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
@@ -36,14 +37,19 @@ class ItemMenu extends StatelessWidget {
           children: [
             if (item.image?.isNotEmpty ?? false)
               GestureDetector(
-                  onTap: () => showCustomSheet(
-                        context,
-                        child: ProductPage(
+                  onTap: () => context.router.push(
+                        ProductPageRoute(
                           item: item,
-                          // isSubscription: viewModel.isSubscription,
-                          // isMenuPage: true,
                         ),
                       ),
+                  // showCustomSheet(
+                  //       context,
+                  //       child: ProductPage(
+                  //         item: item,
+                  //         // isSubscription: viewModel.isSubscription,
+                  //         // isMenuPage: true,
+                  //       ),
+                  //     ),
                   // context.router.push(
                   //       ProductPageRoute(
                   //         item: item,
@@ -101,14 +107,19 @@ class ItemMenu extends StatelessWidget {
             // const RowSpacer(2),
             Flexible(
               child: GestureDetector(
-                onTap: () => showCustomSheet(
-                  context,
-                  child: ProductPage(
+                onTap: () => context.router.push(
+                  ProductPageRoute(
                     item: item,
-                    // isSubscription: viewModel.isSubscription,
-                    // isMenuPage: true,
                   ),
                 ),
+                // showCustomSheet(
+                //   context,
+                //   child: ProductPage(
+                //     item: item,
+                //     // isSubscription: viewModel.isSubscription,
+                //     // isMenuPage: true,
+                //   ),
+                // ),
                 //  context.router.push(
                 //   ProductPageRoute(
                 //     item: item,
@@ -135,7 +146,7 @@ class ItemMenu extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.name ?? '',
+                            formatMenuItemTitle(item.name),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.bodyLStrong.copyWith(

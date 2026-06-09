@@ -18,12 +18,24 @@ class KioskStatus extends BaseModel<KioskStatus> {
 
 @JsonSerializable()
 class KioskStatusDatum extends BaseModel<KioskStatusDatum> {
-  final String? version;
-  final SectionData? section;
+  String? version;
+  SectionData? section;
+  int? menuVersion;
+  String? menuEtag;
+  DateTime? menuLastModified;
+  int? advertisementVersion;
+  String? advertisementEtag;
+  DateTime? advertisementLastModified;
 
   KioskStatusDatum({
     this.version,
     this.section,
+    this.menuVersion,
+    this.menuEtag,
+    this.menuLastModified,
+    this.advertisementVersion,
+    this.advertisementEtag,
+    this.advertisementLastModified,
   });
 
   factory KioskStatusDatum.fromJson(Map<String, dynamic> json) =>

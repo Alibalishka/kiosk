@@ -71,7 +71,7 @@ class RecomendedWidget extends StatelessWidget {
             Text(
               currentItem.description ?? '',
               // maxLines: viewModel.isTablet ? 5 : 3,
-              maxLines: 5,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyM.copyWith(

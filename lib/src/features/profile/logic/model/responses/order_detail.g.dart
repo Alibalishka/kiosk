@@ -39,7 +39,7 @@ OrderDetailData _$OrderDetailDataFromJson(Map<String, dynamic> json) =>
       number: (json['number'] as num?)?.toInt(),
       numberGenerated: json['number_generated'],
       tableId: json['table_id'] as String?,
-      iikoOrderId: json['iiko_order_id'] as String?,
+      posOrderId: json['pos_order_id'] as String?,
       serviceSum: (json['service_sum'] as num?)?.toInt(),
       createdAt: json['created_at'] == null
           ? null
@@ -73,7 +73,7 @@ Map<String, dynamic> _$OrderDetailDataToJson(OrderDetailData instance) =>
       'number': instance.number,
       'number_generated': instance.numberGenerated,
       'table_id': instance.tableId,
-      'iiko_order_id': instance.iikoOrderId,
+      'pos_order_id': instance.posOrderId,
       'service_sum': instance.serviceSum,
       'created_at': instance.createdAt?.toIso8601String(),
       'item': instance.item,

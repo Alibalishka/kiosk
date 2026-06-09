@@ -182,9 +182,11 @@ class KioskService {
     final battery = Battery();
     final state = await battery.batteryState;
 
-    // 🔋 уровень батареи (0–100)
-    // final int level = 100;
-    final int level = await battery.batteryLevel;
+    // 🔋 реальный уровень батареи (0–100)
+    int level = 77;
+    try {
+      level = await battery.batteryLevel;
+    } catch (_) {}
 
     // ✅ UUID из secure storage
     final deviceId = await _getDeviceId();

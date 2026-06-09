@@ -314,6 +314,16 @@ class _$AppRouter extends RootStackRouter {
         ),
       );
     },
+    KioskCardProviderRoute.name: (routeData) {
+      final args = routeData.argsAs<KioskCardProviderRouteArgs>();
+      return MaterialPageX<dynamic>(
+        routeData: routeData,
+        child: KioskCardProvider(
+          key: args.key,
+          request: args.request,
+        ),
+      );
+    },
     KioskSuccessPageRoute.name: (routeData) {
       final args = routeData.argsAs<KioskSuccessPageRouteArgs>();
       return MaterialPageX<dynamic>(
@@ -521,6 +531,10 @@ class _$AppRouter extends RootStackRouter {
         RouteConfig(
           KioskKaspiProviderRoute.name,
           path: 'kiosk-kaspi-pay',
+        ),
+        RouteConfig(
+          KioskCardProviderRoute.name,
+          path: 'kiosk-card-pay',
         ),
         RouteConfig(
           KioskSuccessPageRoute.name,
@@ -1491,6 +1505,40 @@ class KioskKaspiProviderRouteArgs {
   @override
   String toString() {
     return 'KioskKaspiProviderRouteArgs{key: $key, request: $request}';
+  }
+}
+
+/// generated route for
+/// [KioskCardProvider]
+class KioskCardProviderRoute extends PageRouteInfo<KioskCardProviderRouteArgs> {
+  KioskCardProviderRoute({
+    Key? key,
+    required MenuCheckoutRequest request,
+  }) : super(
+          KioskCardProviderRoute.name,
+          path: 'kiosk-card-pay',
+          args: KioskCardProviderRouteArgs(
+            key: key,
+            request: request,
+          ),
+        );
+
+  static const String name = 'KioskCardProviderRoute';
+}
+
+class KioskCardProviderRouteArgs {
+  const KioskCardProviderRouteArgs({
+    this.key,
+    required this.request,
+  });
+
+  final Key? key;
+
+  final MenuCheckoutRequest request;
+
+  @override
+  String toString() {
+    return 'KioskCardProviderRouteArgs{key: $key, request: $request}';
   }
 }
 

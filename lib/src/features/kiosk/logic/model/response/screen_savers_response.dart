@@ -7,10 +7,16 @@ part 'screen_savers_response.g.dart';
 class ScreenSaversResponse extends BaseModel<ScreenSaversResponse> {
   List<ScreenSaversDatum>? data;
   int? idleTimeout;
+  int? advertisementVersion;
+  String? advertisementEtag;
+  DateTime? advertisementLastModified;
 
   ScreenSaversResponse({
     this.data,
     this.idleTimeout,
+    this.advertisementVersion,
+    this.advertisementEtag,
+    this.advertisementLastModified,
   });
 
   factory ScreenSaversResponse.fromJson(Map<String, dynamic> json) =>

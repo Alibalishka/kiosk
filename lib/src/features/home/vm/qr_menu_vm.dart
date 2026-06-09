@@ -38,6 +38,9 @@ import 'package:vibration/vibration.dart';
 import 'package:vibration/vibration_presets.dart';
 
 class QrMenuVm extends ViewModel {
+  static const String kaspiPayProvider = 'kaspi_pay';
+  static const String airbaPayProvider = 'airba_pay';
+
   final BuildContext context;
   // final bool isTabletMode;
   final BasketService basketService;
@@ -185,7 +188,7 @@ class QrMenuVm extends ViewModel {
     bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
     // _menuTimer?.cancel();
     if (isKioskMode) {
-      _menuTimer = Timer.periodic(const Duration(hours: 1), (_) {
+      _menuTimer = Timer.periodic(const Duration(hours: 5), (_) {
         bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
       });
     }
@@ -395,9 +398,53 @@ class QrMenuVm extends ViewModel {
     notifyListeners();
   }
 
+  List<String> get availablePayments =>
+      menuData?.organization?.availablePayments ?? [];
+
+  bool get hasKaspiPay => availablePayments.contains(kaspiPayProvider);
+
+  bool get hasAirbaPay => availablePayments.contains(airbaPayProvider);
+
+  int? paymentMethodIdFor(String provider) {
+    final methods = paymentMethodData.data;
+    if (methods == null) return null;
+    for (final method in methods) {
+      if (method.provider == provider) return method.id;
+    }
+    return null;
+  }
+
+  int? _paymentMethodIdByProviderContains(String value) {
+    final methods = paymentMethodData.data;
+    if (methods == null) return null;
+    for (final method in methods) {
+      if (method.provider?.contains(value) == true) return method.id;
+    }
+    return null;
+  }
+
+  int? resolveTabletPaymentMethodId({required bool isKaspiPay}) {
+    final methods = paymentMethodData.data;
+    if (methods == null || methods.isEmpty) return null;
+
+    if (isKaspiPay) {
+      final nonAirbaMethods =
+          methods.where((m) => m.provider != airbaPayProvider);
+      return paymentMethodIdFor(kaspiPayProvider) ??
+          _paymentMethodIdByProviderContains('kaspi') ??
+          (nonAirbaMethods.isNotEmpty
+              ? nonAirbaMethods.first.id
+              : methods.first.id);
+    }
+
+    return paymentMethodIdFor(airbaPayProvider) ??
+        _paymentMethodIdByProviderContains('airba');
+  }
+
   Future<void> tabletCheckout(
     BuildContext context, {
     int indexType = 1,
+    bool isKaspiPay = true,
   }) async {
     // final orgId = menuData?.organization?.iikoOrgId;
     final orgId = menuData?.organization?.posOrgId;
@@ -429,6 +476,31 @@ class QrMenuVm extends ViewModel {
       return;
     }
 
+    final provider = isKaspiPay ? kaspiPayProvider : airbaPayProvider;
+    if (isKaspiPay && !hasKaspiPay) {
+      log('❌ kaspi_pay is not available for this organization');
+      return;
+    }
+    if (!isKaspiPay && !hasAirbaPay) {
+      log('❌ airba_pay is not available for this organization');
+      return;
+    }
+
+    final paymentMethodId =
+        resolveTabletPaymentMethodId(isKaspiPay: isKaspiPay);
+    if (paymentMethodId == null) {
+      log('❌ payment method not found for provider: $provider');
+      showTopSnackBar(
+        Overlay.of(context),
+        const CustomSnackBar.error(
+          textAlign: TextAlign.start,
+          message: 'Не найдены способы оплаты. Обратитесь к менеджеру.',
+        ),
+        dismissType: DismissType.onSwipe,
+      );
+      return;
+    }
+
     log('✅ iikoOrgId: $orgId');
 
     final orgInHallRaw = menuData?.organization?.inHall;
@@ -447,18 +519,24 @@ class QrMenuVm extends ViewModel {
       addressId: null,
       inHall: inHall,
     );
-    request.paymentMethodId = paymentMethodData.data![0].id;
-    request.isFastpay = false;
-    request.isKaspipay = true;
+    request.paymentMethodId = paymentMethodId;
+    request.isFastpay = !isKaspiPay;
+    request.isKaspipay = isKaspiPay;
     request.fullName = nameController.text;
 
     // Логируем request в формате JSON для удобного чтения
     // log('📦 Request JSON:\n${const JsonEncoder.withIndent('  ').convert(request.toJson())}');
 
     if (request.items?.isNotEmpty ?? false) {
-      context.router
-          .push(KioskKaspiProviderRoute(request: request))
-          .then((value) => showBottomSheetIfNeeded(context, value));
+      if (isKaspiPay) {
+        context.router
+            .push(KioskKaspiProviderRoute(request: request))
+            .then((value) => showBottomSheetIfNeeded(context, value));
+      } else {
+        context.router
+            .push(KioskCardProviderRoute(request: request))
+            .then((value) => showBottomSheetIfNeeded(context, value));
+      }
     }
   }
 

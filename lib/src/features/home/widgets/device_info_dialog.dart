@@ -99,23 +99,23 @@ class DeviceInfoDialog {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                  QrImageView(
-                    data: deviceId,
-                    version: QrVersions.auto,
-                    size: 300,
-                  ),
-                  const SizedBox(height: 12),
-                  SelectableText(
-                    text.toString(),
-                    style: AppTextStyles.bodyS,
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        OutlinedButton(
+                    QrImageView(
+                      data: deviceId,
+                      version: QrVersions.auto,
+                      size: 300,
+                    ),
+                    const SizedBox(height: 12),
+                    SelectableText(
+                      text.toString(),
+                      style: AppTextStyles.bodyS,
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          OutlinedButton(
                           onPressed: exitInProgress
                               ? null
                               : () async {
@@ -187,9 +187,9 @@ class DeviceInfoDialog {
                           onPressed: () => ctx.router.pop(),
                           child: Text(LocaleKeys.close.tr()),
                         ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                   ],
                 ),
               ),

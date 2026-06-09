@@ -43,6 +43,13 @@ class TabletCheckoutPage extends StatefulWidget {
 class _TabletCheckoutPageState extends State<TabletCheckoutPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _pendingKaspiCheckout = true;
+
+  String _capitalizeFirstLetter(String value) {
+    if (value.isEmpty) return value;
+    final normalized = value.toLowerCase();
+    return normalized[0].toUpperCase() + normalized.substring(1);
+  }
 
   @override
   void initState() {
@@ -130,36 +137,63 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                         ],
                       ),
                       const ColumnSpacer(1.2),
-                      CupertinoButton(
-                        borderRadius: BorderRadius.circular(16),
-                        onPressed: () => value.nameController.text.isEmpty
-                            ? _showNameInputDialog(context)
-                            : context.read<QrMenuVm>().tabletCheckout(context,
-                                indexType: _tabController.index),
-                        color: const Color(0xffF24634),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 24),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                LocaleKeys.payWith.tr(),
-                                style: AppTextStyles.bodyMStrong.copyWith(
-                                    fontSize: vmQrMenu.isTablet ? 15.sp : null,
-                                    color: AppComponents
-                                        .buttongroupButtonPrimaryTextColorDefault),
-                              ),
-                              const RowSpacer(0.4),
-                              SvgPicture.asset(
-                                AppSvgImages.kaspiQr,
-                                height: 2.5.sh,
-                              ),
-                            ],
+                      if (value.hasKaspiPay) ...[
+                        CupertinoButton(
+                          borderRadius: BorderRadius.circular(16),
+                          onPressed: () => _onCheckoutPressed(
+                            context,
+                            isKaspiPay: true,
+                          ),
+                          color: const Color(0xffF24634),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  LocaleKeys.payWith.tr(),
+                                  style: AppTextStyles.bodyMStrong.copyWith(
+                                      fontSize:
+                                          vmQrMenu.isTablet ? 15.sp : null,
+                                      color: AppComponents
+                                          .buttongroupButtonPrimaryTextColorDefault),
+                                ),
+                                const RowSpacer(0.4),
+                                SvgPicture.asset(
+                                  AppSvgImages.kaspiQr,
+                                  height: 2.5.sh,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                        if (value.hasAirbaPay) const ColumnSpacer(1.2),
+                      ],
+                      if (value.hasAirbaPay)
+                        CupertinoButton(
+                          borderRadius: BorderRadius.circular(16),
+                          onPressed: () => _onCheckoutPressed(
+                            context,
+                            isKaspiPay: false,
+                          ),
+                          color: AppComponents
+                              .buttongroupButtonPrimaryBgColorDefault,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 24),
+                            child: Text(
+                              'Оплата картой | Apple Pay | Google Pay',
+                              style: AppTextStyles.bodyMStrong.copyWith(
+                                fontSize: vmQrMenu.isTablet ? 15.sp : null,
+                                color: AppComponents
+                                    .buttongroupButtonPrimaryTextColorDefault,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   );
                 },
@@ -246,7 +280,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                             height: (Platform.isIOS
                                 ? 50.1.sh
                                 : context.screenSize.width > 600
-                                    ? 44.5.sh
+                                    ? 42.5.sh
                                     : 51.sh),
                             child: ListView.separated(
                               shrinkWrap: true,
@@ -267,11 +301,16 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                   bottom: count == 0
                                       ? GestureDetector(
                                           onTap: () => hasModifiers
-                                              ? showCustomSheet(
-                                                  context,
-                                                  child: ProductPage(
-                                                      item: recommended),
+                                              ? context.router.push(
+                                                  ProductPageRoute(
+                                                    item: recommended,
+                                                  ),
                                                 )
+                                              // showCustomSheet(
+                                              //     context,
+                                              //     child: ProductPage(
+                                              //         item: recommended),
+                                              //   )
                                               // context.router.push(
                                               //     ProductPageRoute(
                                               //       item: recommended,
@@ -351,12 +390,17 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                               Expanded(
                                                 child: GestureDetector(
                                                   onTap: () => hasModifiers
-                                                      ? showCustomSheet(
-                                                          context,
-                                                          child: ProductPage(
-                                                              item:
-                                                                  recommended),
+                                                      ? context.router.push(
+                                                          ProductPageRoute(
+                                                            item: recommended,
+                                                          ),
                                                         )
+                                                      // showCustomSheet(
+                                                      //     context,
+                                                      //     child: ProductPage(
+                                                      //         item:
+                                                      //             recommended),
+                                                      //   )
                                                       //  context.router.push(
                                                       //     ProductPageRoute(
                                                       //       item: recommended,
@@ -434,6 +478,23 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
     );
   }
 
+  void _onCheckoutPressed(
+    BuildContext context, {
+    required bool isKaspiPay,
+  }) {
+    final viewModel = context.read<QrMenuVm>();
+    if (viewModel.nameController.text.isEmpty) {
+      _pendingKaspiCheckout = isKaspiPay;
+      _showNameInputDialog(context);
+      return;
+    }
+    viewModel.tabletCheckout(
+      context,
+      indexType: _tabController.index,
+      isKaspiPay: isKaspiPay,
+    );
+  }
+
   void _showNameInputDialog(BuildContext context) {
     final viewModel = context.read<QrMenuVm>();
     final controller = viewModel.nameController;
@@ -495,6 +556,18 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                       inputFormatters: [
                                         FilteringTextInputFormatter.allow(
                                             RegExp(r'[a-zA-Zа-яА-Я]')),
+                                        TextInputFormatter.withFunction(
+                                            (oldValue, newValue) {
+                                          final transformed =
+                                              _capitalizeFirstLetter(
+                                                  newValue.text);
+                                          return newValue.copyWith(
+                                            text: transformed,
+                                            selection: TextSelection.collapsed(
+                                              offset: transformed.length,
+                                            ),
+                                          );
+                                        }),
                                       ],
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 16, horizontal: 16),
@@ -542,6 +615,8 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                               viewModel.tabletCheckout(
                                                 context,
                                                 indexType: _tabController.index,
+                                                isKaspiPay:
+                                                    _pendingKaspiCheckout,
                                               );
                                             },
                                       child: Text(
@@ -550,6 +625,29 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                           fontSize: 18,
                                           color:
                                               AppColors.primitiveNeutralcold0,
+                                        ),
+                                      ),
+                                    ),
+                                    const ColumnSpacer(1.2),
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      onPressed: () {
+                                        viewModel.nameController.clear();
+                                        FocusManager.instance.primaryFocus
+                                            ?.unfocus();
+                                        Navigator.of(context).pop();
+                                        viewModel.tabletCheckout(
+                                          context,
+                                          indexType: _tabController.index,
+                                          isKaspiPay: _pendingKaspiCheckout,
+                                        );
+                                      },
+                                      child: Text(
+                                        'Пропустить',
+                                        style: AppTextStyles.bodyM.copyWith(
+                                          fontSize: 18,
+                                          color: AppComponents
+                                              .buttongroupButtonPrimaryBgColorDefault,
                                         ),
                                       ),
                                     ),
@@ -606,20 +704,23 @@ class _TabBarSliverDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primitiveNeutralcold0,
-        boxShadow: overlapsContent
-            ? [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
+    return SizedBox(
+      height: height,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.primitiveNeutralcold0,
+          boxShadow: overlapsContent
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: child,
       ),
-      child: child,
     );
   }
 

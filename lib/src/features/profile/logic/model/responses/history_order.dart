@@ -24,7 +24,8 @@ class HistoryOrderDatum extends BaseModel<HistoryOrderDatum> {
   int? bonus;
   int? totalPrice;
   dynamic bonusAccured;
-  String? iikoOrderId;
+  // String? iikoOrderId;
+  String? posOrderId;
   int? serviceSum;
   DateTime? createdAt;
   HistoryOrderItem? item;
@@ -39,7 +40,8 @@ class HistoryOrderDatum extends BaseModel<HistoryOrderDatum> {
     this.bonus,
     this.totalPrice,
     this.bonusAccured,
-    this.iikoOrderId,
+    // this.iikoOrderId,
+    this.posOrderId,
     this.serviceSum,
     this.createdAt,
     this.item,

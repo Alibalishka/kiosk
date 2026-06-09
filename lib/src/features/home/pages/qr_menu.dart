@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io' show Platform;
+import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
@@ -39,6 +40,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:async';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
+import 'package:qr_pay_app/src/features/qr/widgets/custom_button.dart';
 
 class QrMenuPage extends StatefulWidget {
   const QrMenuPage({
@@ -60,6 +62,7 @@ class QrMenuPageState extends State<QrMenuPage>
   QrMenuVm get viewModel => widget.viewModel;
 
   String? _appVersion;
+  String? _techWorkCode;
   int _secretTapCount = 0;
   Timer? _secretTapResetTimer;
   final TextEditingController _exitConfirmController = TextEditingController();
@@ -236,6 +239,17 @@ class QrMenuPageState extends State<QrMenuPage>
                         if (!Platform.isIOS) {
                           viewModel.checkAndUpdateIfNeeded(serverVersion);
                         }
+
+                        if (response.data?.menuEtag !=
+                            viewModel.menuData?.organization?.menuEtag) {
+                          viewModel.fetchMenu();
+                        }
+
+                        if (response.data?.advertisementEtag !=
+                            viewModel
+                                .kioskService.screenSavers?.advertisementEtag) {
+                          viewModel.kioskService.fetchScreenSavers();
+                        }
                         return null;
 
                         // if (context.router.currentPath == 'kiosk-tech-work') {
@@ -246,26 +260,17 @@ class QrMenuPageState extends State<QrMenuPage>
                         // }
                       },
                       successTechWork: (response) {
-                        // if (context.router.currentPath != 'kiosk-tech-work') {
-                        //   context.router.push(
-                        //     KioskTechWorkPageRoute(
-                        //         code: response.data?.header ?? ''),
-                        //   );
-                        // }
                         if ((response.data?.active ?? false) == true) {
-                          if (context.router.currentPath != 'kiosk-tech-work') {
-                            context.router.push(
-                              KioskTechWorkPageRoute(
-                                  code: response.data?.header ?? ''),
-                            );
-                          }
+                          setState(() {
+                            _techWorkCode = response.data?.header ?? '';
+                          });
                         } else if ((response.data?.active ?? false) == false) {
-                          if (context.router.currentPath == 'kiosk-tech-work') {
+                          if (_techWorkCode != null) {
+                            setState(() {
+                              _techWorkCode = null;
+                            });
                             context.read<QrMenuVm>().clearBasket();
                             context.read<QrMenuVm>().fetchMenu();
-                            context.router.popUntil((route) =>
-                                route.settings.name ==
-                                QrMenuProviderRoute.name);
                           }
                         }
                         return null;
@@ -280,12 +285,9 @@ class QrMenuPageState extends State<QrMenuPage>
                               .replaceAll([const KioskProviderRoute()]);
                         } else {
                           log('errorCode: $errorCode');
-                          if (context.router.currentPath != 'kiosk-tech-work') {
-                            context.router.push(
-                              KioskTechWorkPageRoute(
-                                  code: errorCode.toString()),
-                            );
-                          }
+                          setState(() {
+                            _techWorkCode = errorCode.toString();
+                          });
                         }
                         return null;
                       },
@@ -310,14 +312,20 @@ class QrMenuPageState extends State<QrMenuPage>
                         dismissType: DismissType.onSwipe,
                       );
 
-                      if (context.router.currentPath != 'kiosk-tech-work') {
-                        context.router.push(
-                          KioskTechWorkPageRoute(code: 'menu$errorCode'),
-                        );
-                      }
+                      setState(() {
+                        _techWorkCode = 'menu$errorCode';
+                      });
                       return null;
                     },
-                    success: (responseData) => viewModel.syncData(responseData),
+                    success: (responseData) {
+                      if (_techWorkCode != null &&
+                          _techWorkCode!.startsWith('menu')) {
+                        setState(() {
+                          _techWorkCode = null;
+                        });
+                      }
+                      viewModel.syncData(responseData);
+                    },
                   ),
                   builder: (context, state) => state.maybeWhen(
                     loading: () => const ShimmerQrMenu(),
@@ -377,6 +385,15 @@ class QrMenuPageState extends State<QrMenuPage>
                                         );
                                       },
                                     ),
+                                    // SliverToBoxAdapter(
+                                    //   child: CustomButton(
+                                    //     text: 'DATA',
+                                    //     onPressed: () {
+                                    //       context.router.replace(
+                                    //           KioskSuccessPageRoute(id: 20517));
+                                    //     },
+                                    //   ),
+                                    // ),
 
                                     SliverList(
                                       delegate: SliverChildBuilderDelegate(
@@ -429,27 +446,87 @@ class QrMenuPageState extends State<QrMenuPage>
             ),
 
             // --- ПОЛНОЭКРАННАЯ РЕКЛАМА НАД ВСЕМ ---
-            if (viewModel.isKioskMode &&
-                viewModel.kioskService.isAdVisible &&
-                viewModel.kioskService.currentScreenSaver != null)
+            if (_techWorkCode != null ||
+                (viewModel.isKioskMode &&
+                    viewModel.kioskService.isAdVisible &&
+                    viewModel.kioskService.currentScreenSaver != null))
               Positioned.fill(
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    AdFullScreen(
-                      items: viewModel.kioskService.screenSavers?.data ?? [],
-                      onTap: viewModel.kioskService.onUserInteraction,
+                    IgnorePointer(
+                      ignoring: _techWorkCode != null,
+                      child: AdFullScreen(
+                        items: viewModel.kioskService.screenSavers?.data ?? [],
+                        onTap: viewModel.kioskService.onUserInteraction,
+                      ),
                     ),
                     const Positioned(
                       top: 0,
                       left: 0,
                       child: SafeArea(
-                        minimum: EdgeInsets.fromLTRB(24, 48, 0, 0),
+                        minimum: EdgeInsets.fromLTRB(24, 24, 0, 0),
                         child: IgnorePointer(
                           child: AdLogoCoinShine(height: 24),
                         ),
                       ),
                     ),
+                    if (_techWorkCode != null)
+                      Positioned.fill(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: Container(
+                              color: Colors.black.withOpacity(0.2),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Киоск временно не работает',
+                                    textAlign: TextAlign.center,
+                                    style: AppTextStyles.headingH1.copyWith(
+                                      fontSize: 48,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.',
+                                    textAlign: TextAlign.center,
+                                    style: AppTextStyles.bodyL.copyWith(
+                                      fontSize: 28,
+                                      color: Colors.white.withOpacity(0.8),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 48),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 32, vertical: 16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                          color: Colors.white.withOpacity(0.2)),
+                                    ),
+                                    child: Text(
+                                      'Код ошибки: 64${_techWorkCode}19',
+                                      textAlign: TextAlign.center,
+                                      style: AppTextStyles.headingH1.copyWith(
+                                        fontSize: 32,
+                                        color: Colors.white.withOpacity(0.9),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

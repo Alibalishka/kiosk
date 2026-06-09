@@ -24,11 +24,13 @@ class PayRequest {
 @JsonSerializable()
 class Filter {
   final String organizationId;
-  final String iikoOrderId;
+  // final String iikoOrderId;
+  final String posOrderId;
 
   Filter({
     required this.organizationId,
-    required this.iikoOrderId,
+    // required this.iikoOrderId,
+    required this.posOrderId,
   });
 
   Map<String, dynamic> toJson() => _$FiltersToJson(this);
@@ -58,10 +60,12 @@ Map<String, dynamic> _$PayRequestToJson(PayRequest instance) =>
 
 Filter _$FiltersFromJson(Map<String, dynamic> json) => Filter(
       organizationId: json['organization_id'] as String,
-      iikoOrderId: json['iiko_order_id'] as String,
+      // iikoOrderId: json['iiko_order_id'] as String,
+      posOrderId: json['pos_order_id'] as String,
     );
 
 Map<String, dynamic> _$FiltersToJson(Filter instance) => <String, dynamic>{
       'organization_id': instance.organizationId,
-      'iiko_order_id': instance.iikoOrderId,
+      // 'iiko_order_id': instance.iikoOrderId,
+      'pos_order_id': instance.posOrderId,
     };

@@ -23,7 +23,8 @@ class ChekoutDatum extends BaseModel<ChekoutDatum> {
   int? totalPrice;
   int? number;
   String? tableId;
-  String? iikoOrderId;
+  // String? iikoOrderId;
+  String? posOrderId;
   double? serviceSum;
   List<Discount>? discounts;
   @JsonKey(name: 'VAT')
@@ -41,7 +42,8 @@ class ChekoutDatum extends BaseModel<ChekoutDatum> {
     this.totalPrice,
     this.number,
     this.tableId,
-    this.iikoOrderId,
+    // this.iikoOrderId,
+    this.posOrderId,
     this.serviceSum,
     this.discounts,
     this.vat,

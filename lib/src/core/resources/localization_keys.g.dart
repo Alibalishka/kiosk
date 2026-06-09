@@ -271,5 +271,6 @@ abstract class  LocaleKeys {
   static const selectExactCount = 'selectExactCount';
   static const selectUpToCount = 'selectUpToCount';
   static const selectFromToCount = 'selectFromToCount';
+  static const scanAndTrackOrder = 'scanAndTrackOrder';
 
 }

@@ -1,24 +1,22 @@
-import 'dart:async';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_pay_app/src/core/resources/resources.dart';
+
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
-import 'package:qr_pay_app/src/core/resources/app_colors.dart';
-import 'package:qr_pay_app/src/core/resources/app_components.dart';
+import 'package:qr_pay_app/src/core/extensions/context.dart';
+import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
-import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/history_order_bloc/history_order_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/repository/auth_repository.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sizer/sizer.dart';
-import 'dart:math' as math;
 
 class KioskSuccessPage extends StatefulWidget {
   const KioskSuccessPage({
@@ -50,7 +48,6 @@ class _KioskSuccessPageState extends State<KioskSuccessPage>
       ),
     )
       ..addListener(() {
-        // перерисовываемся, чтобы анимация заполняла кнопку
         setState(() {});
       })
       ..addStatusListener((status) {
@@ -74,34 +71,11 @@ class _KioskSuccessPageState extends State<KioskSuccessPage>
     _closeController.dispose();
     super.dispose();
   }
-  // late HistoryOrderBloc bloc;
-  // Timer? _closeTimer;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   bloc = HistoryOrderBloc(authRepository: sl<AuthRepository>())
-  //     ..add(HistoryOrderEvent.fetchHistoryDetailOrder(id: widget.id));
-
-  //   _closeTimer = Timer(const Duration(seconds: 30), () {
-  //     if (mounted) {
-  //       context.read<QrMenuVm>().clearBasket();
-  //       context.read<QrMenuVm>().fetchMenu();
-  //       context.router.popUntil(
-  //           (route) => route.settings.name == QrMenuProviderRoute.name);
-  //     }
-  //   });
-  // }
-
-  // @override
-  // void dispose() {
-  //   _closeTimer?.cancel();
-  //   super.dispose();
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFEEEEEE),
       body: BlocConsumer<HistoryOrderBloc, HistoryOrderState>(
         bloc: bloc,
         listener: (context, state) => state.maybeWhen(
@@ -130,192 +104,244 @@ class _KioskSuccessPageState extends State<KioskSuccessPage>
               ),
             ),
           ),
-          successDetail: (response) => Align(
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  GestureDetector(
-                    onTap: () => context.router.pop(),
-                    child: Text(
-                      LocaleKeys.yourOrderNumber.tr(),
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.headingH3.copyWith(
-                        fontSize: 42,
-                      ),
-                    ),
-                  ),
-                  const ColumnSpacer(4),
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: const BoxDecoration(
-                      color: AppColors.semanticBgSurface4,
-                      borderRadius: BorderRadius.all(Radius.circular(25)),
+          successDetail: (response) {
+            final qrSize = context.mediaQuery.size.width * 0.35;
+
+            return Align(
+              alignment: Alignment.center,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 64, vertical: 48),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(40),
                     ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        const SizedBox(height: 56),
                         Text(
-                          LocaleKeys.scanAndPayDescription.tr(),
+                          LocaleKeys.yourOrderNumber.tr(),
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.headingH3.copyWith(
+                            fontSize: 52,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 240),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 48, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF49C310),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Text(
+                            response.data?.numberGenerated ?? '',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.headingH3.copyWith(
+                              fontSize: 64,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Следите за статусом заказа через QR',
                           textAlign: TextAlign.center,
                           style: AppTextStyles.bodyM.copyWith(
-                            fontSize: 26,
+                            fontSize: 28,
+                            color: const Color(0xFF595959),
                           ),
                         ),
-                        Text(
-                          response.data?.numberGenerated.toString() ?? '',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.headingH3.copyWith(
-                            fontSize: 100,
-                          ),
-                        ),
-                        Text(
-                          response.data?.fullName ?? '',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.headingH3.copyWith(
-                            fontSize: 50,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const ColumnSpacer(4),
-                  GestureDetector(
-                    onTap: () {
-                      _closeController
-                          .stop(); // чтобы не дёрнуть _onClose второй раз
-                      _onClose();
-                    },
-                    child: SizedBox(
-                      height: 90,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Stack(
+                        const SizedBox(height: 40),
+                        Stack(
+                          alignment: Alignment.center,
+                          clipBehavior: Clip.none,
                           children: [
-                            // базовый фон кнопки
-                            Positioned.fill(
-                              child: Container(
-                                color: AppColors.primitiveNeutralcold1000,
+                            SvgPicture.asset(
+                              'assets/images/svg/border_qr.svg',
+                              width: qrSize + 40,
+                              height: qrSize + 40,
+                            ),
+                            QrImageView(
+                              data:
+                                  'https://1qr.kz/status/${widget.id}/${sl<HostStorage>().getHost() ?? ''}',
+                              version: QrVersions.auto,
+                              errorCorrectionLevel: QrErrorCorrectLevel.L,
+                              size: qrSize,
+                              dataModuleStyle: const QrDataModuleStyle(
+                                dataModuleShape: QrDataModuleShape.circle,
+                                color: Colors.black,
+                              ),
+                              eyeStyle: const QrEyeStyle(
+                                eyeShape: QrEyeShape.square,
+                                color: Colors.black,
                               ),
                             ),
-                            // заполняющийся слой (прогресс)
-                            Positioned.fill(
-                              child: FractionallySizedBox(
-                                alignment: Alignment.centerLeft,
-                                widthFactor:
-                                    _closeController.value, // 0 → 1 за 30 сек
-                                child: Container(
-                                  color: Colors.white.withOpacity(0.2),
-                                ),
-                              ),
-                            ),
-                            // текст поверх
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 24),
-                                child: Text(
-                                  LocaleKeys.close.tr(),
-                                  style: AppTextStyles.bodyM.copyWith(
-                                    fontSize: context.read<QrMenuVm>().isTablet
-                                        ? 18.sp
-                                        : 18,
-                                    color: AppComponents
-                                        .buttongroupButtonPrimaryTextColorDefault,
-                                  ),
-                                ),
+                            Positioned(
+                              top: -40,
+                              right: -215,
+                              child: SvgPicture.asset(
+                                AppSvgImages.arrow,
+                                height: 300,
                               ),
                             ),
                           ],
                         ),
-                      ),
+                        const SizedBox(height: 32),
+                        Text(
+                          "или сфотографируйте экран\nс QR и покажите на кассе",
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyM.copyWith(
+                            fontSize: 28,
+                            color: const Color(0xFF9E9B98),
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        const _TicketSeparator(),
+                        const SizedBox(height: 28),
+                        Text(
+                          '*чек вы получите вместе с заказом',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyM.copyWith(
+                            fontSize: 24,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: GestureDetector(
+                            onTap: () {
+                              _closeController.stop();
+                              _onClose();
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: Container(
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  Positioned.fill(
+                                    child: FractionallySizedBox(
+                                      alignment: Alignment.centerLeft,
+                                      widthFactor: _closeController.value,
+                                      child: Container(
+                                        color: Colors.white.withOpacity(0.2),
+                                      ),
+                                    ),
+                                  ),
+                                  Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 24, horizontal: 24),
+                                      child: Text(
+                                        LocaleKeys.close.tr(),
+                                        style: AppTextStyles.bodyM.copyWith(
+                                          fontSize: 32,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 56),
+                      ],
                     ),
                   ),
-                  const ColumnSpacer(3),
-                  Text(
-                    LocaleKeys.checkWithOrder.tr(),
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyM.copyWith(
-                      fontSize: 26,
-                      color: AppColors.primitiveNeutralcold500,
-                    ),
-                  )
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _WaterFillPainter extends CustomPainter {
-  final double progress; // 0..1
-  final Color waterColor;
-  final Color underWaterColor;
+class _TicketSeparator extends StatelessWidget {
+  const _TicketSeparator();
 
-  _WaterFillPainter({
-    required this.progress,
-    required this.waterColor,
-    required this.underWaterColor,
-  });
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 100,
+      child: Stack(
+        children: [
+          Center(
+            child: CustomPaint(
+              size: const Size(double.infinity, 2),
+              painter: _DashedLinePainter(),
+            ),
+          ),
+          Positioned(
+            left: -50,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 100,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEEEEEE),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            right: -50,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 100,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEEEEEE),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
+class _DashedLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    if (progress <= 0) return;
-
-    final double filledWidth = size.width * progress;
-
-    // фон под водой (чуть затемнённый)
-    final underPaint = Paint()..color = underWaterColor;
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, filledWidth, size.height),
-      underPaint,
-    );
-
-    // сама "вода" с волной сверху
     final paint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color(0x80FFFFFF),
-          Color(0x40FFFFFF),
-        ],
-      ).createShader(
-        Rect.fromLTWH(0, 0, filledWidth, size.height),
+      ..color = const Color(0xFFE0E0E0)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 12.0;
+    const dashSpace = 10.0;
+    double startX = 50.0;
+
+    while (startX < size.width - 50) {
+      canvas.drawLine(
+        Offset(startX, size.height / 2),
+        Offset(startX + dashWidth, size.height / 2),
+        paint,
       );
-
-    final Path path = Path();
-
-    final double baseY = size.height * 0.30; // базовая высота волны от верха
-    final double amplitude = 6; // амплитуда
-    final double waveLength = filledWidth / 1.5;
-
-    // начинаем с левого низа
-    path.moveTo(0, size.height);
-    path.lineTo(filledWidth, size.height);
-
-    // волна сверху (рисуем справа налево)
-    final double phase = progress * 4 * math.pi; // движение волны
-
-    for (double x = filledWidth; x >= 0; x -= filledWidth / 24) {
-      final double y =
-          baseY + math.sin((x / waveLength * 2 * math.pi) + phase) * amplitude;
-      path.lineTo(x, y);
+      startX += dashWidth + dashSpace;
     }
-
-    path.lineTo(0, size.height);
-    path.close();
-
-    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant _WaterFillPainter oldDelegate) {
-    return oldDelegate.progress != progress;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
