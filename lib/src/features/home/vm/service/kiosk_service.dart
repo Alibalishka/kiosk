@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
+import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_status_request.dart';
@@ -14,6 +15,10 @@ import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_respons
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/screen_savers_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
+import 'dart:convert';
+import 'package:qr_pay_app/src/core/mqtt/mqtt_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class KioskService {
   static const MethodChannel _dpcChannel = MethodChannel('dpc');
@@ -25,6 +30,8 @@ class KioskService {
 
   /// ✅ кешируем один раз
   String? _deviceId;
+  String? _lastTelemetryJson;
+  String? _lastSignificantTelemetry;
 
   /// периодическая отправка статуса киоска
   Timer? _statusTimer;
@@ -188,25 +195,71 @@ class KioskService {
       level = await battery.batteryLevel;
     } catch (_) {}
 
-    // ✅ UUID из secure storage
+    String? keyboardVersion;
+    try {
+      final dynamic rawKeyboard = await _dpcChannel.invokeMethod(
+        'getPackageVersion',
+        <String, dynamic>{'packageName': 'rkr.simplekeyboard.inputmethod'},
+      );
+      keyboardVersion = (rawKeyboard is String && rawKeyboard.trim().isNotEmpty) ? rawKeyboard.trim() : null;
+    } catch (_) {}
+
+    final currentLanguage = sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
+    final currentNetworkType = _getNetworkType(result);
+    final currentBatteryStatus = _getBatteryStatus(state);
+
+    final significantParams = {
+      'batteryLevel': level,
+      'batteryStatus': currentBatteryStatus,
+      'networkType': currentNetworkType,
+      'language': currentLanguage,
+      'keyboardVersion': keyboardVersion,
+    };
+    final currentSignificantTelemetry = jsonEncode(significantParams);
+    _lastSignificantTelemetry = currentSignificantTelemetry;
+
     final deviceId = await _getDeviceId();
     final metrics = await _readDeviceMetrics();
 
+    final request = KioskStatusRequest(
+      batteryLevel: level,
+      batteryStatus: currentBatteryStatus,
+      networkLevel: 100,
+      networkType: currentNetworkType,
+      screenStatus: 'active',
+      status: 'online',
+      temperatureC: (metrics['temperature_c'] as num?)?.toDouble(),
+      ramTotalMb: (metrics['ram_total_mb'] as num?)?.toInt(),
+      ramAvailableMb: (metrics['ram_available_mb'] as num?)?.toInt(),
+      ramUsedMb: (metrics['ram_used_mb'] as num?)?.toInt(),
+      uptimeSec: (metrics['uptime_sec'] as num?)?.toInt(),
+      appVersion: sl<PackageInfo>().version,
+      keyboardVersion: keyboardVersion,
+      language: currentLanguage,
+    );
+
+    final telemetryMap = request.toJson();
+    
+    // Замеряем ping
+    int? pingMs;
+    try {
+      final stopwatch = Stopwatch()..start();
+      final socket = await Socket.connect('8.8.8.8', 53, timeout: const Duration(seconds: 2));
+      socket.destroy();
+      stopwatch.stop();
+      pingMs = stopwatch.elapsedMilliseconds;
+    } catch (_) {}
+    
+    telemetryMap['ping_ms'] = pingMs;
+    telemetryMap['timestamp'] = DateTime.now().toIso8601String();
+    
+    final finalPayload = jsonEncode(telemetryMap);
+    final tenantId = sl<HostStorage>().getHost() ?? 'sandyq';
+    sl<MqttService>().publish('tenants/$tenantId/kiosks/$deviceId/telemetry', finalPayload, retain: true);
+
     kioskBloc.add(
       KioskEvent.sendStatusKiosk(
-        body: KioskStatusRequest(
-          batteryLevel: level,
-          batteryStatus: _getBatteryStatus(state),
-          networkLevel: 100,
-          networkType: _getNetworkType(result),
-          screenStatus: 'active',
-          status: 'online',
-          temperatureC: (metrics['temperature_c'] as num?)?.toDouble(),
-          ramTotalMb: (metrics['ram_total_mb'] as num?)?.toInt(),
-          ramAvailableMb: (metrics['ram_available_mb'] as num?)?.toInt(),
-          ramUsedMb: (metrics['ram_used_mb'] as num?)?.toInt(),
-          uptimeSec: (metrics['uptime_sec'] as num?)?.toInt(),
-        ),
+        body: request,
         deviceId: deviceId,
       ),
     );

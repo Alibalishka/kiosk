@@ -44,6 +44,7 @@ import 'package:qr_pay_app/src/features/search/logic/repository/search_repositor
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:qr_pay_app/src/core/mqtt/mqtt_service.dart';
 
 GetIt sl = GetIt.instance;
 
@@ -57,6 +58,7 @@ Future<void> initGetIt() async {
   sl.registerLazySingletonAsync<SharedPreferences>(
       () => SharedPreferences.getInstance());
   await GetIt.instance.isReady<SharedPreferences>();
+  sl.registerLazySingleton<MqttService>(() => MqttService());
   sl.registerLazySingleton<ITokenStorage>(
       () => SharedPrefsTokenStorage(preferences: sl<SharedPreferences>()));
   sl.registerLazySingleton<FirstStartStorage>(

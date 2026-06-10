@@ -11,6 +11,7 @@ import 'package:qr_pay_app/src/core/base/bloc_observer.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/resources/localization_loader.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
+import 'package:qr_pay_app/src/core/mqtt/mqtt_service.dart';
 import 'package:qr_pay_app/src/features/app/logic/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -68,6 +69,13 @@ mixin MainRunner {
 
           /// Иницализация GetIt
           await initGetIt();
+          try {
+            sl<MqttService>().connect().catchError((e) {
+              log('Failed to start MQTT service: $e');
+            }); // Подключаемся к MQTT безопасно
+          } catch (e) {
+            log('Synchronous exception when starting MQTT: $e');
+          }
 
           // await Upgrader.clearSavedSettings();
 

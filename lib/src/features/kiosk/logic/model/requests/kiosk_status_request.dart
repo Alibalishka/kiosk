@@ -15,6 +15,15 @@ class KioskStatusRequest {
   final int? ramAvailableMb;
   final int? ramUsedMb;
   final int? uptimeSec;
+  
+  @JsonKey(name: 'app_version')
+  final String? appVersion;
+  
+  @JsonKey(name: 'keyboard_version')
+  final String? keyboardVersion;
+  
+  @JsonKey(name: 'language')
+  final String? language;
 
   KioskStatusRequest({
     required this.batteryLevel,
@@ -28,6 +37,9 @@ class KioskStatusRequest {
     this.ramAvailableMb,
     this.ramUsedMb,
     this.uptimeSec,
+    this.appVersion,
+    this.keyboardVersion,
+    this.language,
   });
 
   Map<String, dynamic> toJson() => _$KioskStatusRequestToJson(this);

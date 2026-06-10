@@ -19,6 +19,9 @@ KioskStatusRequest _$KioskStatusRequestFromJson(Map<String, dynamic> json) =>
       ramAvailableMb: (json['ram_available_mb'] as num?)?.toInt(),
       ramUsedMb: (json['ram_used_mb'] as num?)?.toInt(),
       uptimeSec: (json['uptime_sec'] as num?)?.toInt(),
+      appVersion: json['app_version'] as String?,
+      keyboardVersion: json['keyboard_version'] as String?,
+      language: json['language'] as String?,
     );
 
 Map<String, dynamic> _$KioskStatusRequestToJson(KioskStatusRequest instance) =>
@@ -34,4 +37,7 @@ Map<String, dynamic> _$KioskStatusRequestToJson(KioskStatusRequest instance) =>
       'ram_available_mb': instance.ramAvailableMb,
       'ram_used_mb': instance.ramUsedMb,
       'uptime_sec': instance.uptimeSec,
+      'app_version': instance.appVersion,
+      'keyboard_version': instance.keyboardVersion,
+      'language': instance.language,
     };
