@@ -70,6 +70,21 @@ class QrMenuPageState extends State<QrMenuPage>
   bool _lastAdVisible = false;
   bool _managedKioskDisableHandled = false;
 
+  /// Счётчик подряд идущих ошибок (HTTP и сетевых)
+  int _consecutiveFailCount = 0;
+
+  /// true если последняя ошибка — сетевая (errorCode == null)
+  bool _isNetworkError = false;
+
+  /// true если экран ошибки показан из-за счётчика, а не из-за techWork
+  bool _errorFromConsecutiveFails = false;
+
+  /// Порог: 10 попыток × 30 сек ≈ 5 минут
+  static const int _maxFailsBeforeError = 10;
+
+  /// Секретный тап для открытия Wi-Fi (только Android)
+  int _wifiTapCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -159,6 +174,22 @@ class QrMenuPageState extends State<QrMenuPage>
     }
   }
 
+  void _handleWifiTap() {
+    _wifiTapCount++;
+    if (_wifiTapCount >= 7) {
+      _wifiTapCount = 0;
+      _openWifiPanel();
+    }
+  }
+
+  Future<void> _openWifiPanel() async {
+    try {
+      await _dpc.invokeMethod('openWifi');
+    } catch (e) {
+      log('Wi-Fi panel error: $e');
+    }
+  }
+
   Future<void> _exitFromKiosk() async {
     if (_exitInProgress) return;
     setState(() => _exitInProgress = true);
@@ -234,6 +265,15 @@ class QrMenuPageState extends State<QrMenuPage>
                       successScreenSavers: (response) =>
                           viewModel.kioskService.saveScreenSavers(response),
                       successKioskStatus: (response) {
+                        _consecutiveFailCount = 0;
+                        if (_errorFromConsecutiveFails &&
+                            _techWorkCode != null) {
+                          setState(() {
+                            _techWorkCode = null;
+                            _errorFromConsecutiveFails = false;
+                            _isNetworkError = false;
+                          });
+                        }
                         viewModel.setKioskSection(response.data?.section);
                         final serverVersion = response.data?.version;
                         if (!Platform.isIOS) {
@@ -260,14 +300,20 @@ class QrMenuPageState extends State<QrMenuPage>
                         // }
                       },
                       successTechWork: (response) {
+                        // techWork ответил — сервер доступен
+                        _consecutiveFailCount = 0;
                         if ((response.data?.active ?? false) == true) {
                           setState(() {
                             _techWorkCode = response.data?.header ?? '';
+                            _isNetworkError = false;
+                            _errorFromConsecutiveFails = false;
                           });
                         } else if ((response.data?.active ?? false) == false) {
                           if (_techWorkCode != null) {
                             setState(() {
                               _techWorkCode = null;
+                              _isNetworkError = false;
+                              _errorFromConsecutiveFails = false;
                             });
                             context.read<QrMenuVm>().clearBasket();
                             context.read<QrMenuVm>().fetchMenu();
@@ -284,10 +330,15 @@ class QrMenuPageState extends State<QrMenuPage>
                           context.router
                               .replaceAll([const KioskProviderRoute()]);
                         } else {
-                          log('errorCode: $errorCode');
-                          setState(() {
-                            _techWorkCode = errorCode.toString();
-                          });
+                          _consecutiveFailCount++;
+                          log('errorCode: $errorCode, failCount: $_consecutiveFailCount/$_maxFailsBeforeError');
+                          if (_consecutiveFailCount >= _maxFailsBeforeError) {
+                            setState(() {
+                              _isNetworkError = errorCode == null;
+                              _techWorkCode = errorCode?.toString() ?? 'net';
+                              _errorFromConsecutiveFails = true;
+                            });
+                          }
                         }
                         return null;
                       },
@@ -312,16 +363,26 @@ class QrMenuPageState extends State<QrMenuPage>
                         dismissType: DismissType.onSwipe,
                       );
 
-                      setState(() {
-                        _techWorkCode = 'menu$errorCode';
-                      });
+                      _consecutiveFailCount++;
+                      log('menu errorCode: $errorCode, failCount: $_consecutiveFailCount/$_maxFailsBeforeError');
+                      if (_consecutiveFailCount >= _maxFailsBeforeError) {
+                        setState(() {
+                          _isNetworkError = errorCode == null;
+                          _techWorkCode = 'menu${errorCode ?? 'net'}';
+                          _errorFromConsecutiveFails = true;
+                        });
+                      }
                       return null;
                     },
                     success: (responseData) {
+                      _consecutiveFailCount = 0;
                       if (_techWorkCode != null &&
-                          _techWorkCode!.startsWith('menu')) {
+                          (_techWorkCode!.startsWith('menu') ||
+                              _errorFromConsecutiveFails)) {
                         setState(() {
                           _techWorkCode = null;
+                          _errorFromConsecutiveFails = false;
+                          _isNetworkError = false;
                         });
                       }
                       viewModel.syncData(responseData);
@@ -485,7 +546,10 @@ class QrMenuPageState extends State<QrMenuPage>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Киоск временно не работает',
+                                    _isNetworkError &&
+                                            _errorFromConsecutiveFails
+                                        ? 'Нет подключения к сети'
+                                        : 'Киоск временно не работает',
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.headingH1.copyWith(
                                       fontSize: 48,
@@ -494,7 +558,10 @@ class QrMenuPageState extends State<QrMenuPage>
                                   ),
                                   const SizedBox(height: 24),
                                   Text(
-                                    'Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.',
+                                    _isNetworkError &&
+                                            _errorFromConsecutiveFails
+                                        ? 'Проверьте подключение к интернету.\nРабота будет восстановлена автоматически.'
+                                        : 'Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.',
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.bodyL.copyWith(
                                       fontSize: 28,
@@ -513,7 +580,10 @@ class QrMenuPageState extends State<QrMenuPage>
                                           color: Colors.white.withOpacity(0.2)),
                                     ),
                                     child: Text(
-                                      'Код ошибки: 64${_techWorkCode}19',
+                                      _isNetworkError &&
+                                              _errorFromConsecutiveFails
+                                          ? 'Ошибка сети'
+                                          : 'Код ошибки: 64${_techWorkCode}19',
                                       textAlign: TextAlign.center,
                                       style: AppTextStyles.headingH1.copyWith(
                                         fontSize: 32,
@@ -524,6 +594,20 @@ class QrMenuPageState extends State<QrMenuPage>
                                 ],
                               ),
                             ),
+                          ),
+                        ),
+                      ),
+                    // Секретная кнопка Wi-Fi в правом верхнем углу (только Android)
+                    if (_techWorkCode != null && Platform.isAndroid)
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: SafeArea(
+                          minimum: const EdgeInsets.fromLTRB(0, 24, 24, 0),
+                          child: GestureDetector(
+                            onTap: _handleWifiTap,
+                            behavior: HitTestBehavior.opaque,
+                            child: const SizedBox(width: 80, height: 80),
                           ),
                         ),
                       ),
