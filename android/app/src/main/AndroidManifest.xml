@@ -25,6 +25,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <!-- WRITE_EXTERNAL_STORAGE обычно не нужен (ты качаешь в app temp). Оставь только если реально используешь. -->
     <!-- <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/> -->
@@ -157,6 +159,13 @@
                 <action android:name="dd.qrPay.ACTION_CONFIG" />
             </intent-filter>
         </receiver>
+
+        <!-- flutter_background_service required for Android 14+ -->
+        <service
+            android:name="id.flutter.flutter_background_service.BackgroundService"
+            android:foregroundServiceType="dataSync"
+            android:exported="true"
+            tools:replace="android:exported" />
 
     </application>
 

@@ -12,6 +12,7 @@ import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/resources/localization_loader.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/mqtt/mqtt_service.dart';
+import 'package:qr_pay_app/src/core/mqtt/background_mqtt_service.dart';
 import 'package:qr_pay_app/src/features/app/logic/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,6 +39,7 @@ mixin MainRunner {
       () => Logger.runLogging(
         () async {
           WidgetsFlutterBinding.ensureInitialized();
+          await initializeBackgroundService();
           //   await Firebase.initializeApp(
           //     options: DefaultFirebaseOptions.currentPlatform,
           //   );

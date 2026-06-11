@@ -123,32 +123,36 @@ class _OtaProgressOverlay extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Круговой прогресс
-                    SizedBox(
-                      width: 84,
-                      height: 84,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            value: isInstalling ? null : status.progress,
-                            strokeWidth: 6,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                            backgroundColor: Colors.white12,
-                          ),
-                          if (!isInstalling)
-                            Text(
-                              '$percent%',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                decoration: TextDecoration.none,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                    Center(
+                      child: SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox.expand(
+                              child: CircularProgressIndicator(
+                                value: isInstalling ? null : status.progress,
+                                strokeWidth: 10,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                                backgroundColor: Colors.white12,
                               ),
                             ),
-                        ],
+                            if (!isInstalling)
+                              Text(
+                                '$percent%',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  decoration: TextDecoration.none,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
 

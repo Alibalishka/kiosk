@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
@@ -8,6 +9,7 @@ import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:qr_pay_app/src/core/mqtt/mqtt_service.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -324,6 +326,25 @@ class _KioskRegisterState extends State<KioskRegister>
           orElse: () => null,
           failed: (error, _) {
             _logUserMessage('topSnack (kiosk bloc): $error');
+
+            try {
+              if (viewModel.deviceId.isNotEmpty) {
+                _logUserMessage('KioskRegister: Publishing to orphans topic');
+                sl<MqttService>().publish(
+                  'kiosks/orphans/${viewModel.deviceId}',
+                  jsonEncode({
+                    'ts': DateTime.now().millisecondsSinceEpoch,
+                    'error': error.toString(),
+                  }),
+                  retain: true,
+                );
+                _logUserMessage('KioskRegister: Publish called');
+              } else {
+                _logUserMessage('KioskRegister: Device ID is empty!');
+              }
+            } catch (e) {
+              _logUserMessage('mqtt publish error: $e');
+            }
 
             showTopSnackBar(
               Overlay.of(context),

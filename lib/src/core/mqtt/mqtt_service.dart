@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -15,6 +16,9 @@ class MqttService {
   MqttServerClient? _client;
   bool _intentionallyDisconnected = false;
   bool _isConnecting = false;
+
+  final StreamController<Map<String, dynamic>> _orphanConfigController = StreamController.broadcast();
+  Stream<Map<String, dynamic>> get orphanConfigStream => _orphanConfigController.stream;
 
   Future<void> connect() async {
     if (_isConnecting) return;
@@ -57,7 +61,8 @@ class MqttService {
             final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
             final String pt = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
             final topic = c[0].topic;
-            log('MQTT: Received message on topic <$topic>: $pt');
+            final isRetained = recMess.header?.retain ?? false;
+            log('MQTT: Received message on topic <$topic> (retained: $isRetained): $pt');
 
             try {
               if (topic == commandTopic) {
@@ -75,6 +80,10 @@ class MqttService {
                 
                 publish(responseTopic, jsonEncode(responsePayload));
                 log('Command "$command" received and acknowledged');
+              } else if (topic == 'kiosks/orphans/$deviceId/config') {
+                final Map<String, dynamic> data = jsonDecode(pt);
+                _orphanConfigController.add(data);
+                log('MQTT: Orphan config received');
               }
             } catch (e) {
               log('MQTT: Error parsing incoming command: $e');
@@ -111,10 +120,12 @@ class MqttService {
       final tenantId = sl<HostStorage>().getHost() ?? 'sandyq';
       final lwtTopic = 'tenants/$tenantId/kiosks/$deviceId/lwt';
       final commandTopic = 'tenants/$tenantId/kiosks/$deviceId/command';
+      final orphanConfigTopic = 'kiosks/orphans/$deviceId/config';
       log('MQTT LWT Topic: $lwtTopic');
 
       _client?.subscribe(commandTopic, MqttQos.atLeastOnce);
-      log('MQTT: Subscribed to $commandTopic');
+      _client?.subscribe(orphanConfigTopic, MqttQos.atLeastOnce);
+      log('MQTT: Subscribed to $commandTopic and $orphanConfigTopic');
 
       final builder = MqttClientPayloadBuilder();
       builder.addString('online');
@@ -148,13 +159,32 @@ class MqttService {
     log('MQTT: Subscribed to $topic');
   }
 
+  void unsubscribe(String topic) {
+    if (_client?.connectionStatus?.state == MqttConnectionState.connected) {
+      _client?.unsubscribe(topic);
+      log('MQTT: Unsubscribed from $topic');
+    } else {
+      log('MQTT: Cannot unsubscribe, not connected');
+    }
+  }
+
   void publish(String topic, String message, {bool retain = false}) {
     if (_client?.connectionStatus?.state != MqttConnectionState.connected) {
-      log('MQTT: Cannot publish, not connected');
+      log('MQTT: Cannot publish immediately, not connected. Delaying for 3 seconds...');
+      Future.delayed(const Duration(seconds: 3), () {
+        if (_client?.connectionStatus?.state == MqttConnectionState.connected) {
+          final builder = MqttClientPayloadBuilder();
+          if (message.isNotEmpty) builder.addString(message);
+          _client?.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!, retain: retain);
+          log('MQTT: Delayed publish to $topic: $message');
+        } else {
+          log('MQTT: Still not connected after delay, dropping message to $topic');
+        }
+      });
       return;
     }
     final builder = MqttClientPayloadBuilder();
-    builder.addString(message);
+    if (message.isNotEmpty) builder.addString(message);
     _client?.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!, retain: retain);
     log('MQTT: Published to $topic: $message');
   }

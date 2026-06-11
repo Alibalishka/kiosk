@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -19,6 +20,7 @@ import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_request
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
+import 'package:qr_pay_app/src/core/mqtt/mqtt_service.dart';
 
 class KioskVm extends ViewModel {
   final BuildContext context;
@@ -55,6 +57,7 @@ class KioskVm extends ViewModel {
 
   bool _deviceInfoReady = false;
   bool _initFlowDone = false; // чтобы init flow не запускался 100 раз
+  StreamSubscription? _orphanConfigSub;
 
   // 1) Это вызываем из initState
   Future<void> initAndWatchInternet() async {
@@ -78,6 +81,57 @@ class KioskVm extends ViewModel {
     if (hasInternet.value) {
       await runInitFlowIfPossible();
     }
+
+    _orphanConfigSub ??=
+        sl<MqttService>().orphanConfigStream.listen((data) async {
+      log('KioskVm: Received orphan config data: $data');
+      if (data['registered'] == true) {
+        final tenantId = data['tenant_id'];
+        final token = data['token'];
+        final config = data['config'] ?? {};
+        final itemId =
+            data['item_id'] ?? config['item_id']; // Handle both just in case
+
+        if (tenantId != null)
+          await sl<HostStorage>().saveHost(tenantId.toString());
+        if (token != null)
+          await sl<KTokenStorage>().saveToken(token.toString());
+
+        try {
+          if (deviceId.isNotEmpty) {
+            sl<MqttService>().publish(
+              'kiosks/orphans/$deviceId',
+              '',
+              retain: true,
+            );
+            sl<MqttService>().publish(
+              'kiosks/orphans/$deviceId/config',
+              '',
+              retain: true,
+            );
+            sl<MqttService>().unsubscribe('kiosks/orphans/$deviceId/config');
+            log('KioskVm: Cleared orphan message and config, and unsubscribed');
+          }
+        } catch (e) {
+          log('mqtt clear/unsubscribe error: $e');
+        }
+
+        if (itemId != null) {
+          if (context.mounted) {
+            context.router.replaceAll([
+              QrMenuProviderRoute(
+                menuId: itemId is int ? itemId : int.parse(itemId.toString()),
+                isKiosk: true,
+              )
+            ]);
+          } else {
+            log('KioskVm: context is not mounted, skipping navigation');
+          }
+        } else {
+          log('KioskVm: Orphan config has no item_id');
+        }
+      }
+    });
   }
 
   Future<void> _updateInternetNow() async {
@@ -129,11 +183,36 @@ class KioskVm extends ViewModel {
   }
 
   Future<void> checkKiosk() async {
-    log('Check kiosk');
-    if (!hasInternet.value) return; // ✅ важное: без интернета не шлём
+    log('Check kiosk. Has internet: ${hasInternet.value}, Device ID: $deviceId');
+    if (!hasInternet.value) {
+      log('Check kiosk aborted: no internet');
+      return; // ✅ важное: без интернета не шлём
+    }
 
-    if (sl<HostStorage>().hasHost()) {
+    final hasHost = sl<HostStorage>().hasHost();
+    log('Check kiosk. Has host: $hasHost');
+
+    if (hasHost) {
       kioskBloc.add(KioskEvent.checkKiosk(deviceId: deviceId));
+    } else {
+      log('Check kiosk. No host, publishing to orphans topic');
+      try {
+        if (deviceId.isNotEmpty) {
+          sl<MqttService>().publish(
+            'kiosks/orphans/$deviceId',
+            jsonEncode({
+              'ts': DateTime.now().millisecondsSinceEpoch,
+              'error': 'no host (new device)',
+            }),
+            retain: true,
+          );
+          log('Check kiosk. Publish called');
+        } else {
+          log('Check kiosk. Device ID is empty!');
+        }
+      } catch (e) {
+        log('mqtt publish error: $e');
+      }
     }
   }
 
@@ -166,12 +245,35 @@ class KioskVm extends ViewModel {
       await sl<KTokenStorage>().saveToken(response.data?.token ?? '');
     }
 
-    context.router.replaceAll([
-      QrMenuProviderRoute(
-        menuId: response.data!.connection!.itemId!,
-        isKiosk: true,
-      )
-    ]);
+    try {
+      if (deviceId.isNotEmpty) {
+        sl<MqttService>().publish(
+          'kiosks/orphans/$deviceId',
+          '',
+          retain: true,
+        );
+        sl<MqttService>().publish(
+          'kiosks/orphans/$deviceId/config',
+          '',
+          retain: true,
+        );
+        sl<MqttService>().unsubscribe('kiosks/orphans/$deviceId/config');
+        log('KioskVm: Cleared orphan message and config in initData, and unsubscribed');
+      }
+    } catch (e) {
+      log('mqtt clear/unsubscribe error: $e');
+    }
+
+    if (context.mounted) {
+      context.router.replaceAll([
+        QrMenuProviderRoute(
+          menuId: response.data!.connection!.itemId!,
+          isKiosk: true,
+        )
+      ]);
+    } else {
+      log('KioskVm: context is not mounted, skipping navigation in initData');
+    }
   }
 
   void clearData() {
@@ -245,6 +347,7 @@ class KioskVm extends ViewModel {
   }
 
   void disposeVm() {
+    _orphanConfigSub?.cancel();
     _debounce?.cancel();
     _connSub?.cancel();
     _internetChecker.dispose();
