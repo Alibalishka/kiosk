@@ -43,6 +43,7 @@ class DetailItemDatum extends BaseModel<DetailItemDatum> {
   String? menuLink;
   bool? isReady;
   bool? canReserve;
+  int? orderWaitTime;
   List<GraphicWorkDatum>? graphicWorks;
   dynamic inHall;
   int? menuVersion;
@@ -71,6 +72,7 @@ class DetailItemDatum extends BaseModel<DetailItemDatum> {
     this.menuLink,
     this.isReady,
     this.canReserve,
+    this.orderWaitTime,
     this.graphicWorks,
     this.inHall,
     this.menuVersion,

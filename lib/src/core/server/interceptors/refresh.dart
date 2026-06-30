@@ -21,7 +21,7 @@ class KioskAuthInterceptor extends Interceptor {
         baseUrl: _dio.options.baseUrl,
         headers: {
           'accept': 'application/json',
-          if (sl<HostStorage>().hasHost())
+          if (sl<HostStorage>().hasHost() && AppUrls.isProd)
             'Host': '${sl<HostStorage>().getHost()}.admin.qrpay.kz',
           // 'Host': '${sl<HostStorage>().getHost()}.dev.qrpay.kz',
           // 'Host': '${sl<HostStorage>().getHost()}.admin.qrpay.kz',
@@ -44,7 +44,11 @@ class KioskAuthInterceptor extends Interceptor {
     final baseUrl = AppUrls.apiByHost(host);
     _dio.options.baseUrl = baseUrl;
     _refreshDio.options.baseUrl = baseUrl;
-    _refreshDio.options.headers['Host'] = '${host}.admin.qrpay.kz';
+    if (AppUrls.isProd) {
+      _refreshDio.options.headers['Host'] = '${host}.admin.qrpay.kz';
+    } else {
+      _refreshDio.options.headers.remove('Host');
+    }
     return host;
   }
 
@@ -53,7 +57,11 @@ class KioskAuthInterceptor extends Interceptor {
     if (host == null) return;
 
     options.baseUrl = AppUrls.apiByHost(host);
-    options.headers['Host'] = '${host}.admin.qrpay.kz';
+    if (AppUrls.isProd) {
+      options.headers['Host'] = '${host}.admin.qrpay.kz';
+    } else {
+      options.headers.remove('Host');
+    }
   }
 
   /// Динамически подставляем актуальный токен из KTokenStorage

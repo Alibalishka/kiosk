@@ -451,7 +451,11 @@ class QrMenuPageState extends State<QrMenuPage>
                                     //     text: 'DATA',
                                     //     onPressed: () {
                                     //       context.router.replace(
-                                    //           KioskSuccessPageRoute(id: 20517));
+                                    //         KioskSuccessPageRoute(
+                                    //           id: 142645,
+                                    //           orderWaitTime: 10,
+                                    //         ),
+                                    //       );
                                     //     },
                                     //   ),
                                     // ),
@@ -491,6 +495,7 @@ class QrMenuPageState extends State<QrMenuPage>
                                     const SliverToBoxAdapter(
                                       child: ColumnSpacer(4),
                                     ),
+
                                     PoweredByFooter(appVersion: _appVersion),
                                     const SliverToBoxAdapter(
                                       child: ColumnSpacer(2),

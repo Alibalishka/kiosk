@@ -137,63 +137,129 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                         ],
                       ),
                       const ColumnSpacer(1.2),
-                      if (value.hasKaspiPay) ...[
-                        CupertinoButton(
-                          borderRadius: BorderRadius.circular(16),
-                          onPressed: () => _onCheckoutPressed(
-                            context,
-                            isKaspiPay: true,
-                          ),
-                          color: const Color(0xffF24634),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12, horizontal: 24),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  LocaleKeys.payWith.tr(),
-                                  style: AppTextStyles.bodyMStrong.copyWith(
-                                      fontSize:
-                                          vmQrMenu.isTablet ? 15.sp : null,
-                                      color: AppComponents
-                                          .buttongroupButtonPrimaryTextColorDefault),
+                      Row(
+                        children: [
+                          if (value.hasKaspiPay)
+                            Expanded(
+                              child: CupertinoButton(
+                                borderRadius: BorderRadius.circular(16),
+                                onPressed: () => _onCheckoutPressed(
+                                  context,
+                                  isKaspiPay: true,
                                 ),
-                                const RowSpacer(0.4),
-                                SvgPicture.asset(
-                                  AppSvgImages.kaspiQr,
-                                  height: 2.5.sh,
+                                color: const Color(0xffF24634),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 8),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          LocaleKeys.payWith.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: AppTextStyles.bodyMStrong.copyWith(
+                                              fontSize: vmQrMenu.isTablet
+                                                  ? 15.sp
+                                                  : null,
+                                              color: AppComponents
+                                                  .buttongroupButtonPrimaryTextColorDefault),
+                                        ),
+                                        const RowSpacer(1.2),
+                                        SvgPicture.asset(
+                                          AppSvgImages.qrCode,
+                                          height: 2.5.sh,
+                                        ),
+                                        const RowSpacer(1.2),
+                                        Text(
+                                          'Kaspi QR',
+                                          textAlign: TextAlign.center,
+                                          style: AppTextStyles.bodyMStrong.copyWith(
+                                              fontSize: vmQrMenu.isTablet
+                                                  ? 15.sp
+                                                  : null,
+                                              fontWeight: FontWeight.w800,
+                                              color: AppComponents
+                                                  .buttongroupButtonPrimaryTextColorDefault),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (value.hasAirbaPay) const ColumnSpacer(1.2),
-                      ],
-                      if (value.hasAirbaPay)
-                        CupertinoButton(
-                          borderRadius: BorderRadius.circular(16),
-                          onPressed: () => _onCheckoutPressed(
-                            context,
-                            isKaspiPay: false,
-                          ),
-                          color: AppComponents
-                              .buttongroupButtonPrimaryBgColorDefault,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12, horizontal: 24),
-                            child: Text(
-                              'Оплата картой | Apple Pay | Google Pay',
-                              style: AppTextStyles.bodyMStrong.copyWith(
-                                fontSize: vmQrMenu.isTablet ? 15.sp : null,
-                                color: AppComponents
-                                    .buttongroupButtonPrimaryTextColorDefault,
                               ),
                             ),
-                          ),
-                        ),
+                          if (value.hasKaspiPay && value.hasAirbaPay)
+                            const SizedBox(width: 16),
+                          if (value.hasAirbaPay)
+                            Expanded(
+                              child: CupertinoButton(
+                                borderRadius: BorderRadius.circular(16),
+                                onPressed: () => _onCheckoutPressed(
+                                  context,
+                                  isKaspiPay: false,
+                                ),
+                                color: AppComponents
+                                    .buttongroupButtonPrimaryBgColorDefault,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 8),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          'Оплата картой |',
+                                          textAlign: TextAlign.center,
+                                          style: AppTextStyles.bodyMStrong
+                                              .copyWith(
+                                            fontSize: vmQrMenu.isTablet
+                                                ? 15.sp
+                                                : null,
+                                            color: AppComponents
+                                                .buttongroupButtonPrimaryTextColorDefault,
+                                          ),
+                                        ),
+                                        // const RowSpacer(0.8),
+                                        SvgPicture.asset(
+                                          AppSvgImages.gPayLight,
+                                          height: 2.2.sh,
+                                        ),
+                                        // const RowSpacer(0.8),
+                                        Text(
+                                          '|',
+                                          textAlign: TextAlign.center,
+                                          style: AppTextStyles.bodyMStrong
+                                              .copyWith(
+                                            fontSize: vmQrMenu.isTablet
+                                                ? 15.sp
+                                                : null,
+                                            color: AppComponents
+                                                .buttongroupButtonPrimaryTextColorDefault,
+                                          ),
+                                        ),
+                                        const RowSpacer(0.8),
+                                        SvgPicture.asset(
+                                          AppSvgImages.applePayLight,
+                                          height: 2.2.sh,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   );
                 },

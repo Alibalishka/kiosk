@@ -14,10 +14,12 @@ import 'package:flutter/material.dart';
 class KioskKaspiVm extends ViewModel {
   final BuildContext context;
   final MenuCheckoutRequest request;
+  final int orderWaitTime;
 
   KioskKaspiVm({
     required this.context,
     required this.request,
+    required this.orderWaitTime,
   });
 
   late KioskBloc kioskBloc;
@@ -90,7 +92,10 @@ class KioskKaspiVm extends ViewModel {
     this.payStatus = payStatus;
     if (payStatus.data?.status == 'Processed') {
       Future.delayed(const Duration(seconds: 2), () {
-        context.router.replace(KioskSuccessPageRoute(id: payData.orderId!));
+        context.router.replace(KioskSuccessPageRoute(
+          id: payData.orderId!,
+          orderWaitTime: orderWaitTime,
+        ));
       });
     }
     notifyListeners();

@@ -311,6 +311,7 @@ class _$AppRouter extends RootStackRouter {
         child: KioskKaspiProvider(
           key: args.key,
           request: args.request,
+          orderWaitTime: args.orderWaitTime,
         ),
       );
     },
@@ -321,6 +322,7 @@ class _$AppRouter extends RootStackRouter {
         child: KioskCardProvider(
           key: args.key,
           request: args.request,
+          orderWaitTime: args.orderWaitTime,
         ),
       );
     },
@@ -331,6 +333,7 @@ class _$AppRouter extends RootStackRouter {
         child: KioskSuccessPage(
           key: args.key,
           id: args.id,
+          orderWaitTime: args.orderWaitTime,
         ),
       );
     },
@@ -1480,12 +1483,14 @@ class KioskKaspiProviderRoute
   KioskKaspiProviderRoute({
     Key? key,
     required MenuCheckoutRequest request,
+    required int orderWaitTime,
   }) : super(
           KioskKaspiProviderRoute.name,
           path: 'kiosk-kaspi-pay',
           args: KioskKaspiProviderRouteArgs(
             key: key,
             request: request,
+            orderWaitTime: orderWaitTime,
           ),
         );
 
@@ -1496,15 +1501,18 @@ class KioskKaspiProviderRouteArgs {
   const KioskKaspiProviderRouteArgs({
     this.key,
     required this.request,
+    required this.orderWaitTime,
   });
 
   final Key? key;
 
   final MenuCheckoutRequest request;
 
+  final int orderWaitTime;
+
   @override
   String toString() {
-    return 'KioskKaspiProviderRouteArgs{key: $key, request: $request}';
+    return 'KioskKaspiProviderRouteArgs{key: $key, request: $request, orderWaitTime: $orderWaitTime}';
   }
 }
 
@@ -1514,12 +1522,14 @@ class KioskCardProviderRoute extends PageRouteInfo<KioskCardProviderRouteArgs> {
   KioskCardProviderRoute({
     Key? key,
     required MenuCheckoutRequest request,
+    required int orderWaitTime,
   }) : super(
           KioskCardProviderRoute.name,
           path: 'kiosk-card-pay',
           args: KioskCardProviderRouteArgs(
             key: key,
             request: request,
+            orderWaitTime: orderWaitTime,
           ),
         );
 
@@ -1530,15 +1540,18 @@ class KioskCardProviderRouteArgs {
   const KioskCardProviderRouteArgs({
     this.key,
     required this.request,
+    required this.orderWaitTime,
   });
 
   final Key? key;
 
   final MenuCheckoutRequest request;
 
+  final int orderWaitTime;
+
   @override
   String toString() {
-    return 'KioskCardProviderRouteArgs{key: $key, request: $request}';
+    return 'KioskCardProviderRouteArgs{key: $key, request: $request, orderWaitTime: $orderWaitTime}';
   }
 }
 
@@ -1548,12 +1561,14 @@ class KioskSuccessPageRoute extends PageRouteInfo<KioskSuccessPageRouteArgs> {
   KioskSuccessPageRoute({
     Key? key,
     required int id,
+    required int orderWaitTime,
   }) : super(
           KioskSuccessPageRoute.name,
           path: 'kiosk-success',
           args: KioskSuccessPageRouteArgs(
             key: key,
             id: id,
+            orderWaitTime: orderWaitTime,
           ),
         );
 
@@ -1564,15 +1579,18 @@ class KioskSuccessPageRouteArgs {
   const KioskSuccessPageRouteArgs({
     this.key,
     required this.id,
+    required this.orderWaitTime,
   });
 
   final Key? key;
 
   final int id;
 
+  final int orderWaitTime;
+
   @override
   String toString() {
-    return 'KioskSuccessPageRouteArgs{key: $key, id: $id}';
+    return 'KioskSuccessPageRouteArgs{key: $key, id: $id, orderWaitTime: $orderWaitTime}';
   }
 }
 

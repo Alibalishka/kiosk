@@ -530,11 +530,17 @@ class QrMenuVm extends ViewModel {
     if (request.items?.isNotEmpty ?? false) {
       if (isKaspiPay) {
         context.router
-            .push(KioskKaspiProviderRoute(request: request))
+            .push(KioskKaspiProviderRoute(
+              request: request,
+              orderWaitTime: menuData?.organization?.orderWaitTime ?? 0,
+            ))
             .then((value) => showBottomSheetIfNeeded(context, value));
       } else {
         context.router
-            .push(KioskCardProviderRoute(request: request))
+            .push(KioskCardProviderRoute(
+              request: request,
+              orderWaitTime: menuData?.organization?.orderWaitTime ?? 0,
+            ))
             .then((value) => showBottomSheetIfNeeded(context, value));
       }
     }
