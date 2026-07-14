@@ -44,3 +44,23 @@ String normalizeQrPayInsecureImageUrl(
       .replaceFirst(RegExp(r'w:\d+'), 'w:$w')
       .replaceFirst(RegExp(r'q:\d+'), 'q:90');
 }
+
+/// Единая точка выбора URL картинки для [ImageDatum].
+///
+/// Порядок приоритетов фиксирован: `path` → `file` → `filePreview` → `image`.
+/// Все виджеты и precache **обязаны** использовать эту функцию,
+/// чтобы URL совпадал и кеш попадал.
+String resolveImageDatumUrl(dynamic img) {
+  if (img == null) return '';
+  final candidates = <String?>[
+    img.path,
+    img.file,
+    img.filePreview,
+    img.image,
+  ];
+  for (final c in candidates) {
+    final v = c?.trim() ?? '';
+    if (v.isNotEmpty) return v;
+  }
+  return '';
+}

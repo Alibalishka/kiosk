@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
@@ -11,6 +12,8 @@ import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+bool _navigationLocked = false;
 
 class BasketBtn extends StatelessWidget {
   const BasketBtn({
@@ -25,15 +28,33 @@ class BasketBtn extends StatelessWidget {
   bool get _hasNoModifiers => item.modifiers?.isEmpty ?? true;
 
   void _openProductSheet(BuildContext context) {
-    context.router.push(
+    if (_navigationLocked) return;
+    _navigationLocked = true;
+
+    // Предзагрузка картинки в кеш
+    final images = item.image;
+    if (images != null && images.isNotEmpty) {
+      final url = images.first.path ?? images.first.file ?? '';
+      if (url.isNotEmpty) {
+        DefaultCacheManager().getSingleFile(url);
+      }
+    }
+
+    // Предзагрузка видео
+    viewModel.preloadVideoForItem(item);
+
+    context.router
+        .push(
       ProductPageRoute(
         item: item,
+        preloadedVideo: viewModel.getCachedVideoController(item.id),
       ),
-    );
-    // showCustomSheet(
-    //   context,
-    //   child: ProductPage(item: item),
-    // );
+    )
+        .whenComplete(() {
+      _navigationLocked = false;
+      viewModel.videoService.videoPlayerController?.play();
+      viewModel.returnVideoController(item.id);
+    });
   }
 
   void _onAddTap(BuildContext context) {

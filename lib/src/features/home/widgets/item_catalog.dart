@@ -1,5 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
@@ -100,6 +102,8 @@ class ItemCatalog extends StatelessWidget {
   }
 }
 
+bool _itemCatalogNavLocked = false;
+
 class _ItemCard extends StatelessWidget {
   const _ItemCard({
     required this.viewModel,
@@ -116,11 +120,30 @@ class _ItemCard extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: GestureDetector(
-          onTap: () => context.router.push(
-            ProductPageRoute(
-              item: item,
-            ),
-          ),
+          onTap: () {
+            if (_itemCatalogNavLocked) return;
+            _itemCatalogNavLocked = true;
+            final images = item.image;
+            if (images != null && images.isNotEmpty) {
+              final url = images.first.path ?? images.first.file ?? '';
+              if (url.isNotEmpty) {
+                DefaultCacheManager().getSingleFile(url);
+              }
+            }
+            viewModel.preloadVideoForItem(item);
+            context.router
+                .push(
+              ProductPageRoute(
+                item: item,
+                preloadedVideo: viewModel.getCachedVideoController(item.id),
+              ),
+            )
+                .whenComplete(() {
+              _itemCatalogNavLocked = false;
+              viewModel.videoService.videoPlayerController?.play();
+              viewModel.returnVideoController(item.id);
+            });
+          },
           // showCustomSheet(
           //   context,
           //   child: ProductPage(item: item),
@@ -154,9 +177,7 @@ class _ItemCard extends StatelessWidget {
                         height: 305,
                         // width: viewModel.isTablet ? 305 : 260,
                         width: 305,
-                        imageUrl: item.image!.first.path ??
-                            item.image!.first.file ??
-                            '',
+                        imageUrl: resolveImageDatumUrl(item.image!.first),
                         placeholder: const SizedBox.shrink(),
                         imageBuilder: (context, imageProvider) => Container(
                           // height: viewModel.isTablet ? 305 : 260,

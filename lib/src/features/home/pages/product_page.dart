@@ -59,8 +59,10 @@ class _ProductPageState extends State<ProductPage> {
   void _onPreloadedVideoUpdate() {
     if (_videoController?.value.isInitialized ?? false) {
       _videoController!.removeListener(_onPreloadedVideoUpdate);
-      _videoController!.play();
       if (mounted) setState(() {});
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) _videoController?.play();
+      });
     }
   }
 
@@ -71,7 +73,6 @@ class _ProductPageState extends State<ProductPage> {
     _titleThreshold = w / 1.6;
   }
 
-  @override
   @override
   void initState() {
     super.initState();
@@ -89,7 +90,9 @@ class _ProductPageState extends State<ProductPage> {
         if (!mounted) return;
 
         if (_videoController!.value.isInitialized) {
-          _videoController!.play();
+          Future.delayed(const Duration(milliseconds: 1200), () {
+            if (mounted) _videoController?.play();
+          });
         } else {
           _videoController!.addListener(_onPreloadedVideoUpdate);
         }
@@ -102,27 +105,6 @@ class _ProductPageState extends State<ProductPage> {
       });
     }
   }
-
-  // void initState() {
-  //   super.initState();
-
-  //   // ✅ Provider read можно в initState (не listen)
-  //   final vm = context.read<QrMenuVm>();
-  //   vm.basketService.selectedModifiers = [];
-
-  //   if (widget.preloadedVideo != null) {
-  //     _videoController = widget.preloadedVideo;
-  //     _isVideo = true;
-  //     _ownsVideoController = false;
-  //     if (_videoController!.value.isInitialized) {
-  //       _videoController!.play();
-  //     } else {
-  //       _videoController!.addListener(_onPreloadedVideoUpdate);
-  //     }
-  //   } else {
-  //     _initVideoIfNeeded();
-  //   }
-  // }
 
   Future<void> _initVideoIfNeeded() async {
     final images = widget.item.image;
@@ -141,7 +123,6 @@ class _ProductPageState extends State<ProductPage> {
       await ctrl.initialize();
       await ctrl.setVolume(0.0);
       await ctrl.setLooping(true);
-      await ctrl.play();
 
       if (!mounted) {
         await ctrl.dispose();
@@ -151,6 +132,10 @@ class _ProductPageState extends State<ProductPage> {
       setState(() {
         _videoController?.dispose();
         _videoController = ctrl;
+      });
+
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) _videoController?.play();
       });
     } catch (_) {
       _isVideo = false;
@@ -583,6 +568,43 @@ class _ProductMediaBackground extends StatelessWidget {
         (MediaQuery.of(context).size.height * 0.6 * pixelRatio).round();
     final heroProxyPx = qrPayHeroImageProxyPixels(context);
 
+    final photoWidget = SafeNetworkImage(
+      key: const ValueKey('preview'),
+      imageUrl: normalizeQrPayInsecureImageUrl(
+        resolveImageDatumUrl(item.image?[0]),
+        targetWidthPx: heroProxyPx.widthPx,
+        targetHeightPx: heroProxyPx.heightPx,
+      ),
+      imageBuilder: (context, provider) => Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(8),
+          ),
+          image: DecorationImage(
+            image: ResizeImage(provider, height: cacheHeight),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      errorWidget: Container(
+        height: 300,
+        width: 300,
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          image: DecorationImage(
+            image: AssetImage(AppWebpImages.emptyStatus),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      placeholder: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.primitiveNeutral0,
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
+      ),
+    );
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -590,70 +612,41 @@ class _ProductMediaBackground extends StatelessWidget {
           Stack(
             alignment: Alignment.center,
             children: [
-              // if ((videoController?.value.isInitialized == false &&
-              //     videoController?.value.isPlaying == false))
-              // Positioned.fill(
-              //   child: Container(
-              //     decoration: const BoxDecoration(
-              //       color: AppColors.primitiveNeutral1000,
-              //       borderRadius: BorderRadius.all(Radius.circular(8)),
-              //     ),
-              //   ),
-              // ),
-              SafeNetworkImage(
-                key: const ValueKey('preview'),
-                imageUrl:
-                    // item.image?[0].filePreview ?? item.image?[0].path ?? '',
-                    normalizeQrPayInsecureImageUrl(
-                  item.image?[0].filePreview ?? item.image?[0].path ?? '',
-                  targetWidthPx: heroProxyPx.widthPx,
-                  targetHeightPx: heroProxyPx.heightPx,
-                ),
-                imageBuilder: (context, provider) => Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(8),
-                    ),
-                    image: DecorationImage(
-                      image: ResizeImage(provider, height: cacheHeight),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                errorWidget: Container(
-                  height: 300,
-                  width: 300,
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                    image: DecorationImage(
-                      image: AssetImage(AppWebpImages.emptyStatus),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                placeholder: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.primitiveNeutral0,
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                  ),
-                ),
-              ),
-              if (videoController?.value.isInitialized ?? false)
+              // 1. ФОТО (на заднем плане, всегда видно, никаких белых бликов)
+              photoWidget,
+
+              // 2. ВИДЕО (на переднем плане, плавно появляется ПОВЕРХ фото)
+              if (videoController != null)
                 Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(8),
-                    ),
-                    child: SizedBox.expand(
-                      child: FittedBox(
-                        fit: BoxFit.cover,
-                        child: SizedBox(
-                          width: videoController!.value.size.width,
-                          height: videoController!.value.size.height,
-                          child: VideoPlayer(videoController!),
+                  child: ValueListenableBuilder<VideoPlayerValue>(
+                    valueListenable: videoController!,
+                    builder: (context, value, child) {
+                      if (!value.isInitialized) return const SizedBox.shrink();
+
+                      final isReady = value.isInitialized && value.isPlaying;
+
+                      return AnimatedOpacity(
+                        opacity: isReady ? 1.0 : 0.0,
+                        duration: const Duration(
+                            milliseconds: 700), // Плавное проявление видео
+                        curve: Curves.easeInOut,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(8),
+                          ),
+                          child: SizedBox.expand(
+                            child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                width: value.size.width,
+                                height: value.size.height,
+                                child: VideoPlayer(videoController!),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
             ],
@@ -663,7 +656,7 @@ class _ProductMediaBackground extends StatelessWidget {
             imageUrl:
                 // item.image?[0].file ?? item.image?[0].path ?? '',
                 normalizeQrPayInsecureImageUrl(
-              item.image?[0].file ?? item.image?[0].path ?? '',
+              resolveImageDatumUrl(item.image?[0]),
               targetWidthPx: heroProxyPx.widthPx,
               targetHeightPx: heroProxyPx.heightPx,
             ),

@@ -7,6 +7,7 @@ import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/utils/version_compare.dart';
+import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/basket_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/kiosk_service.dart';
@@ -262,8 +263,8 @@ class QrMenuVm extends ViewModel {
         if (images == null || images.isEmpty) continue;
 
         final img = images.first;
-        final url = img.file ?? img.path ?? img.image;
-        if (url != null && url.isNotEmpty) {
+        final url = resolveImageDatumUrl(img);
+        if (url.isNotEmpty) {
           urls.add(url);
           urls.add(normalizeQrPayInsecureImageUrl(
             url,
@@ -294,12 +295,21 @@ class QrMenuVm extends ViewModel {
       collectFromItems(cat.recommend);
     }
 
-    for (final url in urls) {
-      try {
-        await cache.getSingleFile(url);
-      } catch (_) {
-        // тихо игнорируем ошибки предзагрузки
-      }
+    // Параллельная предзагрузка: до 8 одновременных загрузок
+    // Помимо дискового кеша, заполняем in-memory кеш байтов для мгновенного рендера.
+    const kBatchSize = 8;
+    final urlList = urls.toList();
+    for (var i = 0; i < urlList.length; i += kBatchSize) {
+      final batch = urlList.skip(i).take(kBatchSize).map((url) async {
+        try {
+          final file = await cache.getSingleFile(url);
+          final bytes = await file.readAsBytes();
+          warmBytesCache(url, bytes);
+        } catch (_) {
+          // тихо игнорируем ошибки предзагрузки
+        }
+      });
+      await Future.wait(batch);
     }
   }
 
@@ -307,6 +317,11 @@ class QrMenuVm extends ViewModel {
   void preloadVideoForItem(Items item) {
     final id = item.id;
     if (id == null) return;
+    
+    // Если пользователь повторно открыл товар, отменяем таймер удаления
+    _videoCacheTimers[id]?.cancel();
+    _videoCacheTimers.remove(id);
+
     if (_videoControllerCache.containsKey(id)) return;
     final images = item.image;
     if (images == null || images.isEmpty) return;
@@ -315,16 +330,16 @@ class QrMenuVm extends ViewModel {
     if (!file.toLowerCase().contains('.mp4')) return;
     try {
       final ctrl = VideoPlayerController.networkUrl(Uri.parse(file));
+      // Сразу кладём в кэш, чтобы ProductPage успел забрать его до конца инициализации
+      // Это позволяет ProductPage начать с opacity 0.0 и плавно анимировать появление
+      _videoControllerCache[id] = ctrl;
+      
       ctrl.initialize().then((_) async {
-        if (_videoControllerCache.containsKey(id)) {
-          await ctrl.dispose();
-          return;
-        }
         await ctrl.setVolume(0.0);
         await ctrl.setLooping(true);
-        _videoControllerCache[id] = ctrl;
         notifyListeners();
       }).catchError((_) {
+        _videoControllerCache.remove(id);
         ctrl.dispose();
       });
     } catch (_) {}

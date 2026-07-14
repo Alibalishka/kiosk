@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter/widgets.dart';
+import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
 import 'package:qr_pay_app/src/core/formatters/text_formats.dart';
@@ -16,6 +18,8 @@ import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
 import 'package:sizer/sizer.dart';
+
+bool _itemMenuNavLocked = false;
 
 class ItemMenu extends StatelessWidget {
   const ItemMenu({
@@ -37,11 +41,27 @@ class ItemMenu extends StatelessWidget {
           children: [
             if (item.image?.isNotEmpty ?? false)
               GestureDetector(
-                  onTap: () => context.router.push(
-                        ProductPageRoute(
-                          item: item,
-                        ),
+                  onTap: () {
+                    if (_itemMenuNavLocked) return;
+                    _itemMenuNavLocked = true;
+                    final url = item.image?.first.path ?? item.image?.first.file ?? '';
+                    if (url.isNotEmpty) {
+                      DefaultCacheManager().getSingleFile(url);
+                    }
+                    viewModel.preloadVideoForItem(item);
+                    context.router
+                        .push(
+                      ProductPageRoute(
+                        item: item,
+                        preloadedVideo: viewModel.getCachedVideoController(item.id),
                       ),
+                    )
+                        .whenComplete(() {
+                      _itemMenuNavLocked = false;
+                      viewModel.videoService.videoPlayerController?.play();
+                      viewModel.returnVideoController(item.id);
+                    });
+                  },
                   // showCustomSheet(
                   //       context,
                   //       child: ProductPage(
@@ -71,9 +91,7 @@ class ItemMenu extends StatelessWidget {
                             width: 175,
                             // height: viewModel.isTablet ? 180 : 136,
                             height: 180,
-                            imageUrl: item.image?.isNotEmpty ?? false
-                                ? item.image?.first.path ?? ''
-                                : 'https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png',
+                            imageUrl: resolveImageDatumUrl(item.image!.first),
                             placeholder: Container(
                               // height: viewModel.isTablet ? 180 : 136,
                               height: 180,
@@ -107,11 +125,27 @@ class ItemMenu extends StatelessWidget {
             // const RowSpacer(2),
             Flexible(
               child: GestureDetector(
-                onTap: () => context.router.push(
-                  ProductPageRoute(
-                    item: item,
-                  ),
-                ),
+                onTap: () {
+                  if (_itemMenuNavLocked) return;
+                  _itemMenuNavLocked = true;
+                  final url = item.image?.first.path ?? item.image?.first.file ?? '';
+                  if (url.isNotEmpty) {
+                    DefaultCacheManager().getSingleFile(url);
+                  }
+                  viewModel.preloadVideoForItem(item);
+                  context.router
+                      .push(
+                    ProductPageRoute(
+                      item: item,
+                      preloadedVideo: viewModel.getCachedVideoController(item.id),
+                    ),
+                  )
+                      .whenComplete(() {
+                    _itemMenuNavLocked = false;
+                    viewModel.videoService.videoPlayerController?.play();
+                    viewModel.returnVideoController(item.id);
+                  });
+                },
                 // showCustomSheet(
                 //   context,
                 //   child: ProductPage(

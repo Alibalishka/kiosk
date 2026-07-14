@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -436,21 +437,7 @@ class ItemRecomended extends StatelessWidget {
   String _resolveImageUrl() {
     final images = item?.image;
     if (images == null || images.isEmpty) return '';
-
-    for (final img in images) {
-      final candidates = <String?>[
-        img.path,
-        img.file,
-        img.filePreview,
-        img.image,
-      ];
-      for (final candidate in candidates) {
-        final value = candidate?.trim() ?? '';
-        if (value.isNotEmpty) return value;
-      }
-    }
-
-    return '';
+    return resolveImageDatumUrl(images.first);
   }
 
   @override

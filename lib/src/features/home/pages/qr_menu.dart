@@ -450,10 +450,10 @@ class QrMenuPageState extends State<QrMenuPage>
                                     //   child: CustomButton(
                                     //     text: 'DATA',
                                     //     onPressed: () {
-                                    //       context.router.replace(
+                                    //       context.router.root.push(
                                     //         KioskSuccessPageRoute(
-                                    //           id: 142645,
-                                    //           orderWaitTime: 10,
+                                    //           id: 41104,
+                                    //           orderWaitTime: 0,
                                     //         ),
                                     //       );
                                     //     },

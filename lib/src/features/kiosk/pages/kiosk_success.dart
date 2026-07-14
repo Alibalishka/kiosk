@@ -232,7 +232,7 @@ class _KioskSuccessPageState extends State<KioskSuccessPage>
                           ),
                           const SizedBox(height: 32),
                           Text(
-                            "или сфотографируйте экран\nс QR и покажите на кассе",
+                            "или сфотографируйте экран\nс QR и покажите на кассе\nили\nуточните время ожидания на кассе",
                             textAlign: TextAlign.center,
                             style: AppTextStyles.bodyM.copyWith(
                               fontSize: 28,
