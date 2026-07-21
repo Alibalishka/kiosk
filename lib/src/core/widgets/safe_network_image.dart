@@ -10,35 +10,67 @@ typedef ImageContentBuilder = Widget Function(
   ImageProvider imageProvider,
 );
 
-/// Global concurrency pool: limits parallel image downloads to [_kMaxParallel]
-/// so the I/O bus is not saturated when dozens of list items mount at once.
-const int _kMaxParallel = 6;
-int _active = 0;
-final List<Completer<void>> _queue = [];
+// ---------------------------------------------------------------------------
+// Two separate concurrency pools:
+//   • _widgetPool — HIGH priority, for visible SafeNetworkImage widgets (10 slots)
+//   • _prefetchPool — LOW priority, for background prefetching (4 slots)
+// This ensures visible images always get bandwidth first.
+// ---------------------------------------------------------------------------
 
-Future<void> _throttled(Future<void> Function() work) async {
-  if (_active >= _kMaxParallel) {
+/// Pool for visible widget image loading — high priority.
+const int _kWidgetMaxParallel = 10;
+int _widgetActive = 0;
+final List<Completer<void>> _widgetQueue = [];
+
+Future<void> _widgetThrottled(Future<void> Function() work) async {
+  if (_widgetActive >= _kWidgetMaxParallel) {
     final c = Completer<void>();
-    _queue.add(c);
+    _widgetQueue.add(c);
     await c.future;
   }
-  _active++;
+  _widgetActive++;
   try {
     await work();
   } finally {
-    _active--;
-    if (_queue.isNotEmpty) {
-      _queue.removeAt(0).complete();
+    _widgetActive--;
+    if (_widgetQueue.isNotEmpty) {
+      _widgetQueue.removeAt(0).complete();
     }
   }
 }
 
-/// In-memory LRU-ish cache for decoded image bytes so that re-mounting
-/// the same URL (scroll back into view) is truly instant — no file I/O.
+/// Pool for background prefetching — low priority, fewer slots.
+const int _kPrefetchMaxParallel = 4;
+int _prefetchActive = 0;
+final List<Completer<void>> _prefetchQueue = [];
+
+Future<void> _prefetchThrottled(Future<void> Function() work) async {
+  if (_prefetchActive >= _kPrefetchMaxParallel) {
+    final c = Completer<void>();
+    _prefetchQueue.add(c);
+    await c.future;
+  }
+  _prefetchActive++;
+  try {
+    await work();
+  } finally {
+    _prefetchActive--;
+    if (_prefetchQueue.isNotEmpty) {
+      _prefetchQueue.removeAt(0).complete();
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// In-memory LRU-ish cache for decoded image bytes so that re-mounting
+// the same URL (scroll back into view) is truly instant — no file I/O.
+// ---------------------------------------------------------------------------
 final Map<String, Uint8List> _bytesCache = {};
-const int _kMaxBytesEntries = 120;
+const int _kMaxBytesEntries = 200;
 
 void _putBytes(String url, Uint8List bytes) {
+  // Move to "end" (most recently used) by removing + re-adding
+  _bytesCache.remove(url);
   if (_bytesCache.length >= _kMaxBytesEntries) {
     // evict oldest quarter
     final keys = _bytesCache.keys.take(_kMaxBytesEntries ~/ 4).toList();
@@ -52,6 +84,48 @@ void _putBytes(String url, Uint8List bytes) {
 /// Public API for prefetching: warms the in-memory bytes cache so that
 /// [SafeNetworkImage] can display images instantly (zero I/O).
 void warmBytesCache(String url, Uint8List bytes) => _putBytes(url, bytes);
+
+// ---------------------------------------------------------------------------
+// Long-lived CacheManager for kiosk — images stay on disk for 30 days,
+// max 500 files, so the app rarely re-downloads anything.
+// ---------------------------------------------------------------------------
+final BaseCacheManager kioskCacheManager = CacheManager(
+  Config(
+    'kioskImageCache',
+    stalePeriod: const Duration(days: 30),
+    maxNrOfCacheObjects: 500,
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// Prefetch helpers — used by ViewModel to preload URLs into both disk and
+// in-memory caches. Uses a SEPARATE low-priority pool so it never blocks
+// visible widget image loading.
+// ---------------------------------------------------------------------------
+
+/// Prefetch a single URL (low-priority pool).
+Future<void> precacheUrl(String url) async {
+  if (url.isEmpty) return;
+  // Already in memory → nothing to do
+  if (_bytesCache.containsKey(url)) return;
+  try {
+    // Try disk cache first (no network)
+    final info = await kioskCacheManager.getFileFromCache(url);
+    if (info != null) {
+      final bytes = await info.file.readAsBytes();
+      _putBytes(url, bytes);
+      return;
+    }
+    // Download via low-priority pool
+    await _prefetchThrottled(() async {
+      final file = await kioskCacheManager.getSingleFile(url);
+      final bytes = await file.readAsBytes();
+      _putBytes(url, bytes);
+    });
+  } catch (_) {
+    // silently ignore prefetch errors
+  }
+}
 
 class SafeNetworkImage extends StatefulWidget {
   final String imageUrl;
@@ -88,8 +162,6 @@ class _SafeNetworkImageState extends State<SafeNetworkImage> {
   bool _hasError = false;
   bool _fromMemory = false;
 
-  static final BaseCacheManager _cache = DefaultCacheManager();
-
   @override
   void initState() {
     super.initState();
@@ -125,10 +197,28 @@ class _SafeNetworkImageState extends State<SafeNetworkImage> {
       return;
     }
 
-    // 2. Throttled file/network fetch
-    await _throttled(() async {
+    // 2. Fast path: file already on disk → skip network entirely
+    try {
+      final info = await kioskCacheManager.getFileFromCache(url);
+      if (info != null) {
+        if (!mounted) return;
+        final bytes = await info.file.readAsBytes();
+        if (!mounted) return;
+        _putBytes(url, bytes);
+        setState(() {
+          _provider = _wrapResize(MemoryImage(bytes));
+          _fromMemory = true; // skip fade — it was local
+        });
+        return;
+      }
+    } catch (_) {
+      // fall through to network fetch
+    }
+
+    // 3. Throttled network fetch (HIGH priority widget pool)
+    await _widgetThrottled(() async {
       try {
-        final file = await _cache.getSingleFile(url);
+        final file = await kioskCacheManager.getSingleFile(url);
         if (!mounted) return;
 
         final bytes = await file.readAsBytes();
@@ -171,10 +261,8 @@ class _SafeNetworkImageState extends State<SafeNetworkImage> {
     } else {
       final content = widget.imageBuilder(context, _provider!);
 
-      // If loaded from in-memory cache, skip fade animation
-      child = _fromMemory
-          ? content
-          : _FadeIn(child: content);
+      // If loaded from in-memory / disk cache, skip fade animation
+      child = _fromMemory ? content : _FadeIn(child: content);
     }
 
     return (widget.height != null || widget.width != null)

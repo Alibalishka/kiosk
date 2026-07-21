@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
+import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
@@ -32,13 +33,7 @@ class BasketBtn extends StatelessWidget {
     _navigationLocked = true;
 
     // Предзагрузка картинки в кеш
-    final images = item.image;
-    if (images != null && images.isNotEmpty) {
-      final url = images.first.path ?? images.first.file ?? '';
-      if (url.isNotEmpty) {
-        DefaultCacheManager().getSingleFile(url);
-      }
-    }
+    precacheProductPageImage(context, item);
 
     // Предзагрузка видео
     viewModel.preloadVideoForItem(item);

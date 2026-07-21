@@ -1,6 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
@@ -123,13 +121,7 @@ class _ItemCard extends StatelessWidget {
           onTap: () {
             if (_itemCatalogNavLocked) return;
             _itemCatalogNavLocked = true;
-            final images = item.image;
-            if (images != null && images.isNotEmpty) {
-              final url = images.first.path ?? images.first.file ?? '';
-              if (url.isNotEmpty) {
-                DefaultCacheManager().getSingleFile(url);
-              }
-            }
+            precacheProductPageImage(context, item);
             viewModel.preloadVideoForItem(item);
             context.router
                 .push(

@@ -571,7 +571,7 @@ class _ProductMediaBackground extends StatelessWidget {
     final photoWidget = SafeNetworkImage(
       key: const ValueKey('preview'),
       imageUrl: normalizeQrPayInsecureImageUrl(
-        resolveImageDatumUrl(item.image?[0]),
+        item.image?[0].file ?? item.image?[0].path ?? '',
         targetWidthPx: heroProxyPx.widthPx,
         targetHeightPx: heroProxyPx.heightPx,
       ),
@@ -653,10 +653,8 @@ class _ProductMediaBackground extends StatelessWidget {
           )
         else if (item.image?.isNotEmpty ?? false)
           SafeNetworkImage(
-            imageUrl:
-                // item.image?[0].file ?? item.image?[0].path ?? '',
-                normalizeQrPayInsecureImageUrl(
-              resolveImageDatumUrl(item.image?[0]),
+            imageUrl: normalizeQrPayInsecureImageUrl(
+              item.image?[0].file ?? item.image?[0].path ?? '',
               targetWidthPx: heroProxyPx.widthPx,
               targetHeightPx: heroProxyPx.heightPx,
             ),

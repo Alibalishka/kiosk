@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -448,10 +447,8 @@ class ItemRecomended extends StatelessWidget {
       onTap: () {
         if (_productPageNavigationLocked) return;
         _productPageNavigationLocked = true;
-        final url = imageUrl;
-        if (url.isNotEmpty) {
-          DefaultCacheManager().getSingleFile(url);
-        }
+        // Прогреваем кэш изображения при тапе именно для ProductPage
+        precacheProductPageImage(context, item!);
         viewModel.preloadVideoForItem(item!);
         context.router
             .push(

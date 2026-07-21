@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
@@ -44,10 +43,7 @@ class ItemMenu extends StatelessWidget {
                   onTap: () {
                     if (_itemMenuNavLocked) return;
                     _itemMenuNavLocked = true;
-                    final url = item.image?.first.path ?? item.image?.first.file ?? '';
-                    if (url.isNotEmpty) {
-                      DefaultCacheManager().getSingleFile(url);
-                    }
+                    precacheProductPageImage(context, item);
                     viewModel.preloadVideoForItem(item);
                     context.router
                         .push(
@@ -128,10 +124,7 @@ class ItemMenu extends StatelessWidget {
                 onTap: () {
                   if (_itemMenuNavLocked) return;
                   _itemMenuNavLocked = true;
-                  final url = item.image?.first.path ?? item.image?.first.file ?? '';
-                  if (url.isNotEmpty) {
-                    DefaultCacheManager().getSingleFile(url);
-                  }
+                  precacheProductPageImage(context, item);
                   viewModel.preloadVideoForItem(item);
                   context.router
                       .push(

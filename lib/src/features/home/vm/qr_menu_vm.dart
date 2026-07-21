@@ -21,7 +21,6 @@ import 'package:qr_pay_app/src/features/profile/logic/model/responses/payment_me
 import 'package:qr_pay_app/src/features/profile/logic/repository/auth_repository.dart';
 import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:qr_pay_app/src/core/base/view_model.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
@@ -233,19 +232,23 @@ class QrMenuVm extends ViewModel {
     if (context.mounted) {
       scrollService.syncWithMenu(context, menuData, isGridView, isTablet);
     }
-    // Начинаем заранее прогревать картинки блюд в кэше,
-    // чтобы ProductPage открывался без задержек по сети.
-    // ignore: unawaited_futures
-    _precacheMenuImages(menuData);
 
     if (detailVm != null) detailVm?.syncMenu(menuData);
     notifyListeners();
+
+    // Начинаем прогрев картинок ПОСЛЕ notifyListeners(), чтобы UI
+    // сначала построился и видимые виджеты начали грузить свои картинки
+    // через высокоприоритетный пул. Prefetch идёт через отдельный
+    // низкоприоритетный пул и не блокирует видимые картинки.
+    // ignore: unawaited_futures
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _precacheMenuImages(menuData);
+    });
   }
 
-  /// Предзагружает основные изображения блюд в кэш (DefaultCacheManager),
+  /// Предзагружает основные изображения блюд в кэш (kioskCacheManager),
   /// чтобы при открытии ProductPage картинка бралась локально.
   Future<void> _precacheMenuImages(QrMenuModel menu) async {
-    final cache = DefaultCacheManager();
     final urls = <String>{};
 
     int? targetW;
@@ -263,11 +266,18 @@ class QrMenuVm extends ViewModel {
         if (images == null || images.isEmpty) continue;
 
         final img = images.first;
-        final url = resolveImageDatumUrl(img);
-        if (url.isNotEmpty) {
-          urls.add(url);
+        
+        // 1. Для меню: path-first
+        final menuUrl = resolveImageDatumUrl(img);
+        if (menuUrl.isNotEmpty) {
+          urls.add(menuUrl);
+        }
+
+        // 2. Для ProductPage: file-first + proxy params
+        final rawProductUrl = img.file?.trim() ?? img.path?.trim() ?? '';
+        if (rawProductUrl.isNotEmpty) {
           urls.add(normalizeQrPayInsecureImageUrl(
-            url,
+            rawProductUrl,
             targetWidthPx: targetW,
             targetHeightPx: targetH,
           ));
@@ -295,20 +305,12 @@ class QrMenuVm extends ViewModel {
       collectFromItems(cat.recommend);
     }
 
-    // Параллельная предзагрузка: до 8 одновременных загрузок
-    // Помимо дискового кеша, заполняем in-memory кеш байтов для мгновенного рендера.
-    const kBatchSize = 8;
+    // Параллельная предзагрузка: до 12 одновременных загрузок.
+    // precacheUrl сам заполняет in-memory кеш и использует kioskCacheManager.
+    const kBatchSize = 12;
     final urlList = urls.toList();
     for (var i = 0; i < urlList.length; i += kBatchSize) {
-      final batch = urlList.skip(i).take(kBatchSize).map((url) async {
-        try {
-          final file = await cache.getSingleFile(url);
-          final bytes = await file.readAsBytes();
-          warmBytesCache(url, bytes);
-        } catch (_) {
-          // тихо игнорируем ошибки предзагрузки
-        }
-      });
+      final batch = urlList.skip(i).take(kBatchSize).map(precacheUrl);
       await Future.wait(batch);
     }
   }
