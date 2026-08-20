@@ -36,7 +36,7 @@ OrderDetailData _$OrderDetailDataFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['ready_at'] as String),
       fullName: json['full_name'] as String?,
-      number: (json['number'] as num?)?.toInt(),
+      number: json['number'],
       numberGenerated: json['number_generated'],
       tableId: json['table_id'] as String?,
       posOrderId: json['pos_order_id'] as String?,

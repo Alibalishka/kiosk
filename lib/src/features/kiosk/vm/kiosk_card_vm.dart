@@ -17,10 +17,12 @@ import 'package:qr_pay_app/src/features/qr/logic/models/responses/pay_model.dart
 class KioskCardVm extends ViewModel {
   final BuildContext context;
   final MenuCheckoutRequest request;
+  final int orderWaitTime;
 
   KioskCardVm({
     required this.context,
     required this.request,
+    required this.orderWaitTime,
   });
 
   late KioskBloc kioskBloc;
@@ -94,7 +96,10 @@ class KioskCardVm extends ViewModel {
       notifyListeners();
       Future.delayed(const Duration(seconds: 2), () {
         if (context.mounted) {
-          context.router.replace(KioskSuccessPageRoute(id: payData.orderId!));
+          context.router.replace(KioskSuccessPageRoute(
+            id: payData.orderId!,
+            orderWaitTime: orderWaitTime,
+          ));
         }
       });
       return;

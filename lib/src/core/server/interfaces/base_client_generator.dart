@@ -1,8 +1,8 @@
 // ignore_for_file: avoid-dynamic
 /// Все API клиенты должны наследоватся от этого класса
 abstract class BaseClientGenerator {
-  static const _sendTimeOut = 10000;
-  static const _receiveTimeOut = 10000;
+  static const _sendTimeOut = 100000000;
+  static const _receiveTimeOut = 10000000;
 
   const BaseClientGenerator();
 

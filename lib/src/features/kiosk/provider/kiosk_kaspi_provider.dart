@@ -8,14 +8,17 @@ class KioskKaspiProvider extends StatelessWidget {
   const KioskKaspiProvider({
     super.key,
     required this.request,
+    required this.orderWaitTime,
   });
   final MenuCheckoutRequest request;
+  final int orderWaitTime;
 
   @override
   Widget build(BuildContext context) => ChangeNotifierProvider<KioskKaspiVm>(
         create: (_) => KioskKaspiVm(
           context: context,
           request: request,
+          orderWaitTime: orderWaitTime,
         ),
         child: Consumer<KioskKaspiVm>(
           builder: (_, value, child) => KioskKaspiPayPage(viewModel: value),

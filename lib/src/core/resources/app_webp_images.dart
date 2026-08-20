@@ -68,5 +68,4 @@ class AppWebpImages {
       'assets/images/webp/subscription_logo.webp';
   static const String waiterAvatar = 'assets/images/webp/waiterAvatar.webp';
   static const String wallet = 'assets/images/webp/wallet.webp';
-  static const String qrLogo = 'assets/images/webp/qr_logo.webp';
 }

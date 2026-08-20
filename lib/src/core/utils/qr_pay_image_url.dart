@@ -1,4 +1,7 @@
 import 'package:flutter/widgets.dart';
+import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
+import 'package:qr_pay_app/src/features/home/logic/models/responses/items_model.dart';
+import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 
 /// Целевой размер (физ. пиксели) для imgproxy под hero на ProductPage.
 ///
@@ -43,4 +46,46 @@ String normalizeQrPayInsecureImageUrl(
       .replaceFirst(RegExp(r'h:\d+'), 'h:$h')
       .replaceFirst(RegExp(r'w:\d+'), 'w:$w')
       .replaceFirst(RegExp(r'q:\d+'), 'q:90');
+}
+
+/// Единая точка выбора URL картинки для [ImageDatum].
+///
+/// Порядок приоритетов фиксирован: `path` → `file` → `filePreview` → `image`.
+/// Все виджеты и precache **обязаны** использовать эту функцию,
+/// чтобы URL совпадал и кеш попадал.
+String resolveImageDatumUrl(ImageDatum? img) {
+  if (img == null) return '';
+  final candidates = <String?>[
+    img.path,
+    img.file,
+    img.filePreview,
+    img.image,
+  ];
+  for (final c in candidates) {
+    final v = c?.trim() ?? '';
+    if (v.isNotEmpty) return v;
+  }
+  return '';
+}
+
+/// Предзагружает картинку товара с тем же URL, который использует ProductPage
+/// (приоритет `file` → `path`, + normalizeQrPayInsecureImageUrl).
+/// Вызывать при тапе на товар **перед** навигацией.
+void precacheProductPageImage(BuildContext context, Items item) {
+  final images = item.image;
+  if (images == null || images.isEmpty) return;
+
+  final img = images.first;
+  final rawUrl = img.file?.trim() ?? img.path?.trim() ?? '';
+  if (rawUrl.isEmpty) return;
+
+  final px = qrPayHeroImageProxyPixels(context);
+  final url = normalizeQrPayInsecureImageUrl(
+    rawUrl,
+    targetWidthPx: px.widthPx,
+    targetHeightPx: px.heightPx,
+  );
+
+  // ignore: avoid_dynamic_calls
+  precacheUrl(url);
 }

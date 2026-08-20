@@ -36,7 +36,7 @@ class OrderDetailData extends BaseModel<OrderDetailData> {
   dynamic deliveryType;
   DateTime? readyAt;
   String? fullName;
-  int? number;
+  dynamic number;
   dynamic numberGenerated;
   String? tableId;
   // String? iikoOrderId;

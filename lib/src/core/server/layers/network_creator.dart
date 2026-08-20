@@ -21,8 +21,9 @@ class NetworkCreator {
           path: route.path,
           queryParameters: route.queryParameters,
           data: route.body,
-          sendTimeout: Duration(milliseconds: route.sendTimeout ?? 10000),
-          receiveTimeout: Duration(milliseconds: route.receiveTimeOut ?? 10000),
+          sendTimeout: Duration(milliseconds: route.sendTimeout ?? 100000000),
+          receiveTimeout:
+              Duration(milliseconds: route.receiveTimeOut ?? 10000000),
           onReceiveProgress: options?.onReceiveProgress,
           onSendProgress: options?.onSendProgress,
           validateStatus: (statusCode) =>

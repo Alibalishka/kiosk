@@ -1,5 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
+import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
@@ -11,6 +13,8 @@ import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+bool _navigationLocked = false;
 
 class BasketBtn extends StatelessWidget {
   const BasketBtn({
@@ -25,15 +29,27 @@ class BasketBtn extends StatelessWidget {
   bool get _hasNoModifiers => item.modifiers?.isEmpty ?? true;
 
   void _openProductSheet(BuildContext context) {
-    context.router.push(
+    if (_navigationLocked) return;
+    _navigationLocked = true;
+
+    // Предзагрузка картинки в кеш
+    precacheProductPageImage(context, item);
+
+    // Предзагрузка видео
+    viewModel.preloadVideoForItem(item);
+
+    context.router
+        .push(
       ProductPageRoute(
         item: item,
+        preloadedVideo: viewModel.getCachedVideoController(item.id),
       ),
-    );
-    // showCustomSheet(
-    //   context,
-    //   child: ProductPage(item: item),
-    // );
+    )
+        .whenComplete(() {
+      _navigationLocked = false;
+      viewModel.videoService.videoPlayerController?.play();
+      viewModel.returnVideoController(item.id);
+    });
   }
 
   void _onAddTap(BuildContext context) {
@@ -58,24 +74,35 @@ class BasketBtn extends StatelessWidget {
       child: SizedBox(
         width: width,
         height: height,
-        child: count == 0
-            ? _AddButton(
-                onTap: () => _onAddTap(context),
-              )
-            : _StepperButton(
-                count: viewModel.getItemCount(id),
-                // isTablet: viewModel.isTablet,
-                isTablet: true,
-                onMinus: () => viewModel.removeFromBasket(item),
-                onPlus: () => _onAddTap(context),
-              ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          switchInCurve: Curves.easeOutBack,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, animation) => ScaleTransition(
+            scale: animation,
+            child: FadeTransition(opacity: animation, child: child),
+          ),
+          child: count == 0
+              ? _AddButton(
+                  key: const ValueKey('add_button'),
+                  onTap: () => _onAddTap(context),
+                )
+              : _StepperButton(
+                  key: const ValueKey('stepper_button'),
+                  count: viewModel.getItemCount(id),
+                  // isTablet: viewModel.isTablet,
+                  isTablet: true,
+                  onMinus: () => viewModel.removeFromBasket(item),
+                  onPlus: () => _onAddTap(context),
+                ),
+        ),
       ),
     );
   }
 }
 
 class _AddButton extends StatelessWidget {
-  const _AddButton({required this.onTap});
+  const _AddButton({super.key, required this.onTap});
   final VoidCallback onTap;
 
   @override
@@ -107,6 +134,7 @@ class _AddButton extends StatelessWidget {
 
 class _StepperButton extends StatelessWidget {
   const _StepperButton({
+    super.key,
     required this.count,
     required this.isTablet,
     required this.onMinus,
@@ -141,11 +169,21 @@ class _StepperButton extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            count.toString(),
-            style: AppTextStyles.bodyLStrong.copyWith(
-              fontSize: isTablet ? 14.sp : null,
-              color: AppComponents.buttongroupButtonGrayIconColorDefault,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            switchInCurve: Curves.easeOutBack,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) => ScaleTransition(
+              scale: animation,
+              child: child,
+            ),
+            child: Text(
+              count.toString(),
+              key: ValueKey(count),
+              style: AppTextStyles.bodyLStrong.copyWith(
+                fontSize: isTablet ? 14.sp : null,
+                color: AppComponents.buttongroupButtonGrayIconColorDefault,
+              ),
             ),
           ),
           Expanded(

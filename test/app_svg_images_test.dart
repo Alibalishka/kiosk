@@ -10,10 +10,12 @@ void main() {
     expect(File(AppSvgImages.qr).existsSync(), isTrue);
     expect(File(AppSvgImages.addCircle).existsSync(), isTrue);
     expect(File(AppSvgImages.applePay).existsSync(), isTrue);
-    expect(File(AppSvgImages.applePay).existsSync(), isTrue);
+    expect(File(AppSvgImages.applePayLight).existsSync(), isTrue);
+    expect(File(AppSvgImages.arrow).existsSync(), isTrue);
     expect(File(AppSvgImages.arrowLeft).existsSync(), isTrue);
     expect(File(AppSvgImages.attachment).existsSync(), isTrue);
     expect(File(AppSvgImages.barcode).existsSync(), isTrue);
+    expect(File(AppSvgImages.borderQr).existsSync(), isTrue);
     expect(File(AppSvgImages.briefcase).existsSync(), isTrue);
     expect(File(AppSvgImages.businessOrder).existsSync(), isTrue);
     expect(File(AppSvgImages.buttonChevronForward).existsSync(), isTrue);
@@ -56,6 +58,7 @@ void main() {
     expect(File(AppSvgImages.flashlightOn).existsSync(), isTrue);
     expect(File(AppSvgImages.freeCoffee).existsSync(), isTrue);
     expect(File(AppSvgImages.gPay).existsSync(), isTrue);
+    expect(File(AppSvgImages.gPayLight).existsSync(), isTrue);
     expect(File(AppSvgImages.gpayCopy).existsSync(), isTrue);
     expect(File(AppSvgImages.gridview).existsSync(), isTrue);
     expect(File(AppSvgImages.heart).existsSync(), isTrue);
@@ -69,6 +72,7 @@ void main() {
     expect(File(AppSvgImages.internet).existsSync(), isTrue);
     expect(File(AppSvgImages.kaspiCompact).existsSync(), isTrue);
     expect(File(AppSvgImages.kaspiGold).existsSync(), isTrue);
+    expect(File(AppSvgImages.kaspiLabel).existsSync(), isTrue);
     expect(File(AppSvgImages.kaspiQr).existsSync(), isTrue);
     expect(File(AppSvgImages.kazakhstan).existsSync(), isTrue);
     expect(File(AppSvgImages.kioskNo).existsSync(), isTrue);
@@ -99,7 +103,8 @@ void main() {
     expect(File(AppSvgImages.plus).existsSync(), isTrue);
     expect(File(AppSvgImages.point).existsSync(), isTrue);
     expect(File(AppSvgImages.qrIcon).existsSync(), isTrue);
-    expect(File(AppSvgImages.qrIcon).existsSync(), isTrue);
+    expect(File(AppSvgImages.qrCode).existsSync(), isTrue);
+    expect(File(AppSvgImages.qrIconKiosk).existsSync(), isTrue);
     expect(File(AppSvgImages.qrpayLogo).existsSync(), isTrue);
     expect(File(AppSvgImages.radiobuttonOff).existsSync(), isTrue);
     expect(File(AppSvgImages.radiobuttonOn).existsSync(), isTrue);

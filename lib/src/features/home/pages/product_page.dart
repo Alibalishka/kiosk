@@ -20,10 +20,57 @@ import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/additions.dart';
+import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
 import 'package:qr_pay_app/src/features/home/widgets/product_info.dart';
 import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
 import 'package:sizer/sizer.dart';
 import 'package:video_player/video_player.dart';
+
+// Магнитная шапка: если после отпускания пальца скролл всё ещё в зоне
+// схлопывания hero-картинки, доводим её до ближайшего края (полностью
+// открыта/полностью свёрнута), а не оставляем на полпути — как в Blinkit.
+class _HeaderSnapPhysics extends ClampingScrollPhysics {
+  const _HeaderSnapPhysics({super.parent, required this.snapExtent});
+
+  final double snapExtent;
+
+  static const double _velocitySnapThreshold = 300;
+
+  @override
+  _HeaderSnapPhysics applyTo(ScrollPhysics? ancestor) {
+    return _HeaderSnapPhysics(
+      parent: buildParent(ancestor),
+      snapExtent: snapExtent,
+    );
+  }
+
+  @override
+  Simulation? createBallisticSimulation(
+    ScrollMetrics position,
+    double velocity,
+  ) {
+    final simulation = super.createBallisticSimulation(position, velocity);
+    if (snapExtent <= 0 ||
+        position.pixels <= 0 ||
+        position.pixels >= snapExtent) {
+      return simulation;
+    }
+
+    final target = velocity.abs() > _velocitySnapThreshold
+        ? (velocity > 0 ? snapExtent : 0.0)
+        : (position.pixels > snapExtent / 2 ? snapExtent : 0.0);
+
+    if ((target - position.pixels).abs() < 0.5) return null;
+
+    return ScrollSpringSimulation(
+      spring,
+      position.pixels,
+      target,
+      velocity,
+      tolerance: toleranceFor(position),
+    );
+  }
+}
 
 class ProductPage extends StatefulWidget {
   const ProductPage({
@@ -59,8 +106,8 @@ class _ProductPageState extends State<ProductPage> {
   void _onPreloadedVideoUpdate() {
     if (_videoController?.value.isInitialized ?? false) {
       _videoController!.removeListener(_onPreloadedVideoUpdate);
-      _videoController!.play();
       if (mounted) setState(() {});
+      _videoController?.play();
     }
   }
 
@@ -71,7 +118,6 @@ class _ProductPageState extends State<ProductPage> {
     _titleThreshold = w / 1.6;
   }
 
-  @override
   @override
   void initState() {
     super.initState();
@@ -84,7 +130,6 @@ class _ProductPageState extends State<ProductPage> {
       _isVideo = true;
       _ownsVideoController = false;
 
-      // ✅ не play() сразу
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
@@ -103,27 +148,6 @@ class _ProductPageState extends State<ProductPage> {
     }
   }
 
-  // void initState() {
-  //   super.initState();
-
-  //   // ✅ Provider read можно в initState (не listen)
-  //   final vm = context.read<QrMenuVm>();
-  //   vm.basketService.selectedModifiers = [];
-
-  //   if (widget.preloadedVideo != null) {
-  //     _videoController = widget.preloadedVideo;
-  //     _isVideo = true;
-  //     _ownsVideoController = false;
-  //     if (_videoController!.value.isInitialized) {
-  //       _videoController!.play();
-  //     } else {
-  //       _videoController!.addListener(_onPreloadedVideoUpdate);
-  //     }
-  //   } else {
-  //     _initVideoIfNeeded();
-  //   }
-  // }
-
   Future<void> _initVideoIfNeeded() async {
     final images = widget.item.image;
     if (images == null || images.isEmpty) return;
@@ -141,7 +165,6 @@ class _ProductPageState extends State<ProductPage> {
       await ctrl.initialize();
       await ctrl.setVolume(0.0);
       await ctrl.setLooping(true);
-      await ctrl.play();
 
       if (!mounted) {
         await ctrl.dispose();
@@ -152,6 +175,8 @@ class _ProductPageState extends State<ProductPage> {
         _videoController?.dispose();
         _videoController = ctrl;
       });
+
+      _videoController?.play();
     } catch (_) {
       _isVideo = false;
     }
@@ -250,7 +275,7 @@ class _ProductPageState extends State<ProductPage> {
               return false;
             },
             child: CustomScrollView(
-              physics: const ClampingScrollPhysics(),
+              physics: _HeaderSnapPhysics(snapExtent: 55.h - 100),
               slivers: [
                 SliverAppBar(
                   floating: false,
@@ -460,12 +485,26 @@ class _BottomBar extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            '${priceFormat(totalPrice.toString())} ₸',
-                            style: AppTextStyles.bodyXlStrong.copyWith(
-                              fontSize: isTablet ? 15.sp : null,
-                              color: AppComponents
-                                  .blockBlocktitleHeadingColorDefault,
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            switchInCurve: Curves.easeOutBack,
+                            switchOutCurve: Curves.easeIn,
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(
+                              scale: animation,
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                            ),
+                            child: Text(
+                              '${priceFormat(totalPrice.toString())} ₸',
+                              key: ValueKey(totalPrice),
+                              style: AppTextStyles.bodyXlStrong.copyWith(
+                                fontSize: isTablet ? 15.sp : null,
+                                color: AppComponents
+                                    .blockBlocktitleHeadingColorDefault,
+                              ),
                             ),
                           ),
                         ],
@@ -484,42 +523,57 @@ class _BottomBar extends StatelessWidget {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: GestureDetector(
-                                    onTap: onMinus,
-                                    child: Container(
-                                      color: AppColors.none,
-                                      child: Padding(
-                                        padding: AppPaddings.sym16x12,
-                                        child: SvgPicture.asset(
-                                          AppSvgImages.minus,
-                                          height: isTablet ? 24 : null,
-                                          color: AppComponents
-                                              .buttongroupButtonGrayIconColorDefault,
+                                  child: AnimatedCard(
+                                    child: GestureDetector(
+                                      onTap: onMinus,
+                                      child: Container(
+                                        color: AppColors.none,
+                                        child: Padding(
+                                          padding: AppPaddings.sym16x12,
+                                          child: SvgPicture.asset(
+                                            AppSvgImages.minus,
+                                            height: isTablet ? 24 : null,
+                                            color: AppComponents
+                                                .buttongroupButtonGrayIconColorDefault,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                                Text(
-                                  c.toString(),
-                                  style: AppTextStyles.bodyLStrong.copyWith(
-                                    fontSize: isTablet ? 16.sp : null,
-                                    color: AppComponents
-                                        .buttongroupButtonGrayIconColorDefault,
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  switchInCurve: Curves.easeOutBack,
+                                  switchOutCurve: Curves.easeIn,
+                                  transitionBuilder: (child, animation) =>
+                                      ScaleTransition(
+                                    scale: animation,
+                                    child: child,
+                                  ),
+                                  child: Text(
+                                    c.toString(),
+                                    key: ValueKey(c),
+                                    style: AppTextStyles.bodyLStrong.copyWith(
+                                      fontSize: isTablet ? 16.sp : null,
+                                      color: AppComponents
+                                          .buttongroupButtonGrayIconColorDefault,
+                                    ),
                                   ),
                                 ),
                                 Expanded(
-                                  child: GestureDetector(
-                                    onTap: onPlus,
-                                    child: Container(
-                                      color: AppColors.none,
-                                      child: Padding(
-                                        padding: AppPaddings.sym16x12,
-                                        child: SvgPicture.asset(
-                                          AppSvgImages.plus,
-                                          height: isTablet ? 18 : null,
-                                          color: AppComponents
-                                              .buttongroupButtonGrayIconColorDefault,
+                                  child: AnimatedCard(
+                                    child: GestureDetector(
+                                      onTap: onPlus,
+                                      child: Container(
+                                        color: AppColors.none,
+                                        child: Padding(
+                                          padding: AppPaddings.sym16x12,
+                                          child: SvgPicture.asset(
+                                            AppSvgImages.plus,
+                                            height: isTablet ? 18 : null,
+                                            color: AppComponents
+                                                .buttongroupButtonGrayIconColorDefault,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -530,21 +584,24 @@ class _BottomBar extends StatelessWidget {
                           ),
                           RowSpacer(0.1.sh),
                           Expanded(
-                            child: CupertinoButton(
-                              borderRadius: BorderRadius.circular(16),
-                              onPressed: onAdd,
-                              color: AppComponents
-                                  .buttongroupButtonPrimaryBgColorDefault,
-                              padding: const EdgeInsets.symmetric(vertical: 0),
-                              child: Padding(
+                            child: AnimatedCard(
+                              child: CupertinoButton(
+                                borderRadius: BorderRadius.circular(16),
+                                onPressed: onAdd,
+                                color: AppComponents
+                                    .buttongroupButtonPrimaryBgColorDefault,
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                child: Text(
-                                  LocaleKeys.addToOrder.tr(),
-                                  style: AppTextStyles.bodyLStrong.copyWith(
-                                    fontSize: isTablet ? 15.sp : null,
-                                    color: AppComponents
-                                        .buttongroupButtonPrimaryTextColorDefault,
+                                    const EdgeInsets.symmetric(vertical: 0),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  child: Text(
+                                    LocaleKeys.addToOrder.tr(),
+                                    style: AppTextStyles.bodyLStrong.copyWith(
+                                      fontSize: isTablet ? 15.sp : null,
+                                      color: AppComponents
+                                          .buttongroupButtonPrimaryTextColorDefault,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -583,6 +640,43 @@ class _ProductMediaBackground extends StatelessWidget {
         (MediaQuery.of(context).size.height * 0.6 * pixelRatio).round();
     final heroProxyPx = qrPayHeroImageProxyPixels(context);
 
+    final photoWidget = SafeNetworkImage(
+      key: const ValueKey('preview'),
+      imageUrl: normalizeQrPayInsecureImageUrl(
+        item.image?[0].file ?? item.image?[0].path ?? '',
+        targetWidthPx: heroProxyPx.widthPx,
+        targetHeightPx: heroProxyPx.heightPx,
+      ),
+      imageBuilder: (context, provider) => Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(8),
+          ),
+          image: DecorationImage(
+            image: ResizeImage(provider, height: cacheHeight),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      errorWidget: Container(
+        height: 300,
+        width: 300,
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          image: DecorationImage(
+            image: AssetImage(AppWebpImages.emptyStatus),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      placeholder: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.primitiveNeutral0,
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
+      ),
+    );
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -590,79 +684,48 @@ class _ProductMediaBackground extends StatelessWidget {
           Stack(
             alignment: Alignment.center,
             children: [
-              // if ((videoController?.value.isInitialized == false &&
-              //     videoController?.value.isPlaying == false))
-              // Positioned.fill(
-              //   child: Container(
-              //     decoration: const BoxDecoration(
-              //       color: AppColors.primitiveNeutral1000,
-              //       borderRadius: BorderRadius.all(Radius.circular(8)),
-              //     ),
-              //   ),
-              // ),
-              SafeNetworkImage(
-                key: const ValueKey('preview'),
-                imageUrl:
-                    // item.image?[0].filePreview ?? item.image?[0].path ?? '',
-                    normalizeQrPayInsecureImageUrl(
-                  item.image?[0].filePreview ?? item.image?[0].path ?? '',
-                  targetWidthPx: heroProxyPx.widthPx,
-                  targetHeightPx: heroProxyPx.heightPx,
-                ),
-                imageBuilder: (context, provider) => Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(8),
-                    ),
-                    image: DecorationImage(
-                      image: ResizeImage(provider, height: cacheHeight),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                errorWidget: Container(
-                  height: 300,
-                  width: 300,
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                    image: DecorationImage(
-                      image: AssetImage(AppWebpImages.emptyStatus),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                placeholder: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.primitiveNeutral0,
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                  ),
-                ),
-              ),
-              if (videoController?.value.isInitialized ?? false)
+              // 1. ФОТО (на заднем плане, всегда видно, никаких белых бликов)
+              photoWidget,
+
+              // 2. ВИДЕО (на переднем плане, плавно появляется ПОВЕРХ фото)
+              if (videoController != null)
                 Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(8),
-                    ),
-                    child: SizedBox.expand(
-                      child: FittedBox(
-                        fit: BoxFit.cover,
-                        child: SizedBox(
-                          width: videoController!.value.size.width,
-                          height: videoController!.value.size.height,
-                          child: VideoPlayer(videoController!),
+                  child: ValueListenableBuilder<VideoPlayerValue>(
+                    valueListenable: videoController!,
+                    builder: (context, value, child) {
+                      if (!value.isInitialized) return const SizedBox.shrink();
+
+                      final isReady = value.isInitialized && value.isPlaying;
+
+                      return AnimatedOpacity(
+                        opacity: isReady ? 1.0 : 0.0,
+                        duration: const Duration(
+                            milliseconds: 700), // Плавное проявление видео
+                        curve: Curves.easeInOut,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(8),
+                          ),
+                          child: SizedBox.expand(
+                            child: FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                width: value.size.width,
+                                height: value.size.height,
+                                child: VideoPlayer(videoController!),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
             ],
           )
         else if (item.image?.isNotEmpty ?? false)
           SafeNetworkImage(
-            imageUrl:
-                // item.image?[0].file ?? item.image?[0].path ?? '',
-                normalizeQrPayInsecureImageUrl(
+            imageUrl: normalizeQrPayInsecureImageUrl(
               item.image?[0].file ?? item.image?[0].path ?? '',
               targetWidthPx: heroProxyPx.widthPx,
               targetHeightPx: heroProxyPx.heightPx,
@@ -709,24 +772,26 @@ class _ProductMediaBackground extends StatelessWidget {
         ),
         Align(
           alignment: Alignment.topRight,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              Vibration.vibrate();
-              context.router.pop(context);
-            },
-            child: Container(
-              height: 4.sh,
-              width: 4.sh,
-              margin: const EdgeInsets.only(top: 60, right: 16),
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: AppColors.primitiveNeutralwarm0,
-                shape: BoxShape.circle,
-              ),
-              child: SvgPicture.asset(
-                AppSvgImages.closeLarge,
-                color: AppComponents.buttongroupButtonWhiteIconColorDefault,
+          child: AnimatedCard(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                Vibration.vibrate();
+                context.router.pop(context);
+              },
+              child: Container(
+                height: 4.sh,
+                width: 4.sh,
+                margin: const EdgeInsets.only(top: 60, right: 16),
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: AppColors.primitiveNeutralwarm0,
+                  shape: BoxShape.circle,
+                ),
+                child: SvgPicture.asset(
+                  AppSvgImages.closeLarge,
+                  color: AppComponents.buttongroupButtonWhiteIconColorDefault,
+                ),
               ),
             ),
           ),

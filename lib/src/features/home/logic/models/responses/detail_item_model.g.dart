@@ -44,6 +44,7 @@ DetailItemDatum _$DetailItemDatumFromJson(Map<String, dynamic> json) =>
       menuLink: json['menu_link'] as String?,
       isReady: json['is_ready'] as bool?,
       canReserve: json['can_reserve'] as bool?,
+      orderWaitTime: (json['order_wait_time'] as num?)?.toInt(),
       graphicWorks: (json['graphic_works'] as List<dynamic>?)
           ?.map((e) => GraphicWorkDatum.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -80,6 +81,7 @@ Map<String, dynamic> _$DetailItemDatumToJson(DetailItemDatum instance) =>
       'menu_link': instance.menuLink,
       'is_ready': instance.isReady,
       'can_reserve': instance.canReserve,
+      'order_wait_time': instance.orderWaitTime,
       'graphic_works': instance.graphicWorks,
       'in_hall': instance.inHall,
       'menu_version': instance.menuVersion,

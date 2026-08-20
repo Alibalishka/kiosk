@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +21,7 @@ import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_checkout.dart';
 import 'package:qr_pay_app/src/features/profile/widgets/not_auth_profile.dart';
 import 'package:sizer/sizer.dart';
@@ -436,155 +437,141 @@ class ItemRecomended extends StatelessWidget {
   String _resolveImageUrl() {
     final images = item?.image;
     if (images == null || images.isEmpty) return '';
-
-    for (final img in images) {
-      final candidates = <String?>[
-        img.path,
-        img.file,
-        img.filePreview,
-        img.image,
-      ];
-      for (final candidate in candidates) {
-        final value = candidate?.trim() ?? '';
-        if (value.isNotEmpty) return value;
-      }
-    }
-
-    return '';
+    return resolveImageDatumUrl(images.first);
   }
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<QrMenuVm>(context, listen: false);
     final imageUrl = _resolveImageUrl();
-    return GestureDetector(
-      onTap: () {
-        if (_productPageNavigationLocked) return;
-        _productPageNavigationLocked = true;
-        final url = imageUrl;
-        if (url.isNotEmpty) {
-          DefaultCacheManager().getSingleFile(url);
-        }
-        viewModel.preloadVideoForItem(item!);
-        context.router
-            .push(
-          ProductPageRoute(
-            item: item!,
-            preloadedVideo: viewModel.getCachedVideoController(item!.id),
-          ),
-        )
-            .whenComplete(() {
-          _productPageNavigationLocked = false;
-          viewModel.videoService.videoPlayerController?.play();
-          viewModel.returnVideoController(item!.id);
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
+    return AnimatedCard(
+      child: GestureDetector(
+        onTap: () {
+          if (_productPageNavigationLocked) return;
+          _productPageNavigationLocked = true;
+          // Прогреваем кэш изображения при тапе именно для ProductPage
+          precacheProductPageImage(context, item!);
+          viewModel.preloadVideoForItem(item!);
+          context.router
+              .push(
+            ProductPageRoute(
+              item: item!,
+              preloadedVideo: viewModel.getCachedVideoController(item!.id),
+            ),
+          )
+              .whenComplete(() {
+            _productPageNavigationLocked = false;
+            viewModel.videoService.videoPlayerController?.play();
+            viewModel.returnVideoController(item!.id);
+          });
+        },
         child: Container(
-          // width: viewModel.isTablet ? 300 : 150,
-          width: 300,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const ColumnSpacer(1.6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+            // width: viewModel.isTablet ? 300 : 150,
+            width: 300,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const ColumnSpacer(1.6),
 
-              imageUrl.isEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.asset(
-                        AppWebpImages.emptyStatus,
-                        height: context.mediaQuery.size.width / 2.7,
-                      ),
-                    )
-                  : SafeNetworkImage(
-                      // width: 150,
-                      height: context.isDesktop
-                          ? 500 / 2.8
-                          : context.mediaQuery.size.width / 3,
-                      imageUrl: imageUrl,
-                      // item?.image?.first.path ?? '',
-
-                      imageBuilder: (context, placeholder) => Container(
+                imageUrl.isEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          AppWebpImages.emptyStatus,
+                          height: context.mediaQuery.size.width / 2.7,
+                        ),
+                      )
+                    : SafeNetworkImage(
+                        // width: 150,
                         height: context.isDesktop
                             ? 500 / 2.8
-                            : context.mediaQuery.size.width / 2.7,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          image: DecorationImage(
-                            image: placeholder,
-                            fit: BoxFit.cover,
+                            : context.mediaQuery.size.width / 3,
+                        imageUrl: imageUrl,
+                        // item?.image?.first.path ?? '',
+
+                        imageBuilder: (context, placeholder) => Container(
+                          height: context.isDesktop
+                              ? 500 / 2.8
+                              : context.mediaQuery.size.width / 2.7,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            image: DecorationImage(
+                              image: placeholder,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-              const ColumnSpacer(0.8),
-              Text('${priceFormat(item?.price.toString() ?? '0')} ₸',
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: AppTextStyles.bodyXlStrong.copyWith(
-                    // fontSize: viewModel.isTablet ? 16.sp : null,
-                    fontSize: 16.sp,
-                  )
-                  // .copyWith(color: AppColors.primitiveNeutralwarm0),
-                  ),
-              const ColumnSpacer(0.4),
-              Container(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  formatMenuItemTitle(item?.name),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  style: AppTextStyles.bodyLStrong.copyWith(
-                    fontSize: 15.sp,
+                const ColumnSpacer(0.8),
+                Text('${priceFormat(item?.price.toString() ?? '0')} ₸',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: AppTextStyles.bodyXlStrong.copyWith(
+                      // fontSize: viewModel.isTablet ? 16.sp : null,
+                      fontSize: 16.sp,
+                    )
+                    // .copyWith(color: AppColors.primitiveNeutralwarm0),
+                    ),
+                const ColumnSpacer(0.4),
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    formatMenuItemTitle(item?.name),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    style: AppTextStyles.bodyLStrong.copyWith(
+                      fontSize: 15.sp,
+                    ),
                   ),
                 ),
-              ),
-              const ColumnSpacer(0.4),
-              Text(item?.description ?? '',
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  style: AppTextStyles.bodyS.copyWith(
-                    fontSize: 14.sp,
-                    // fontSize: viewModel.isTablet ? 14.sp : null,
-                    color: AppColors.semanticFgSofter,
-                  )
-                  // .copyWith(color: AppColors.primitiveNeutralwarm0),
-                  ),
-              const ColumnSpacer(0.6),
-              const Spacer(),
-              bottom ?? const SizedBox.shrink(),
-              // GestureDetector(
-              //   onTap: () {},
-              //   child: Container(
-              //     padding: AppPaddings.symmetric8x16,
-              //     decoration: BoxDecoration(
-              //       borderRadius: BorderRadius.circular(12),
-              //       color: AppColors.semanticBgSurface3,
-              //     ),
-              //     child: Row(
-              //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //       children: [
-              //         const SizedBox(width: 24),
-              //         Text(
-              //           '${priceFormat(item?.price.toString() ?? '0')} ₸ ',
-              //           style: AppTextStyles.bodyMStrong.copyWith(
-              //               color: AppComponents
-              //                   .buttongroupButtonGrayTextColorDefault),
-              //         ),
-              //         SvgPicture.asset(AppSvgImages.plus,
-              //             color: AppComponents
-              //                 .buttongroupButtonGrayTextColorDefault)
-              //       ],
-              //     ),
-              //   ),
-              // ),
-              const ColumnSpacer(0.8),
-            ],
+                const ColumnSpacer(0.4),
+                Text(item?.description ?? '',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    style: AppTextStyles.bodyS.copyWith(
+                      fontSize: 14.sp,
+                      // fontSize: viewModel.isTablet ? 14.sp : null,
+                      color: AppColors.semanticFgSofter,
+                    )
+                    // .copyWith(color: AppColors.primitiveNeutralwarm0),
+                    ),
+                const ColumnSpacer(0.6),
+                const Spacer(),
+                bottom ?? const SizedBox.shrink(),
+                // GestureDetector(
+                //   onTap: () {},
+                //   child: Container(
+                //     padding: AppPaddings.symmetric8x16,
+                //     decoration: BoxDecoration(
+                //       borderRadius: BorderRadius.circular(12),
+                //       color: AppColors.semanticBgSurface3,
+                //     ),
+                //     child: Row(
+                //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //       children: [
+                //         const SizedBox(width: 24),
+                //         Text(
+                //           '${priceFormat(item?.price.toString() ?? '0')} ₸ ',
+                //           style: AppTextStyles.bodyMStrong.copyWith(
+                //               color: AppComponents
+                //                   .buttongroupButtonGrayTextColorDefault),
+                //         ),
+                //         SvgPicture.asset(AppSvgImages.plus,
+                //             color: AppComponents
+                //                 .buttongroupButtonGrayTextColorDefault)
+                //       ],
+                //     ),
+                //   ),
+                // ),
+                const ColumnSpacer(0.8),
+              ],
+            ),
           ),
         ),
       ),
