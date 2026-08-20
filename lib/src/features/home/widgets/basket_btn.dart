@@ -74,24 +74,35 @@ class BasketBtn extends StatelessWidget {
       child: SizedBox(
         width: width,
         height: height,
-        child: count == 0
-            ? _AddButton(
-                onTap: () => _onAddTap(context),
-              )
-            : _StepperButton(
-                count: viewModel.getItemCount(id),
-                // isTablet: viewModel.isTablet,
-                isTablet: true,
-                onMinus: () => viewModel.removeFromBasket(item),
-                onPlus: () => _onAddTap(context),
-              ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          switchInCurve: Curves.easeOutBack,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, animation) => ScaleTransition(
+            scale: animation,
+            child: FadeTransition(opacity: animation, child: child),
+          ),
+          child: count == 0
+              ? _AddButton(
+                  key: const ValueKey('add_button'),
+                  onTap: () => _onAddTap(context),
+                )
+              : _StepperButton(
+                  key: const ValueKey('stepper_button'),
+                  count: viewModel.getItemCount(id),
+                  // isTablet: viewModel.isTablet,
+                  isTablet: true,
+                  onMinus: () => viewModel.removeFromBasket(item),
+                  onPlus: () => _onAddTap(context),
+                ),
+        ),
       ),
     );
   }
 }
 
 class _AddButton extends StatelessWidget {
-  const _AddButton({required this.onTap});
+  const _AddButton({super.key, required this.onTap});
   final VoidCallback onTap;
 
   @override
@@ -123,6 +134,7 @@ class _AddButton extends StatelessWidget {
 
 class _StepperButton extends StatelessWidget {
   const _StepperButton({
+    super.key,
     required this.count,
     required this.isTablet,
     required this.onMinus,
@@ -157,11 +169,21 @@ class _StepperButton extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            count.toString(),
-            style: AppTextStyles.bodyLStrong.copyWith(
-              fontSize: isTablet ? 14.sp : null,
-              color: AppComponents.buttongroupButtonGrayIconColorDefault,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            switchInCurve: Curves.easeOutBack,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) => ScaleTransition(
+              scale: animation,
+              child: child,
+            ),
+            child: Text(
+              count.toString(),
+              key: ValueKey(count),
+              style: AppTextStyles.bodyLStrong.copyWith(
+                fontSize: isTablet ? 14.sp : null,
+                color: AppComponents.buttongroupButtonGrayIconColorDefault,
+              ),
             ),
           ),
           Expanded(

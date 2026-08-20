@@ -19,6 +19,8 @@ import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 class DeviceInfoDialog {
   const DeviceInfoDialog._();
 
+  static const MethodChannel _dpc = MethodChannel('dpc');
+
   static Future<void> show({
     required BuildContext context,
     required QrMenuVm viewModel,
@@ -28,6 +30,7 @@ class DeviceInfoDialog {
     required Future<void> Function() onExitFromKiosk,
   }) async {
     var otaRunning = false;
+    var lockRunning = false;
     final deviceInfo = DeviceInfoPlugin();
     final deviceId = await const DeviceIdService().getOrCreate();
     final org = viewModel.menuData?.organization;
@@ -116,77 +119,123 @@ class DeviceInfoDialog {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           OutlinedButton(
-                          onPressed: exitInProgress
-                              ? null
-                              : () async {
-                                  final confirmed =
-                                      await KioskExitConfirmDialog.show(
-                                    context: context,
-                                    exitConfirmController:
-                                        exitConfirmController,
-                                    exitInProgress: exitInProgress,
-                                  );
-
-                                  if (!context.mounted || confirmed != true)
-                                    return;
-
-                                  ctx.router.pop();
-                                  await onExitFromKiosk();
-                                },
-                          child: const Text('Выйти из киоска'),
-                        ),
-                        const SizedBox(height: 8),
-                        if (!Platform.isIOS)
-                          FilledButton(
-                            onPressed: otaRunning
+                            onPressed: exitInProgress
                                 ? null
                                 : () async {
-                                    setStateDialog(() => otaRunning = true);
-                                    try {
-                                      await sl<OtaUpdateService>()
-                                          .downloadAndInstall();
-                                      if (!ctx.mounted) return;
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        const SnackBar(
-                                          content:
-                                              Text('Обновление завершено'),
-                                        ),
-                                      );
-                                    } on PlatformException catch (e) {
-                                      if (!ctx.mounted) return;
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            e.message?.trim().isNotEmpty == true
-                                                ? e.message!
-                                                : 'Не удалось обновить',
-                                          ),
-                                        ),
-                                      );
-                                    } catch (_) {
-                                      if (!ctx.mounted) return;
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Не удалось обновить'),
-                                        ),
-                                      );
-                                    } finally {
-                                      if (ctx.mounted) {
-                                        setStateDialog(() => otaRunning = false);
-                                      }
-                                    }
+                                    final confirmed =
+                                        await KioskExitConfirmDialog.show(
+                                      context: context,
+                                      exitConfirmController:
+                                          exitConfirmController,
+                                      exitInProgress: exitInProgress,
+                                    );
+
+                                    if (!context.mounted || confirmed != true)
+                                      return;
+
+                                    ctx.router.pop();
+                                    await onExitFromKiosk();
                                   },
-                            child: Text(
-                              otaRunning
-                                  ? 'Обновление…'
-                                  : 'Обновить приложение',
-                            ),
+                            child: const Text('Выйти из киоска'),
                           ),
-                        if (!Platform.isIOS) const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () => ctx.router.pop(),
-                          child: Text(LocaleKeys.close.tr()),
-                        ),
+                          const SizedBox(height: 8),
+                          if (!Platform.isIOS)
+                            FilledButton(
+                              onPressed: otaRunning
+                                  ? null
+                                  : () async {
+                                      setStateDialog(() => otaRunning = true);
+                                      try {
+                                        await sl<OtaUpdateService>()
+                                            .downloadAndInstall();
+                                        if (!ctx.mounted) return;
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          const SnackBar(
+                                            content:
+                                                Text('Обновление завершено'),
+                                          ),
+                                        );
+                                      } on PlatformException catch (e) {
+                                        if (!ctx.mounted) return;
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              e.message?.trim().isNotEmpty ==
+                                                      true
+                                                  ? e.message!
+                                                  : 'Не удалось обновить',
+                                            ),
+                                          ),
+                                        );
+                                      } catch (_) {
+                                        if (!ctx.mounted) return;
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          const SnackBar(
+                                            content:
+                                                Text('Не удалось обновить'),
+                                          ),
+                                        );
+                                      } finally {
+                                        if (ctx.mounted) {
+                                          setStateDialog(
+                                              () => otaRunning = false);
+                                        }
+                                      }
+                                    },
+                              child: Text(
+                                otaRunning
+                                    ? 'Обновление…'
+                                    : 'Обновить приложение',
+                              ),
+                            ),
+                          if (!Platform.isIOS) const SizedBox(height: 8),
+                          if (Platform.isAndroid)
+                            OutlinedButton(
+                              onPressed: lockRunning
+                                  ? null
+                                  : () async {
+                                      setStateDialog(() => lockRunning = true);
+                                      try {
+                                        await _dpc.invokeMethod('lockDevice');
+                                        if (ctx.mounted) ctx.router.pop();
+                                      } on PlatformException catch (e) {
+                                        if (!ctx.mounted) return;
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              e.message?.trim().isNotEmpty ==
+                                                      true
+                                                  ? 'Не удалось заблокировать: ${e.message}'
+                                                  : 'Не удалось заблокировать устройство',
+                                            ),
+                                          ),
+                                        );
+                                      } catch (_) {
+                                        if (!ctx.mounted) return;
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Не удалось заблокировать устройство'),
+                                          ),
+                                        );
+                                      } finally {
+                                        if (ctx.mounted) {
+                                          setStateDialog(
+                                              () => lockRunning = false);
+                                        }
+                                      }
+                                    },
+                              child: Text(
+                                lockRunning
+                                    ? 'Блокировка…'
+                                    : 'Отключить устройство',
+                              ),
+                            ),
+                          if (Platform.isAndroid) const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () => ctx.router.pop(),
+                            child: Text(LocaleKeys.close.tr()),
+                          ),
                         ],
                       ),
                     ),

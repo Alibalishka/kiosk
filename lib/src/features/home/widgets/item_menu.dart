@@ -15,6 +15,7 @@ import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
 import 'package:sizer/sizer.dart';
 
@@ -36,10 +37,93 @@ class ItemMenu extends StatelessWidget {
       child: SizedBox(
         // height: viewModel.isTablet ? 15.sh : 136,
         height: 15.sh,
-        child: Row(
-          children: [
-            if (item.image?.isNotEmpty ?? false)
-              GestureDetector(
+        child: AnimatedCard(
+          child: Row(
+            children: [
+              if (item.image?.isNotEmpty ?? false)
+                GestureDetector(
+                    onTap: () {
+                      if (_itemMenuNavLocked) return;
+                      _itemMenuNavLocked = true;
+                      precacheProductPageImage(context, item);
+                      viewModel.preloadVideoForItem(item);
+                      context.router
+                          .push(
+                        ProductPageRoute(
+                          item: item,
+                          preloadedVideo:
+                              viewModel.getCachedVideoController(item.id),
+                        ),
+                      )
+                          .whenComplete(() {
+                        _itemMenuNavLocked = false;
+                        viewModel.videoService.videoPlayerController?.play();
+                        viewModel.returnVideoController(item.id);
+                      });
+                    },
+                    // showCustomSheet(
+                    //       context,
+                    //       child: ProductPage(
+                    //         item: item,
+                    //         // isSubscription: viewModel.isSubscription,
+                    //         // isMenuPage: true,
+                    //       ),
+                    //     ),
+                    // context.router.push(
+                    //       ProductPageRoute(
+                    //         item: item,
+                    //       ),
+                    //     ),
+                    // showCustomSheet(
+                    //       context,
+                    //       child: ProductPage(
+                    //         item: item,
+                    //         // isSubscription: viewModel.isSubscription,
+                    //         // isMenuPage: true,
+                    //       ),
+                    //     ),
+                    child: item.image?.isNotEmpty ?? false
+                        ? Padding(
+                            padding: const EdgeInsets.only(right: 20),
+                            child: SafeNetworkImage(
+                              // width: viewModel.isTablet ? 175 : 131,
+                              width: 175,
+                              // height: viewModel.isTablet ? 180 : 136,
+                              height: 180,
+                              imageUrl: resolveImageDatumUrl(item.image!.first),
+                              placeholder: Container(
+                                // height: viewModel.isTablet ? 180 : 136,
+                                height: 180,
+                                // width: viewModel.isTablet ? 175 : 131,
+                                width: 175,
+                                decoration: BoxDecoration(
+                                  color: AppColors.none,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              imageBuilder: (context, placeholder) => Container(
+                                // width: viewModel.isTablet ? 175 : 131,
+                                width: 175,
+                                // height: viewModel.isTablet ? 180 : 136,
+                                height: 180,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  image: DecorationImage(
+                                    image: placeholder,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink()
+                    // ClipRRect(
+                    //     borderRadius: BorderRadius.circular(16),
+                    //     child: Image.asset(AppWebpImages.placeholderMenu)),
+                    ),
+              // const RowSpacer(2),
+              Flexible(
+                child: GestureDetector(
                   onTap: () {
                     if (_itemMenuNavLocked) return;
                     _itemMenuNavLocked = true;
@@ -49,7 +133,8 @@ class ItemMenu extends StatelessWidget {
                         .push(
                       ProductPageRoute(
                         item: item,
-                        preloadedVideo: viewModel.getCachedVideoController(item.id),
+                        preloadedVideo:
+                            viewModel.getCachedVideoController(item.id),
                       ),
                     )
                         .whenComplete(() {
@@ -59,265 +144,185 @@ class ItemMenu extends StatelessWidget {
                     });
                   },
                   // showCustomSheet(
-                  //       context,
-                  //       child: ProductPage(
-                  //         item: item,
-                  //         // isSubscription: viewModel.isSubscription,
-                  //         // isMenuPage: true,
-                  //       ),
-                  //     ),
-                  // context.router.push(
-                  //       ProductPageRoute(
-                  //         item: item,
-                  //       ),
-                  //     ),
-                  // showCustomSheet(
-                  //       context,
-                  //       child: ProductPage(
-                  //         item: item,
-                  //         // isSubscription: viewModel.isSubscription,
-                  //         // isMenuPage: true,
-                  //       ),
-                  //     ),
-                  child: item.image?.isNotEmpty ?? false
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 20),
-                          child: SafeNetworkImage(
-                            // width: viewModel.isTablet ? 175 : 131,
-                            width: 175,
-                            // height: viewModel.isTablet ? 180 : 136,
-                            height: 180,
-                            imageUrl: resolveImageDatumUrl(item.image!.first),
-                            placeholder: Container(
-                              // height: viewModel.isTablet ? 180 : 136,
-                              height: 180,
-                              // width: viewModel.isTablet ? 175 : 131,
-                              width: 175,
-                              decoration: BoxDecoration(
-                                color: AppColors.none,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                  //   context,
+                  //   child: ProductPage(
+                  //     item: item,
+                  //     // isSubscription: viewModel.isSubscription,
+                  //     // isMenuPage: true,
+                  //   ),
+                  // ),
+                  //  context.router.push(
+                  //   ProductPageRoute(
+                  //     item: item,
+                  //   ),
+                  // ),
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //       builder: (context) => ProductPage(item: item)),
+                  // ),
+                  //  showCustomSheet(
+                  //   context,
+                  //   child: ProductPage(
+                  //     item: item,
+                  //     // isSubscription: viewModel.isSubscription,
+                  //     // isMenuPage: true,
+                  //   ),
+                  // ),
+                  child: Container(
+                    color: AppColors.none,
+                    child: Stack(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              formatMenuItemTitle(item.name),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.bodyLStrong.copyWith(
+                                  fontSize: 15.sp,
+                                  // fontSize: viewModel.isTablet ? 15.sp : null,
+                                  color: AppColors.semanticFgDefault),
                             ),
-                            imageBuilder: (context, placeholder) => Container(
-                              // width: viewModel.isTablet ? 175 : 131,
-                              width: 175,
-                              // height: viewModel.isTablet ? 180 : 136,
-                              height: 180,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                image: DecorationImage(
-                                  image: placeholder,
-                                  fit: BoxFit.cover,
+                            Text(
+                              item.description ?? '',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.bodyS.copyWith(
+                                  fontSize: 14.sp,
+                                  // fontSize: viewModel.isTablet ? 14.sp : null,
+                                  color: AppColors.semanticFgSofter),
+                            ),
+                            const Spacer(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${priceFormat(item.price.toString())} ₸',
+                                  style: AppTextStyles.bodyXlStrong.copyWith(
+                                      fontSize: 16.sp,
+                                      // fontSize: viewModel.isTablet ? 16.sp : null,
+                                      color: AppColors.semanticFgDefault),
                                 ),
-                              ),
+                                BasketBtn(
+                                  viewModel: viewModel,
+                                  item: item,
+                                  // isSubscription: viewModel.isSubscription,
+                                  // isMenuPage: true,
+                                ),
+                                // BasketBtn(
+                                //   viewModel: viewModel,
+                                //   item: item,
+                                //   // isSubscription: viewModel.isSubscription,
+                                //   // isMenuPage: true,
+                                // ),
+                                // viewModel.getCount(item.id ?? 0) == 0
+                                //     ? GestureDetector(
+                                //         onTap: () => viewModel.adddBasket(
+                                //           data: item,
+                                //           count: 1,
+                                //         ),
+                                //         child: Container(
+                                //           width: 100,
+                                //           height: 42,
+                                //           padding: AppPaddings.sym16x12,
+                                //           decoration: BoxDecoration(
+                                //             borderRadius: BorderRadius.circular(8),
+                                //             color: AppColors.semanticBgSurface3,
+                                //           ),
+                                //           child: SvgPicture.asset(
+                                //             AppSvgImages.plus,
+                                //             color: AppComponents
+                                //                 .buttongroupButtonPrimaryIconColorDefault,
+                                //           ),
+                                //         ),
+                                //       )
+                                //     : Container(
+                                //         width: 107,
+                                //         height: 42,
+                                //         decoration: BoxDecoration(
+                                //           borderRadius: BorderRadius.circular(8),
+                                //           color: AppColors.semanticBgSurface3,
+                                //         ),
+                                //         child: Row(
+                                //           children: [
+                                //             GestureDetector(
+                                //               onTap: () => viewModel
+                                //                   .removeFromBasket(item.id ?? 0),
+                                //               child: Container(
+                                //                 color: AppColors.none,
+                                //                 child: Padding(
+                                //                   padding: AppPaddings.sym16x12,
+                                //                   child: SvgPicture.asset(
+                                //                     AppSvgImages.minus,
+                                //                     color: AppComponents
+                                //                         .buttongroupButtonGrayIconColorDefault,
+                                //                   ),
+                                //                 ),
+                                //               ),
+                                //             ),
+                                //             Text(
+                                //               viewModel
+                                //                   .getCount(item.id ?? 0)
+                                //                   .toString(),
+                                //               style:
+                                //                   AppTextStyles.bodyLStrong.copyWith(
+                                //                 color: AppComponents
+                                //                     .buttongroupButtonGrayIconColorDefault,
+                                //               ),
+                                //             ),
+                                //             GestureDetector(
+                                //               onTap: () => viewModel.adddBasket(
+                                //                 data: item,
+                                //                 count: 1,
+                                //               ),
+                                //               child: Container(
+                                //                 color: AppColors.none,
+                                //                 child: Padding(
+                                //                   padding: AppPaddings.sym16x12,
+                                //                   child: SvgPicture.asset(
+                                //                     AppSvgImages.plus,
+                                //                     color: AppComponents
+                                //                         .buttongroupButtonGrayIconColorDefault,
+                                //                   ),
+                                //                 ),
+                                //               ),
+                                //             ),
+                                //           ],
+                                //         ),
+                                //       ),
+                              ],
                             ),
-                          ),
-                        )
-                      : const SizedBox.shrink()
-                  // ClipRRect(
-                  //     borderRadius: BorderRadius.circular(16),
-                  //     child: Image.asset(AppWebpImages.placeholderMenu)),
-                  ),
-            // const RowSpacer(2),
-            Flexible(
-              child: GestureDetector(
-                onTap: () {
-                  if (_itemMenuNavLocked) return;
-                  _itemMenuNavLocked = true;
-                  precacheProductPageImage(context, item);
-                  viewModel.preloadVideoForItem(item);
-                  context.router
-                      .push(
-                    ProductPageRoute(
-                      item: item,
-                      preloadedVideo: viewModel.getCachedVideoController(item.id),
+                          ],
+                        ),
+                        // Positioned(
+                        //   bottom: 0,
+                        //   right: 0,
+                        //   child: Row(
+                        //     children: [
+                        //       Text(
+                        //         '${priceFormat(item.price.toString())} ₸',
+                        //         style: AppTextStyles.bodyXlStrong.copyWith(
+                        //             fontSize: viewModel.isTablet ? 24.sp : null,
+                        //             color: AppColors.semanticFgDefault),
+                        //       ),
+                        //       BasketBtn(
+                        //         viewModel: viewModel,
+                        //         item: item,
+                        //         // isSubscription: viewModel.isSubscription,
+                        //         // isMenuPage: true,
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
+                      ],
                     ),
-                  )
-                      .whenComplete(() {
-                    _itemMenuNavLocked = false;
-                    viewModel.videoService.videoPlayerController?.play();
-                    viewModel.returnVideoController(item.id);
-                  });
-                },
-                // showCustomSheet(
-                //   context,
-                //   child: ProductPage(
-                //     item: item,
-                //     // isSubscription: viewModel.isSubscription,
-                //     // isMenuPage: true,
-                //   ),
-                // ),
-                //  context.router.push(
-                //   ProductPageRoute(
-                //     item: item,
-                //   ),
-                // ),
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //       builder: (context) => ProductPage(item: item)),
-                // ),
-                //  showCustomSheet(
-                //   context,
-                //   child: ProductPage(
-                //     item: item,
-                //     // isSubscription: viewModel.isSubscription,
-                //     // isMenuPage: true,
-                //   ),
-                // ),
-                child: Container(
-                  color: AppColors.none,
-                  child: Stack(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            formatMenuItemTitle(item.name),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.bodyLStrong.copyWith(
-                                fontSize: 15.sp,
-                                // fontSize: viewModel.isTablet ? 15.sp : null,
-                                color: AppColors.semanticFgDefault),
-                          ),
-                          Text(
-                            item.description ?? '',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.bodyS.copyWith(
-                                fontSize: 14.sp,
-                                // fontSize: viewModel.isTablet ? 14.sp : null,
-                                color: AppColors.semanticFgSofter),
-                          ),
-                          const Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${priceFormat(item.price.toString())} ₸',
-                                style: AppTextStyles.bodyXlStrong.copyWith(
-                                    fontSize: 16.sp,
-                                    // fontSize: viewModel.isTablet ? 16.sp : null,
-                                    color: AppColors.semanticFgDefault),
-                              ),
-                              BasketBtn(
-                                viewModel: viewModel,
-                                item: item,
-                                // isSubscription: viewModel.isSubscription,
-                                // isMenuPage: true,
-                              ),
-                              // BasketBtn(
-                              //   viewModel: viewModel,
-                              //   item: item,
-                              //   // isSubscription: viewModel.isSubscription,
-                              //   // isMenuPage: true,
-                              // ),
-                              // viewModel.getCount(item.id ?? 0) == 0
-                              //     ? GestureDetector(
-                              //         onTap: () => viewModel.adddBasket(
-                              //           data: item,
-                              //           count: 1,
-                              //         ),
-                              //         child: Container(
-                              //           width: 100,
-                              //           height: 42,
-                              //           padding: AppPaddings.sym16x12,
-                              //           decoration: BoxDecoration(
-                              //             borderRadius: BorderRadius.circular(8),
-                              //             color: AppColors.semanticBgSurface3,
-                              //           ),
-                              //           child: SvgPicture.asset(
-                              //             AppSvgImages.plus,
-                              //             color: AppComponents
-                              //                 .buttongroupButtonPrimaryIconColorDefault,
-                              //           ),
-                              //         ),
-                              //       )
-                              //     : Container(
-                              //         width: 107,
-                              //         height: 42,
-                              //         decoration: BoxDecoration(
-                              //           borderRadius: BorderRadius.circular(8),
-                              //           color: AppColors.semanticBgSurface3,
-                              //         ),
-                              //         child: Row(
-                              //           children: [
-                              //             GestureDetector(
-                              //               onTap: () => viewModel
-                              //                   .removeFromBasket(item.id ?? 0),
-                              //               child: Container(
-                              //                 color: AppColors.none,
-                              //                 child: Padding(
-                              //                   padding: AppPaddings.sym16x12,
-                              //                   child: SvgPicture.asset(
-                              //                     AppSvgImages.minus,
-                              //                     color: AppComponents
-                              //                         .buttongroupButtonGrayIconColorDefault,
-                              //                   ),
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //             Text(
-                              //               viewModel
-                              //                   .getCount(item.id ?? 0)
-                              //                   .toString(),
-                              //               style:
-                              //                   AppTextStyles.bodyLStrong.copyWith(
-                              //                 color: AppComponents
-                              //                     .buttongroupButtonGrayIconColorDefault,
-                              //               ),
-                              //             ),
-                              //             GestureDetector(
-                              //               onTap: () => viewModel.adddBasket(
-                              //                 data: item,
-                              //                 count: 1,
-                              //               ),
-                              //               child: Container(
-                              //                 color: AppColors.none,
-                              //                 child: Padding(
-                              //                   padding: AppPaddings.sym16x12,
-                              //                   child: SvgPicture.asset(
-                              //                     AppSvgImages.plus,
-                              //                     color: AppComponents
-                              //                         .buttongroupButtonGrayIconColorDefault,
-                              //                   ),
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //           ],
-                              //         ),
-                              //       ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      // Positioned(
-                      //   bottom: 0,
-                      //   right: 0,
-                      //   child: Row(
-                      //     children: [
-                      //       Text(
-                      //         '${priceFormat(item.price.toString())} ₸',
-                      //         style: AppTextStyles.bodyXlStrong.copyWith(
-                      //             fontSize: viewModel.isTablet ? 24.sp : null,
-                      //             color: AppColors.semanticFgDefault),
-                      //       ),
-                      //       BasketBtn(
-                      //         viewModel: viewModel,
-                      //         item: item,
-                      //         // isSubscription: viewModel.isSubscription,
-                      //         // isMenuPage: true,
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
-                    ],
                   ),
                 ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );

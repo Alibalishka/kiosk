@@ -182,6 +182,17 @@ class MainActivity : FlutterActivity() {
             }
           }
 
+          // ✅ Блокировка экрана силами Device Owner
+          "lockDevice" -> {
+            try {
+              val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+              dpm.lockNow()
+              result.success(true)
+            } catch (e: Throwable) {
+              result.error("LOCK_FAILED", e.message, null)
+            }
+          }
+
           // ✅ Если админ захотел вернуть киоск без переустановки (опционально)
           "enableKiosk" -> {
             setKioskDisabled(false)

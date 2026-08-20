@@ -98,6 +98,32 @@ final BaseCacheManager kioskCacheManager = CacheManager(
 );
 
 // ---------------------------------------------------------------------------
+// Pool for background video caching — separate from image pools and capped
+// low, so warming the disk cache for a product's video never competes with
+// the video actively being watched or with visible-widget image loads.
+// ---------------------------------------------------------------------------
+const int _kVideoCacheMaxParallel = 2;
+int _videoCacheActive = 0;
+final List<Completer<void>> _videoCacheQueue = [];
+
+Future<void> videoCacheThrottled(Future<void> Function() work) async {
+  if (_videoCacheActive >= _kVideoCacheMaxParallel) {
+    final c = Completer<void>();
+    _videoCacheQueue.add(c);
+    await c.future;
+  }
+  _videoCacheActive++;
+  try {
+    await work();
+  } finally {
+    _videoCacheActive--;
+    if (_videoCacheQueue.isNotEmpty) {
+      _videoCacheQueue.removeAt(0).complete();
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Prefetch helpers — used by ViewModel to preload URLs into both disk and
 // in-memory caches. Uses a SEPARATE low-priority pool so it never blocks
 // visible widget image loading.

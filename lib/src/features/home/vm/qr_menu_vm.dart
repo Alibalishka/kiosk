@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -87,6 +88,9 @@ class QrMenuVm extends ViewModel {
   /// Кэш предзагруженных видео для ProductPage (по item.id). Таймеры очистки через 2 мин.
   final Map<int, VideoPlayerController> _videoControllerCache = {};
   final Map<int, Timer> _videoCacheTimers = {};
+
+  /// Локальные файлы видео, уже скачанные в дисковый кеш в этой сессии (по URL).
+  final Map<String, File> _videoFileCache = {};
 
   PaymentMethod paymentMethodData = PaymentMethod();
   TextEditingController nameController = TextEditingController();
@@ -266,7 +270,7 @@ class QrMenuVm extends ViewModel {
         if (images == null || images.isEmpty) continue;
 
         final img = images.first;
-        
+
         // 1. Для меню: path-first
         final menuUrl = resolveImageDatumUrl(img);
         if (menuUrl.isNotEmpty) {
@@ -319,7 +323,7 @@ class QrMenuVm extends ViewModel {
   void preloadVideoForItem(Items item) {
     final id = item.id;
     if (id == null) return;
-    
+
     // Если пользователь повторно открыл товар, отменяем таймер удаления
     _videoCacheTimers[id]?.cancel();
     _videoCacheTimers.remove(id);
@@ -330,12 +334,22 @@ class QrMenuVm extends ViewModel {
     final file = images.first.file;
     if (file == null || file.isEmpty) return;
     if (!file.toLowerCase().contains('.mp4')) return;
+
     try {
-      final ctrl = VideoPlayerController.networkUrl(Uri.parse(file));
-      // Сразу кладём в кэш, чтобы ProductPage успел забрать его до конца инициализации
-      // Это позволяет ProductPage начать с opacity 0.0 и плавно анимировать появление
+      // Если этот URL уже качался в фоне в этой сессии — играем локальный
+      // файл сразу же, без похода в сеть.
+      final localFile = _videoFileCache[file];
+      final ctrl = localFile != null
+          ? VideoPlayerController.file(localFile)
+          : VideoPlayerController.networkUrl(Uri.parse(file));
+
+      // Синхронно кладём в кэш, чтобы ProductPage — который читает
+      // getCachedVideoController() сразу следом за preloadVideoForItem() в
+      // том же синхронном вызове — точно успел его забрать до конца
+      // инициализации. Это даёт ProductPage начать с opacity 0.0 и плавно
+      // анимировать появление
       _videoControllerCache[id] = ctrl;
-      
+
       ctrl.initialize().then((_) async {
         await ctrl.setVolume(0.0);
         await ctrl.setLooping(true);
@@ -344,6 +358,16 @@ class QrMenuVm extends ViewModel {
         _videoControllerCache.remove(id);
         ctrl.dispose();
       });
+
+      // Если файла ещё не было локально — тихо докачиваем в фоне (низкий
+      // приоритет), чтобы при следующем открытии этого товара видео
+      // стартовало мгновенно.
+      if (localFile == null) {
+        videoCacheThrottled(() async {
+          final info = await kioskCacheManager.getSingleFile(file);
+          _videoFileCache[file] = info;
+        }).catchError((_) {});
+      }
     } catch (_) {}
   }
 

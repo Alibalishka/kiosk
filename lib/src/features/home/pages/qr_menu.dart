@@ -32,6 +32,7 @@ import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dart';
+import 'package:qr_pay_app/src/features/home/widgets/entrance_fade.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_menu.dart';
 import 'package:qr_pay_app/src/features/home/widgets/shimmer_qr_menu.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
@@ -388,124 +389,142 @@ class QrMenuPageState extends State<QrMenuPage>
                       viewModel.syncData(responseData);
                     },
                   ),
-                  builder: (context, state) => state.maybeWhen(
-                    loading: () => const ShimmerQrMenu(),
-                    orElse: () => viewModel.menuData != null
-                        ? Container(
-                            decoration: const BoxDecoration(
-                              color: AppColors.semanticBgSurface1,
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(24),
-                                topRight: Radius.circular(24),
-                              ),
-                            ),
-                            child: NotificationListener<ScrollNotification>(
-                              onNotification: (notification) {
-                                // любой скролл = взаимодействие
-                                viewModel.kioskService.onUserInteraction();
-                                return false;
-                              },
-                              child: RefreshIndicator(
-                                onRefresh: () => viewModel.refreshMenu(),
-                                edgeOffset: 25,
-                                color: AppColors.semanticFgDefault,
-                                backgroundColor: AppColors.semanticBgSurface1,
-                                strokeWidth: 2,
-                                elevation: 0,
-                                child: CustomScrollView(
-                                  physics: viewModel.isKioskMode
-                                      ? const AlwaysScrollableScrollPhysics(
-                                          parent: ClampingScrollPhysics(),
-                                        )
-                                      : const AlwaysScrollableScrollPhysics(),
-                                  controller:
-                                      viewModel.scrollService.scrollController,
-                                  slivers: [
-                                    // // здесь
-                                    // if (viewModel.kioskSection != null)
-                                    //   SliverToBoxAdapter(
-                                    //     child: _SectionInfoBar(
-                                    //       number:
-                                    //           viewModel.kioskSection?.number,
-                                    //       groupName:
-                                    //           viewModel.kioskSection?.groupName,
-                                    //     ),
-                                    //   ),
-                                    // // ==========
-                                    QrMenuSliverAppBar(
-                                      viewModel: viewModel,
-                                      currentLanguageCode:
-                                          getCurrentLanguageCode(context),
-                                      onLanguageTap: () {
-                                        viewModel.kioskService
-                                            .onUserInteraction();
-                                        LanguagePopupDialog.show(
-                                          context: context,
-                                          viewModel: viewModel,
-                                          onSecretTap: _handleSecretTap,
-                                        );
-                                      },
-                                    ),
-                                    // SliverToBoxAdapter(
-                                    //   child: CustomButton(
-                                    //     text: 'DATA',
-                                    //     onPressed: () {
-                                    //       context.router.root.push(
-                                    //         KioskSuccessPageRoute(
-                                    //           id: 41104,
-                                    //           orderWaitTime: 0,
-                                    //         ),
-                                    //       );
-                                    //     },
-                                    //   ),
-                                    // ),
-
-                                    SliverList(
-                                      delegate: SliverChildBuilderDelegate(
-                                        (context, index) {
-                                          final item =
-                                              viewModel.flattenedItems[index];
-
-                                          if (item is CategoryTitle) {
-                                            return CategoryHeaderWidget(
-                                              title: item.title,
-                                              recommend: item.recommend,
-                                              items: item.items,
-                                              viewModel: viewModel,
-                                            );
-                                          } else if (item is GridMenuItems) {
-                                            return GridMenuWidget(
-                                              items: item.items,
-                                              viewModel: viewModel,
-                                            );
-                                          } else if (item is SingleMenuItem) {
-                                            return ItemMenu(
-                                              key: ValueKey(item.item.id),
-                                              item: item.item,
-                                              viewModel: viewModel,
-                                            );
-                                          }
-
-                                          return const SizedBox.shrink();
-                                        },
-                                        childCount:
-                                            viewModel.flattenedItems.length,
-                                      ),
-                                    ),
-                                    const SliverToBoxAdapter(
-                                      child: ColumnSpacer(4),
-                                    ),
-
-                                    PoweredByFooter(appVersion: _appVersion),
-                                    const SliverToBoxAdapter(
-                                      child: ColumnSpacer(2),
-                                    ),
-                                  ],
+                  builder: (context, state) => AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    switchInCurve: Curves.easeOut,
+                    switchOutCurve: Curves.easeIn,
+                    child: state.maybeWhen(
+                      loading: () =>
+                          const ShimmerQrMenu(key: ValueKey('shimmer')),
+                      orElse: () => viewModel.menuData != null
+                          ? Container(
+                              key: const ValueKey('content'),
+                              decoration: const BoxDecoration(
+                                color: AppColors.semanticBgSurface1,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(24),
+                                  topRight: Radius.circular(24),
                                 ),
                               ),
-                            ),
-                          )
-                        : const SizedBox.shrink(),
+                              child: NotificationListener<ScrollNotification>(
+                                onNotification: (notification) {
+                                  // любой скролл = взаимодействие
+                                  viewModel.kioskService.onUserInteraction();
+                                  return false;
+                                },
+                                child: RefreshIndicator(
+                                  onRefresh: () => viewModel.refreshMenu(),
+                                  edgeOffset: 25,
+                                  color: AppColors.semanticFgDefault,
+                                  backgroundColor: AppColors.semanticBgSurface1,
+                                  strokeWidth: 2,
+                                  elevation: 0,
+                                  child: CustomScrollView(
+                                    physics: viewModel.isKioskMode
+                                        ? const AlwaysScrollableScrollPhysics(
+                                            parent: ClampingScrollPhysics(),
+                                          )
+                                        : const AlwaysScrollableScrollPhysics(),
+                                    controller: viewModel
+                                        .scrollService.scrollController,
+                                    slivers: [
+                                      // // здесь
+                                      // if (viewModel.kioskSection != null)
+                                      //   SliverToBoxAdapter(
+                                      //     child: _SectionInfoBar(
+                                      //       number:
+                                      //           viewModel.kioskSection?.number,
+                                      //       groupName:
+                                      //           viewModel.kioskSection?.groupName,
+                                      //     ),
+                                      //   ),
+                                      // // ==========
+                                      QrMenuSliverAppBar(
+                                        viewModel: viewModel,
+                                        currentLanguageCode:
+                                            getCurrentLanguageCode(context),
+                                        onLanguageTap: () {
+                                          viewModel.kioskService
+                                              .onUserInteraction();
+                                          LanguagePopupDialog.show(
+                                            context: context,
+                                            viewModel: viewModel,
+                                            onSecretTap: _handleSecretTap,
+                                          );
+                                        },
+                                      ),
+                                      // SliverToBoxAdapter(
+                                      //   child: CustomButton(
+                                      //     text: 'DATA',
+                                      //     onPressed: () {
+                                      //       context.router.root.push(
+                                      //         KioskSuccessPageRoute(
+                                      //           id: 41104,
+                                      //           orderWaitTime: 0,
+                                      //         ),
+                                      //       );
+                                      //     },
+                                      //   ),
+                                      // ),
+
+                                      SliverList(
+                                        delegate: SliverChildBuilderDelegate(
+                                          (context, index) {
+                                            final item =
+                                                viewModel.flattenedItems[index];
+
+                                            Widget? child;
+                                            if (item is CategoryTitle) {
+                                              child = CategoryHeaderWidget(
+                                                title: item.title,
+                                                recommend: item.recommend,
+                                                items: item.items,
+                                                viewModel: viewModel,
+                                              );
+                                            } else if (item is GridMenuItems) {
+                                              child = GridMenuWidget(
+                                                items: item.items,
+                                                viewModel: viewModel,
+                                              );
+                                            } else if (item is SingleMenuItem) {
+                                              child = ItemMenu(
+                                                key: ValueKey(item.item.id),
+                                                item: item.item,
+                                                viewModel: viewModel,
+                                              );
+                                            }
+
+                                            if (child == null) {
+                                              return const SizedBox.shrink();
+                                            }
+
+                                            return EntranceFade(
+                                              delay: Duration(
+                                                milliseconds:
+                                                    30 * index.clamp(0, 8),
+                                              ),
+                                              child: child,
+                                            );
+                                          },
+                                          childCount:
+                                              viewModel.flattenedItems.length,
+                                        ),
+                                      ),
+                                      const SliverToBoxAdapter(
+                                        child: ColumnSpacer(4),
+                                      ),
+
+                                      PoweredByFooter(appVersion: _appVersion),
+                                      const SliverToBoxAdapter(
+                                        child: ColumnSpacer(2),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(key: ValueKey('empty')),
+                    ),
                   ),
                 ),
               ),
@@ -539,8 +558,24 @@ class QrMenuPageState extends State<QrMenuPage>
                     ),
                     if (_techWorkCode != null)
                       Positioned.fill(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        child: TweenAnimationBuilder<double>(
+                          key: ValueKey('tech_work_$_techWorkCode'),
+                          tween: Tween(begin: 0, end: 1),
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, t, child) => Opacity(
+                            opacity: t,
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: 8 * t,
+                                sigmaY: 8 * t,
+                              ),
+                              child: Transform.translate(
+                                offset: Offset(0, (1 - t) * 24),
+                                child: child,
+                              ),
+                            ),
+                          ),
                           child: Material(
                             type: MaterialType.transparency,
                             child: Container(

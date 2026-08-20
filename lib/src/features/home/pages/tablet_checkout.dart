@@ -19,6 +19,7 @@ import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
 import 'package:qr_pay_app/src/features/home/widgets/in_restaurant_content.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_checkout.dart';
 import 'package:qr_pay_app/src/features/home/widgets/tabbar_widget.dart';
@@ -85,12 +86,14 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 16),
-                child: GestureDetector(
-                  onTap: () => context.read<QrMenuVm>().clearBasket(),
-                  child: SvgPicture.asset(
-                    AppSvgImages.trash,
-                    height: 3.sh,
-                    color: AppColors.semanticErrorDefault,
+                child: AnimatedCard(
+                  child: GestureDetector(
+                    onTap: () => context.read<QrMenuVm>().clearBasket(),
+                    child: SvgPicture.asset(
+                      AppSvgImages.trash,
+                      height: 3.sh,
+                      color: AppColors.semanticErrorDefault,
+                    ),
                   ),
                 ),
               ),
@@ -127,12 +130,23 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                             ),
                           ),
                           const Spacer(),
-                          Text(
-                            '${value.basketService.basket.length} ${LocaleKeys.dish.tr()} ${priceFormat(value.getTotalPrice().toInt().toString())} ₸',
-                            style: AppTextStyles.headingH3.copyWith(
-                                fontSize: vmQrMenu.isTablet ? 16.sp : null,
-                                color: AppComponents
-                                    .blockBlocktitleHeadingColorDefault),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 220),
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(
+                              scale: animation,
+                              child: FadeTransition(
+                                  opacity: animation, child: child),
+                            ),
+                            child: Text(
+                              '${value.basketService.basket.length} ${LocaleKeys.dish.tr()} ${priceFormat(value.getTotalPrice().toInt().toString())} ₸',
+                              key: ValueKey(
+                                  '${value.basketService.basket.length}-${value.getTotalPrice()}'),
+                              style: AppTextStyles.headingH3.copyWith(
+                                  fontSize: vmQrMenu.isTablet ? 16.sp : null,
+                                  color: AppComponents
+                                      .blockBlocktitleHeadingColorDefault),
+                            ),
                           ),
                         ],
                       ),
@@ -141,52 +155,56 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                         children: [
                           if (value.hasKaspiPay)
                             Expanded(
-                              child: CupertinoButton(
-                                borderRadius: BorderRadius.circular(16),
-                                onPressed: () => _onCheckoutPressed(
-                                  context,
-                                  isKaspiPay: true,
-                                ),
-                                color: const Color(0xffF24634),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 12, horizontal: 8),
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          LocaleKeys.payWith.tr(),
-                                          textAlign: TextAlign.center,
-                                          style: AppTextStyles.bodyMStrong.copyWith(
-                                              fontSize: vmQrMenu.isTablet
-                                                  ? 15.sp
-                                                  : null,
-                                              color: AppComponents
-                                                  .buttongroupButtonPrimaryTextColorDefault),
-                                        ),
-                                        const RowSpacer(1.2),
-                                        SvgPicture.asset(
-                                          AppSvgImages.qrCode,
-                                          height: 2.5.sh,
-                                        ),
-                                        const RowSpacer(1.2),
-                                        Text(
-                                          'Kaspi QR',
-                                          textAlign: TextAlign.center,
-                                          style: AppTextStyles.bodyMStrong.copyWith(
-                                              fontSize: vmQrMenu.isTablet
-                                                  ? 15.sp
-                                                  : null,
-                                              fontWeight: FontWeight.w800,
-                                              color: AppComponents
-                                                  .buttongroupButtonPrimaryTextColorDefault),
-                                        ),
-                                      ],
+                              child: AnimatedCard(
+                                child: CupertinoButton(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onPressed: () => _onCheckoutPressed(
+                                    context,
+                                    isKaspiPay: true,
+                                  ),
+                                  color: const Color(0xffF24634),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12, horizontal: 8),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            LocaleKeys.payWith.tr(),
+                                            textAlign: TextAlign.center,
+                                            style: AppTextStyles.bodyMStrong
+                                                .copyWith(
+                                                    fontSize: vmQrMenu.isTablet
+                                                        ? 15.sp
+                                                        : null,
+                                                    color: AppComponents
+                                                        .buttongroupButtonPrimaryTextColorDefault),
+                                          ),
+                                          const RowSpacer(1.2),
+                                          SvgPicture.asset(
+                                            AppSvgImages.qrCode,
+                                            height: 2.5.sh,
+                                          ),
+                                          const RowSpacer(1.2),
+                                          Text(
+                                            'Kaspi QR',
+                                            textAlign: TextAlign.center,
+                                            style: AppTextStyles.bodyMStrong
+                                                .copyWith(
+                                                    fontSize: vmQrMenu.isTablet
+                                                        ? 15.sp
+                                                        : null,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppComponents
+                                                        .buttongroupButtonPrimaryTextColorDefault),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -196,63 +214,65 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                             const SizedBox(width: 16),
                           if (value.hasAirbaPay)
                             Expanded(
-                              child: CupertinoButton(
-                                borderRadius: BorderRadius.circular(16),
-                                onPressed: () => _onCheckoutPressed(
-                                  context,
-                                  isKaspiPay: false,
-                                ),
-                                color: AppComponents
-                                    .buttongroupButtonPrimaryBgColorDefault,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 12, horizontal: 8),
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          'Оплата картой |',
-                                          textAlign: TextAlign.center,
-                                          style: AppTextStyles.bodyMStrong
-                                              .copyWith(
-                                            fontSize: vmQrMenu.isTablet
-                                                ? 15.sp
-                                                : null,
-                                            color: AppComponents
-                                                .buttongroupButtonPrimaryTextColorDefault,
+                              child: AnimatedCard(
+                                child: CupertinoButton(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onPressed: () => _onCheckoutPressed(
+                                    context,
+                                    isKaspiPay: false,
+                                  ),
+                                  color: AppComponents
+                                      .buttongroupButtonPrimaryBgColorDefault,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12, horizontal: 8),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            'Оплата картой |',
+                                            textAlign: TextAlign.center,
+                                            style: AppTextStyles.bodyMStrong
+                                                .copyWith(
+                                              fontSize: vmQrMenu.isTablet
+                                                  ? 15.sp
+                                                  : null,
+                                              color: AppComponents
+                                                  .buttongroupButtonPrimaryTextColorDefault,
+                                            ),
                                           ),
-                                        ),
-                                        // const RowSpacer(0.8),
-                                        SvgPicture.asset(
-                                          AppSvgImages.gPayLight,
-                                          height: 2.2.sh,
-                                        ),
-                                        // const RowSpacer(0.8),
-                                        Text(
-                                          '|',
-                                          textAlign: TextAlign.center,
-                                          style: AppTextStyles.bodyMStrong
-                                              .copyWith(
-                                            fontSize: vmQrMenu.isTablet
-                                                ? 15.sp
-                                                : null,
-                                            color: AppComponents
-                                                .buttongroupButtonPrimaryTextColorDefault,
+                                          // const RowSpacer(0.8),
+                                          SvgPicture.asset(
+                                            AppSvgImages.gPayLight,
+                                            height: 2.2.sh,
                                           ),
-                                        ),
-                                        const RowSpacer(0.8),
-                                        SvgPicture.asset(
-                                          AppSvgImages.applePayLight,
-                                          height: 2.2.sh,
-                                        ),
-                                      ],
+                                          // const RowSpacer(0.8),
+                                          Text(
+                                            '|',
+                                            textAlign: TextAlign.center,
+                                            style: AppTextStyles.bodyMStrong
+                                                .copyWith(
+                                              fontSize: vmQrMenu.isTablet
+                                                  ? 15.sp
+                                                  : null,
+                                              color: AppComponents
+                                                  .buttongroupButtonPrimaryTextColorDefault,
+                                            ),
+                                          ),
+                                          const RowSpacer(0.8),
+                                          SvgPicture.asset(
+                                            AppSvgImages.applePayLight,
+                                            height: 2.2.sh,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -365,54 +385,57 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                 return ItemRecomended(
                                   item: recommended,
                                   bottom: count == 0
-                                      ? GestureDetector(
-                                          onTap: () => hasModifiers
-                                              ? context.router.push(
-                                                  ProductPageRoute(
-                                                    item: recommended,
+                                      ? AnimatedCard(
+                                          child: GestureDetector(
+                                            onTap: () => hasModifiers
+                                                ? context.router.push(
+                                                    ProductPageRoute(
+                                                      item: recommended,
+                                                    ),
+                                                  )
+                                                // showCustomSheet(
+                                                //     context,
+                                                //     child: ProductPage(
+                                                //         item: recommended),
+                                                //   )
+                                                // context.router.push(
+                                                //     ProductPageRoute(
+                                                //       item: recommended,
+                                                //     ),
+                                                //   )
+                                                //  showCustomSheet(
+                                                //     context,
+                                                //     child: ProductPage(
+                                                //         item: recommended),
+                                                //   )
+                                                : value.addToBasket(
+                                                    context, recommended, 1),
+                                            child: Container(
+                                              height:
+                                                  vmQrMenu.isTablet ? 4.sh : 40,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                color: AppComponents
+                                                    .buttongroupButtonGrayBgColorDefault,
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    AppSvgImages.plus,
+                                                    height: vmQrMenu.isTablet
+                                                        ? 14.sp
+                                                        : 16,
+                                                    color: AppComponents
+                                                        .buttongroupButtonGrayTextColorDefault,
                                                   ),
-                                                )
-                                              // showCustomSheet(
-                                              //     context,
-                                              //     child: ProductPage(
-                                              //         item: recommended),
-                                              //   )
-                                              // context.router.push(
-                                              //     ProductPageRoute(
-                                              //       item: recommended,
-                                              //     ),
-                                              //   )
-                                              //  showCustomSheet(
-                                              //     context,
-                                              //     child: ProductPage(
-                                              //         item: recommended),
-                                              //   )
-                                              : value.addToBasket(
-                                                  context, recommended, 1),
-                                          child: Container(
-                                            height:
-                                                vmQrMenu.isTablet ? 4.sh : 40,
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 12),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              color: AppComponents
-                                                  .buttongroupButtonGrayBgColorDefault,
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                SvgPicture.asset(
-                                                  AppSvgImages.plus,
-                                                  height: vmQrMenu.isTablet
-                                                      ? 14.sp
-                                                      : 16,
-                                                  color: AppComponents
-                                                      .buttongroupButtonGrayTextColorDefault,
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         )
@@ -426,72 +449,88 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                           child: Row(
                                             children: [
                                               Expanded(
-                                                child: GestureDetector(
-                                                  onTap: () =>
-                                                      value.removeFromBasket(
-                                                          recommended),
-                                                  child: Container(
-                                                    height: 40,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 12,
-                                                        horizontal: 16),
-                                                    color: AppColors.none,
-                                                    child: SvgPicture.asset(
-                                                      AppSvgImages.minus,
-                                                      color: AppComponents
-                                                          .buttongroupButtonGrayIconColorDefault,
+                                                child: AnimatedCard(
+                                                  child: GestureDetector(
+                                                    onTap: () =>
+                                                        value.removeFromBasket(
+                                                            recommended),
+                                                    child: Container(
+                                                      height: 40,
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 12,
+                                                          horizontal: 16),
+                                                      color: AppColors.none,
+                                                      child: SvgPicture.asset(
+                                                        AppSvgImages.minus,
+                                                        color: AppComponents
+                                                            .buttongroupButtonGrayIconColorDefault,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                              Text(
-                                                count.toString(),
-                                                style: AppTextStyles.bodyLStrong
-                                                    .copyWith(
-                                                  color: AppComponents
-                                                      .buttongroupButtonGrayIconColorDefault,
+                                              AnimatedSwitcher(
+                                                duration: const Duration(
+                                                    milliseconds: 200),
+                                                transitionBuilder:
+                                                    (child, animation) =>
+                                                        ScaleTransition(
+                                                  scale: animation,
+                                                  child: child,
+                                                ),
+                                                child: Text(
+                                                  count.toString(),
+                                                  key: ValueKey(count),
+                                                  style: AppTextStyles
+                                                      .bodyLStrong
+                                                      .copyWith(
+                                                    color: AppComponents
+                                                        .buttongroupButtonGrayIconColorDefault,
+                                                  ),
                                                 ),
                                               ),
                                               Expanded(
-                                                child: GestureDetector(
-                                                  onTap: () => hasModifiers
-                                                      ? context.router.push(
-                                                          ProductPageRoute(
-                                                            item: recommended,
-                                                          ),
-                                                        )
-                                                      // showCustomSheet(
-                                                      //     context,
-                                                      //     child: ProductPage(
-                                                      //         item:
-                                                      //             recommended),
-                                                      //   )
-                                                      //  context.router.push(
-                                                      //     ProductPageRoute(
-                                                      //       item: recommended,
-                                                      //     ),
-                                                      //   )
-                                                      // showCustomSheet(
-                                                      //     context,
-                                                      //     child: ProductPage(
-                                                      //         item:
-                                                      //             recommended),
-                                                      //   )
-                                                      : value.addToBasket(
-                                                          context,
-                                                          recommended,
-                                                          1),
-                                                  child: Container(
-                                                    height: 40,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 12),
-                                                    color: AppColors.none,
-                                                    child: SvgPicture.asset(
-                                                      AppSvgImages.plus,
-                                                      color: AppComponents
-                                                          .buttongroupButtonGrayIconColorDefault,
+                                                child: AnimatedCard(
+                                                  child: GestureDetector(
+                                                    onTap: () => hasModifiers
+                                                        ? context.router.push(
+                                                            ProductPageRoute(
+                                                              item: recommended,
+                                                            ),
+                                                          )
+                                                        // showCustomSheet(
+                                                        //     context,
+                                                        //     child: ProductPage(
+                                                        //         item:
+                                                        //             recommended),
+                                                        //   )
+                                                        //  context.router.push(
+                                                        //     ProductPageRoute(
+                                                        //       item: recommended,
+                                                        //     ),
+                                                        //   )
+                                                        // showCustomSheet(
+                                                        //     context,
+                                                        //     child: ProductPage(
+                                                        //         item:
+                                                        //             recommended),
+                                                        //   )
+                                                        : value.addToBasket(
+                                                            context,
+                                                            recommended,
+                                                            1),
+                                                    child: Container(
+                                                      height: 40,
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 12),
+                                                      color: AppColors.none,
+                                                      child: SvgPicture.asset(
+                                                        AppSvgImages.plus,
+                                                        color: AppComponents
+                                                            .buttongroupButtonGrayIconColorDefault,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),

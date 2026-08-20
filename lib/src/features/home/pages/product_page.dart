@@ -20,10 +20,57 @@ import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/additions.dart';
+import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
 import 'package:qr_pay_app/src/features/home/widgets/product_info.dart';
 import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
 import 'package:sizer/sizer.dart';
 import 'package:video_player/video_player.dart';
+
+// Магнитная шапка: если после отпускания пальца скролл всё ещё в зоне
+// схлопывания hero-картинки, доводим её до ближайшего края (полностью
+// открыта/полностью свёрнута), а не оставляем на полпути — как в Blinkit.
+class _HeaderSnapPhysics extends ClampingScrollPhysics {
+  const _HeaderSnapPhysics({super.parent, required this.snapExtent});
+
+  final double snapExtent;
+
+  static const double _velocitySnapThreshold = 300;
+
+  @override
+  _HeaderSnapPhysics applyTo(ScrollPhysics? ancestor) {
+    return _HeaderSnapPhysics(
+      parent: buildParent(ancestor),
+      snapExtent: snapExtent,
+    );
+  }
+
+  @override
+  Simulation? createBallisticSimulation(
+    ScrollMetrics position,
+    double velocity,
+  ) {
+    final simulation = super.createBallisticSimulation(position, velocity);
+    if (snapExtent <= 0 ||
+        position.pixels <= 0 ||
+        position.pixels >= snapExtent) {
+      return simulation;
+    }
+
+    final target = velocity.abs() > _velocitySnapThreshold
+        ? (velocity > 0 ? snapExtent : 0.0)
+        : (position.pixels > snapExtent / 2 ? snapExtent : 0.0);
+
+    if ((target - position.pixels).abs() < 0.5) return null;
+
+    return ScrollSpringSimulation(
+      spring,
+      position.pixels,
+      target,
+      velocity,
+      tolerance: toleranceFor(position),
+    );
+  }
+}
 
 class ProductPage extends StatefulWidget {
   const ProductPage({
@@ -60,9 +107,7 @@ class _ProductPageState extends State<ProductPage> {
     if (_videoController?.value.isInitialized ?? false) {
       _videoController!.removeListener(_onPreloadedVideoUpdate);
       if (mounted) setState(() {});
-      Future.delayed(const Duration(milliseconds: 1200), () {
-        if (mounted) _videoController?.play();
-      });
+      _videoController?.play();
     }
   }
 
@@ -85,14 +130,11 @@ class _ProductPageState extends State<ProductPage> {
       _isVideo = true;
       _ownsVideoController = false;
 
-      // ✅ не play() сразу
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
         if (_videoController!.value.isInitialized) {
-          Future.delayed(const Duration(milliseconds: 1200), () {
-            if (mounted) _videoController?.play();
-          });
+          _videoController!.play();
         } else {
           _videoController!.addListener(_onPreloadedVideoUpdate);
         }
@@ -134,9 +176,7 @@ class _ProductPageState extends State<ProductPage> {
         _videoController = ctrl;
       });
 
-      Future.delayed(const Duration(milliseconds: 1200), () {
-        if (mounted) _videoController?.play();
-      });
+      _videoController?.play();
     } catch (_) {
       _isVideo = false;
     }
@@ -235,7 +275,7 @@ class _ProductPageState extends State<ProductPage> {
               return false;
             },
             child: CustomScrollView(
-              physics: const ClampingScrollPhysics(),
+              physics: _HeaderSnapPhysics(snapExtent: 55.h - 100),
               slivers: [
                 SliverAppBar(
                   floating: false,
@@ -445,12 +485,26 @@ class _BottomBar extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            '${priceFormat(totalPrice.toString())} ₸',
-                            style: AppTextStyles.bodyXlStrong.copyWith(
-                              fontSize: isTablet ? 15.sp : null,
-                              color: AppComponents
-                                  .blockBlocktitleHeadingColorDefault,
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            switchInCurve: Curves.easeOutBack,
+                            switchOutCurve: Curves.easeIn,
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(
+                              scale: animation,
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                            ),
+                            child: Text(
+                              '${priceFormat(totalPrice.toString())} ₸',
+                              key: ValueKey(totalPrice),
+                              style: AppTextStyles.bodyXlStrong.copyWith(
+                                fontSize: isTablet ? 15.sp : null,
+                                color: AppComponents
+                                    .blockBlocktitleHeadingColorDefault,
+                              ),
                             ),
                           ),
                         ],
@@ -469,42 +523,57 @@ class _BottomBar extends StatelessWidget {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: GestureDetector(
-                                    onTap: onMinus,
-                                    child: Container(
-                                      color: AppColors.none,
-                                      child: Padding(
-                                        padding: AppPaddings.sym16x12,
-                                        child: SvgPicture.asset(
-                                          AppSvgImages.minus,
-                                          height: isTablet ? 24 : null,
-                                          color: AppComponents
-                                              .buttongroupButtonGrayIconColorDefault,
+                                  child: AnimatedCard(
+                                    child: GestureDetector(
+                                      onTap: onMinus,
+                                      child: Container(
+                                        color: AppColors.none,
+                                        child: Padding(
+                                          padding: AppPaddings.sym16x12,
+                                          child: SvgPicture.asset(
+                                            AppSvgImages.minus,
+                                            height: isTablet ? 24 : null,
+                                            color: AppComponents
+                                                .buttongroupButtonGrayIconColorDefault,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                                Text(
-                                  c.toString(),
-                                  style: AppTextStyles.bodyLStrong.copyWith(
-                                    fontSize: isTablet ? 16.sp : null,
-                                    color: AppComponents
-                                        .buttongroupButtonGrayIconColorDefault,
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  switchInCurve: Curves.easeOutBack,
+                                  switchOutCurve: Curves.easeIn,
+                                  transitionBuilder: (child, animation) =>
+                                      ScaleTransition(
+                                    scale: animation,
+                                    child: child,
+                                  ),
+                                  child: Text(
+                                    c.toString(),
+                                    key: ValueKey(c),
+                                    style: AppTextStyles.bodyLStrong.copyWith(
+                                      fontSize: isTablet ? 16.sp : null,
+                                      color: AppComponents
+                                          .buttongroupButtonGrayIconColorDefault,
+                                    ),
                                   ),
                                 ),
                                 Expanded(
-                                  child: GestureDetector(
-                                    onTap: onPlus,
-                                    child: Container(
-                                      color: AppColors.none,
-                                      child: Padding(
-                                        padding: AppPaddings.sym16x12,
-                                        child: SvgPicture.asset(
-                                          AppSvgImages.plus,
-                                          height: isTablet ? 18 : null,
-                                          color: AppComponents
-                                              .buttongroupButtonGrayIconColorDefault,
+                                  child: AnimatedCard(
+                                    child: GestureDetector(
+                                      onTap: onPlus,
+                                      child: Container(
+                                        color: AppColors.none,
+                                        child: Padding(
+                                          padding: AppPaddings.sym16x12,
+                                          child: SvgPicture.asset(
+                                            AppSvgImages.plus,
+                                            height: isTablet ? 18 : null,
+                                            color: AppComponents
+                                                .buttongroupButtonGrayIconColorDefault,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -515,21 +584,24 @@ class _BottomBar extends StatelessWidget {
                           ),
                           RowSpacer(0.1.sh),
                           Expanded(
-                            child: CupertinoButton(
-                              borderRadius: BorderRadius.circular(16),
-                              onPressed: onAdd,
-                              color: AppComponents
-                                  .buttongroupButtonPrimaryBgColorDefault,
-                              padding: const EdgeInsets.symmetric(vertical: 0),
-                              child: Padding(
+                            child: AnimatedCard(
+                              child: CupertinoButton(
+                                borderRadius: BorderRadius.circular(16),
+                                onPressed: onAdd,
+                                color: AppComponents
+                                    .buttongroupButtonPrimaryBgColorDefault,
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                child: Text(
-                                  LocaleKeys.addToOrder.tr(),
-                                  style: AppTextStyles.bodyLStrong.copyWith(
-                                    fontSize: isTablet ? 15.sp : null,
-                                    color: AppComponents
-                                        .buttongroupButtonPrimaryTextColorDefault,
+                                    const EdgeInsets.symmetric(vertical: 0),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  child: Text(
+                                    LocaleKeys.addToOrder.tr(),
+                                    style: AppTextStyles.bodyLStrong.copyWith(
+                                      fontSize: isTablet ? 15.sp : null,
+                                      color: AppComponents
+                                          .buttongroupButtonPrimaryTextColorDefault,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -700,24 +772,26 @@ class _ProductMediaBackground extends StatelessWidget {
         ),
         Align(
           alignment: Alignment.topRight,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              Vibration.vibrate();
-              context.router.pop(context);
-            },
-            child: Container(
-              height: 4.sh,
-              width: 4.sh,
-              margin: const EdgeInsets.only(top: 60, right: 16),
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(
-                color: AppColors.primitiveNeutralwarm0,
-                shape: BoxShape.circle,
-              ),
-              child: SvgPicture.asset(
-                AppSvgImages.closeLarge,
-                color: AppComponents.buttongroupButtonWhiteIconColorDefault,
+          child: AnimatedCard(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                Vibration.vibrate();
+                context.router.pop(context);
+              },
+              child: Container(
+                height: 4.sh,
+                width: 4.sh,
+                margin: const EdgeInsets.only(top: 60, right: 16),
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: AppColors.primitiveNeutralwarm0,
+                  shape: BoxShape.circle,
+                ),
+                child: SvgPicture.asset(
+                  AppSvgImages.closeLarge,
+                  color: AppComponents.buttongroupButtonWhiteIconColorDefault,
+                ),
               ),
             ),
           ),
