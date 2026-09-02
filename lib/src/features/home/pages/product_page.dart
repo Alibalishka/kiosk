@@ -237,27 +237,30 @@ class _ProductPageState extends State<ProductPage> {
         onLeave: () => context.router.pop(),
         child: Scaffold(
           backgroundColor: AppComponents.modalBgColorDefault,
-          bottomNavigationBar: _BottomBar(
-            item: widget.item,
-            isTablet: isTablet,
-            count: _count,
-            modsTick: _modsTick,
-            calcModifiersPrice: () => _calcModifiersPrice(vm),
-            onMinus: () {
-              if (_count.value > 1) _count.value -= 1;
-            },
-            onPlus: () => _count.value += 1,
-            onAdd: () async {
-              final c = _count.value;
-              if (widget.item.modifiers?.isEmpty ?? true) {
-                await vm.addToBasket(context, widget.item, c);
-                if (context.mounted) context.router.pop();
-              } else {
-                final ok = await vm.addComboBasket(context, widget.item, c);
-                if (ok && context.mounted) context.router.pop();
-              }
-            },
-          ),
+          bottomNavigationBar: vm.hasAvailablePayments
+              ? _BottomBar(
+                  item: widget.item,
+                  isTablet: isTablet,
+                  count: _count,
+                  modsTick: _modsTick,
+                  calcModifiersPrice: () => _calcModifiersPrice(vm),
+                  onMinus: () {
+                    if (_count.value > 1) _count.value -= 1;
+                  },
+                  onPlus: () => _count.value += 1,
+                  onAdd: () async {
+                    final c = _count.value;
+                    if (widget.item.modifiers?.isEmpty ?? true) {
+                      await vm.addToBasket(context, widget.item, c);
+                      if (context.mounted) context.router.pop();
+                    } else {
+                      final ok =
+                          await vm.addComboBasket(context, widget.item, c);
+                      if (ok && context.mounted) context.router.pop();
+                    }
+                  },
+                )
+              : null,
           body: NotificationListener<ScrollNotification>(
             onNotification: (n) {
               if (n is! ScrollUpdateNotification) return false;

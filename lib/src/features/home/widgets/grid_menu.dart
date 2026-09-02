@@ -45,10 +45,12 @@ class GridMenuWidget extends StatelessWidget {
                   //         : context.mediaQuery.size.width / 1.16,
                   child: ItemRecomended(
                     item: item,
-                    bottom: BasketBtn(
-                      viewModel: viewModel,
-                      item: item,
-                    ),
+                    bottom: viewModel.hasAvailablePayments
+                        ? BasketBtn(
+                            viewModel: viewModel,
+                            item: item,
+                          )
+                        : null,
                   ),
                 ),
               ),

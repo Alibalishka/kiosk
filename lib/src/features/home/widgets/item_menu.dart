@@ -205,12 +205,13 @@ class ItemMenu extends StatelessWidget {
                                       // fontSize: viewModel.isTablet ? 16.sp : null,
                                       color: AppColors.semanticFgDefault),
                                 ),
-                                BasketBtn(
-                                  viewModel: viewModel,
-                                  item: item,
-                                  // isSubscription: viewModel.isSubscription,
-                                  // isMenuPage: true,
-                                ),
+                                if (viewModel.hasAvailablePayments)
+                                  BasketBtn(
+                                    viewModel: viewModel,
+                                    item: item,
+                                    // isSubscription: viewModel.isSubscription,
+                                    // isMenuPage: true,
+                                  ),
                                 // BasketBtn(
                                 //   viewModel: viewModel,
                                 //   item: item,

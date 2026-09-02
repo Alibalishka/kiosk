@@ -66,15 +66,15 @@ class DioSettings {
     dioKiosk.interceptors.addAll([
       RetryOnConnectionErrorInterceptor(dio: dioKiosk),
       KioskAuthInterceptor(dioKiosk),
-      TalkerDioLogger(
-        talker: sl<Talker>(),
-        settings: const TalkerDioLoggerSettings(
-          printRequestHeaders: true,
-          printResponseHeaders: true,
-          printRequestData: true,
-          printResponseData: true,
-        ),
-      ),
+      // TalkerDioLogger(
+      //   talker: sl<Talker>(),
+      //   settings: const TalkerDioLoggerSettings(
+      //     printRequestHeaders: true,
+      //     printResponseHeaders: true,
+      //     printRequestData: true,
+      //     printResponseData: true,
+      //   ),
+      // ),
       // LogInterceptor(
       //   request: true,
       //   requestHeader: true,

@@ -442,6 +442,8 @@ class QrMenuVm extends ViewModel {
   List<String> get availablePayments =>
       menuData?.organization?.availablePayments ?? [];
 
+  bool get hasAvailablePayments => availablePayments.isNotEmpty;
+
   bool get hasKaspiPay => availablePayments.contains(kaspiPayProvider);
 
   bool get hasAirbaPay => availablePayments.contains(airbaPayProvider);

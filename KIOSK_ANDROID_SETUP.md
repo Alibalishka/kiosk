@@ -1,12 +1,16 @@
 # Android Kiosk Mode — Полная инструкция подключения
 
-> Документ основан на реальной реализации проекта `dd.qrPay`.  
-> Замените `dd.qrPay` / `YOUR_APP_ID` на `applicationId` вашего проекта.
+> Документ основан на реальной реализации проекта `dd.qrPay`.
+> Замените `dd.qrPay` / `YOUR_APP_ID` на `applicationId` вашего проекта, если переносите в другой.
+>
+> Если тебе просто нужно **настроить конкретное физическое устройство** (без чтения кода) — сразу переходи в раздел [0. Быстрый старт для оператора](#0-быстрый-старт-для-оператора).
+> Если нужно **реализовать киоск-режим в коде** — читай с раздела [1. Обзор архитектуры](#1-обзор-архитектуры).
 
 ---
 
 ## Содержание
 
+0. [Быстрый старт для оператора](#0-быстрый-старт-для-оператора)
 1. [Обзор архитектуры](#1-обзор-архитектуры)
 2. [Требования](#2-требования)
 3. [Структура файлов](#3-структура-файлов)
@@ -21,10 +25,104 @@
 12. [Шаг 9 — ProvisioningActivity и FinaliseActivity (Android 12+)](#шаг-9--provisioningactivity-и-finaliseactivity-android-12)
 13. [Назначение Device Owner через ADB](#назначение-device-owner-через-adb)
 14. [Makefile команды](#makefile-команды)
-15. [Flutter-сторона: MethodChannel `dpc`](#flutter-сторона-methodchannel-dpc)
-16. [Как отключить киоск (режим выхода)](#как-отключить-киоск-режим-выхода)
-17. [Частые ошибки и их решения](#частые-ошибки-и-их-решения)
-18. [Чеклист перед релизом](#чеклист-перед-релизом)
+15. [Установка новой сборки по ссылке (тихое OTA-обновление)](#установка-новой-сборки-по-ссылке-тихое-ota-обновление)
+16. [Flutter-сторона: MethodChannel `dpc`](#flutter-сторона-methodchannel-dpc)
+17. [Как отключить киоск (режим выхода)](#как-отключить-киоск-режим-выхода)
+18. [Частые ошибки и их решения](#частые-ошибки-и-их-решения)
+19. [Чеклист перед релизом (для разработчика)](#чеклист-перед-релизом-для-разработчика)
+20. [Чеклист сдачи устройства (для оператора)](#чеклист-сдачи-устройства-для-оператора)
+21. [Дополнительные ресурсы](#дополнительные-ресурсы)
+
+---
+
+## 0. Быстрый старт для оператора
+
+Этот раздел — для того, кто физически настраивает планшет/терминал под `dd.qrPay` и не пишет код. Всё нужное уже реализовано в проекте, здесь только последовательность действий.
+
+### Что получится
+
+После выполнения этих шагов устройство:
+
+- при включении сразу открывает приложение и **не выходит** из него (кнопки "Домой"/"Назад"/недавние — не работают);
+- не показывает шторку уведомлений и экран блокировки;
+- само переживает перезагрузку — автозапуск;
+- **само скачивает и тихо ставит новые сборки** по ссылке, без единого клика на устройстве.
+
+Всё это работает благодаря статусу **Device Owner** — без него тихая установка обновлений невозможна: Android покажет системный диалог подтверждения, а на терминале без присмотра его некому нажать.
+
+### Что понадобится
+
+| Пункт | Зачем |
+|---|---|
+| Android-устройство, **сброшенное до заводских настроек** | Device Owner нельзя назначить, если на устройстве уже есть Google-аккаунт или другой пользователь |
+| Компьютер с установленным `adb` (Android Platform Tools) | Для команды назначения Device Owner — без этого шага **никак** |
+| USB-кабель | Первое подключение к компьютеру |
+| Файл сборки `app-release.apk` **или** ссылка на него | Первичная установка приложения |
+| Wi-Fi на устройстве | Чтобы приложение могло само скачивать будущие обновления |
+
+> ⚠️ Порядок важен: сначала ставим APK и назначаем Device Owner — только потом можно спокойно логиниться в Google-аккаунты (если вообще нужно) и раздавать устройство. После назначения Device Owner аккаунты уже не мешают.
+
+### Шаг 1 — Установка APK на устройство
+
+Выбери один из двух способов.
+
+**Вариант А — через кабель и `adb` (надёжнее, рекомендуется)**
+
+```bash
+adb devices                 # проверить, что устройство видно
+adb install -r app-release.apk
+```
+
+**Вариант Б — установка по ссылке прямо на устройстве (без компьютера на этом шаге)**
+
+Если прислали ссылку на APK (например OTA-адрес `https://kiosk.qrpay.kz/apk/app/prod`, либо ссылку на конкретную сборку):
+
+1. На устройстве: **Настройки → Приложения → Особый доступ → Установка неизвестных приложений** → разреши для браузера, которым будешь скачивать файл.
+2. Открой ссылку в браузере на устройстве, дождись скачивания `.apk`, открой файл из уведомления/загрузок и нажми **Установить**.
+3. Компьютер с `adb` всё равно понадобится на следующем шаге — этот способ экономит только перенос файла.
+
+> Это разовое ручное действие только для самой первой установки на чистое устройство. Все **следующие** обновления сборки устройство поставит само — см. [раздел 15](#установка-новой-сборки-по-ссылке-тихое-ota-обновление).
+
+### Шаг 2 — Назначение Device Owner
+
+Устройство подключено к компьютеру по USB, отладка по USB включена (**Настройки → Для разработчиков → Отладка по USB**; если пункта "Для разработчиков" нет — 7 раз тапнуть по "Номер сборки" в "О телефоне").
+
+```bash
+adb shell dpm set-device-owner "dd.qrPay/.DeviceAdminReceiver"
+```
+
+Проверка:
+
+```bash
+adb shell dpm list-owners
+```
+
+Ожидаемый вывод:
+
+```
+Current Device Owner:
+  Package: dd.qrPay
+  Component: dd.qrPay/.DeviceAdminReceiver
+```
+
+Или короче, через `Makefile` проекта:
+
+```bash
+make set-device-admin
+make list-device-admin
+```
+
+Если команда выдаёт ошибку — таблица разборов в разделе [13. Назначение Device Owner через ADB](#назначение-device-owner-через-adb).
+
+### Шаг 3 — Первый запуск и проверка
+
+Открой приложение (или нажми "Домой" — устройство теперь само откроет киоск) и проверь:
+
+- [ ] Статус-бар (шторка сверху) не выезжает
+- [ ] Кнопка "Домой"/"Назад"/недавние приложения не сворачивают приложение
+- [ ] После перезагрузки устройства приложение открывается само, без участия человека
+
+На этом настройка конкретного устройства закончена — дальше обновления оно получает само (раздел 15). Если что-то не работает — раздел [18. Частые ошибки](#частые-ошибки-и-их-решения), а полный чеклист перед сдачей устройства — в разделе [20](#чеклист-сдачи-устройства-для-оператора).
 
 ---
 
@@ -32,14 +130,15 @@
 
 ```
 Android Device Owner (DPC)
-├── DeviceAdminReceiver       — точка входа для DPM API
-├── MainActivity              — основная активити + Lock Task + полноэкранный режим
-├── BootReceiver              — автозапуск после перезагрузки
-├── AppUpdatedReceiver        — восстановление киоска после обновления APK
+├── DeviceAdminReceiver         — точка входа для DPM API
+├── MainActivity                — основная активити + Lock Task + полноэкранный режим + MethodChannel "dpc"
+├── BootReceiver                — автозапуск после перезагрузки
+├── AppUpdatedReceiver          — восстановление киоска после обновления APK
+├── InstallResultReceiver       — результат тихой установки APK (PackageInstaller)
 ├── DeviceOwnerPermissionHelper — автовыдача runtime-разрешений (Wi-Fi)
-├── AdbConfigReceiver         — удалённая настройка через ADB broadcast
-├── ProvisioningActivity      — выбор режима provisioning (Android 12+, QR)
-└── FinaliseActivity          — финализация policy compliance (Android 12+, QR)
+├── AdbConfigReceiver           — удалённая настройка через ADB broadcast
+├── ProvisioningActivity        — выбор режима provisioning (Android 12+, QR)
+└── FinaliseActivity            — финализация policy compliance (Android 12+, QR)
 ```
 
 **Ключевые Android API:**
@@ -47,6 +146,7 @@ Android Device Owner (DPC)
 - `startLockTask()` / `stopLockTask()` — блокировка в одном приложении
 - `addPersistentPreferredActivity()` — назначение приложения домашним лаунчером
 - `setStatusBarDisabled()` / `setKeyguardDisabled()` — скрытие системных элементов
+- `PackageInstaller` (сессия, закоммиченная Device Owner-ом) — **тихая** установка APK без системного диалога подтверждения — именно это делает возможной установку новой сборки "по ссылке" без участия человека
 
 ---
 
@@ -78,6 +178,7 @@ android/
             │       ├── DeviceAdminReceiver.kt
             │       ├── BootReceiver.kt
             │       ├── AppUpdatedReceiver.kt
+            │       ├── InstallResultReceiver.kt      (нужен только для тихого OTA-обновления, раздел 15)
             │       ├── DeviceOwnerPermissionHelper.kt
             │       ├── AdbConfigReceiver.kt
             │       ├── ProvisioningActivity.kt
@@ -212,7 +313,16 @@ class DeviceAdminReceiver : DeviceAdminReceiver()
 </receiver>
 ```
 
-### 3.6 AdbConfigReceiver (опционально — для удалённой настройки)
+### 3.6 InstallResultReceiver (нужен для тихого OTA-обновления, раздел 15)
+
+```xml
+<!-- Результат PackageInstaller.commit() при тихой установке -->
+<receiver
+    android:name=".InstallResultReceiver"
+    android:exported="false" />
+```
+
+### 3.7 AdbConfigReceiver (опционально — для удалённой настройки)
 
 ```xml
 <!-- Удалённая настройка через ADB broadcast -->
@@ -225,7 +335,7 @@ class DeviceAdminReceiver : DeviceAdminReceiver()
 </receiver>
 ```
 
-### 3.7 ProvisioningActivity и FinaliseActivity (Android 12+, только для QR provisioning)
+### 3.8 ProvisioningActivity и FinaliseActivity (Android 12+, только для QR provisioning)
 
 ```xml
 <!-- Выбор режима provisioning -->
@@ -495,6 +605,8 @@ class MainActivity : FlutterActivity() {
 }
 ```
 
+> Это минимальный шаблон под ключевые операции (открыть Wi-Fi, выйти из киоска). Для **тихой установки новой сборки по ссылке** к нему нужно добавить ещё один метод канала `dpc` и функцию `installApkSilently` — она вынесена в отдельный раздел [15. Установка новой сборки по ссылке](#установка-новой-сборки-по-ссылке-тихое-ota-обновление), чтобы не перегружать базовый шаблон.
+
 ---
 
 ## Шаг 5 — BootReceiver (автозапуск)
@@ -691,7 +803,7 @@ class AdbConfigReceiver : BroadcastReceiver() {
 }
 ```
 
-**Пример отправки через ADB:**
+**Пример отправки через ADB (базовые параметры):**
 ```bash
 adb shell am broadcast \
   -a YOUR_APP_ID.ACTION_CONFIG \
@@ -699,6 +811,17 @@ adb shell am broadcast \
   --es kiosk_code "TERMINAL_001" \
   --ei section_id 5
 ```
+
+**Пример с настройкой Wi-Fi (если ресивер расширен полями `wifi_ssid`/`wifi_password`/`wifi_hidden`):**
+```bash
+adb shell am broadcast \
+  -a YOUR_APP_ID.ACTION_CONFIG \
+  --es wifi_ssid "MyWifi" \
+  --es wifi_password "secret123" \
+  --ez wifi_hidden false
+```
+
+> Работает только пока устройство остаётся Device Owner — приложение получит конфиг и применит его на лету, без переустановки.
 
 ---
 
@@ -758,7 +881,7 @@ class FinaliseActivity : Activity() {
 
 1. На устройстве **нет Google-аккаунтов** (или устройство только что после factory reset)
 2. Включена отладка по USB (`Параметры разработчика → Отладка USB`)
-3. Приложение **уже установлено** на устройство (`flutter install` или `adb install app.apk`)
+3. Приложение **уже установлено** на устройство (`flutter install`, `adb install app.apk`, либо скачано и установлено вручную по ссылке — см. [раздел 0](#0-быстрый-старт-для-оператора))
 
 ### Команда назначения
 
@@ -784,16 +907,6 @@ Current Device Owner:
   Component: YOUR_APP_ID/.DeviceAdminReceiver
 ```
 
-### Makefile-команды (из проекта)
-
-```bash
-# Назначить Device Owner
-make set-device-admin
-
-# Проверить владельца
-make list-device-admin
-```
-
 ### Возможные ошибки при назначении
 
 | Ошибка | Причина | Решение |
@@ -802,6 +915,7 @@ make list-device-admin
 | `Not allowed to set the device owner because there are already some accounts on the device` | Добавлен Google-аккаунт | Factory reset или удалить аккаунт |
 | `java.lang.IllegalArgumentException: Unknown admin` | Неверный `applicationId` или компонент | Проверить `applicationId` в `build.gradle` |
 | `java.lang.SecurityException: Admin ... is not installed` | Приложение не установлено | Установить APK перед командой |
+| Команда молча зависает / ничего не происходит | Отладка по USB не подтверждена для этого компьютера | На экране устройства подтвердить всплывающий запрос "Разрешить отладку по USB" |
 
 ---
 
@@ -824,6 +938,247 @@ list-device-admin:
 make set-device-admin
 make list-device-admin
 ```
+
+---
+
+## Установка новой сборки по ссылке (тихое OTA-обновление)
+
+Device Owner даёт ещё одну важную возможность: `PackageInstaller`-сессия, закоммиченная приложением-владельцем устройства, ставится **без системного диалога подтверждения**. На этом построено автообновление киоска "по ссылке" — без физического доступа к устройству.
+
+### Как это устроено в проекте
+
+```
+Сервер (фиксированный URL на канал)
+        │  GET https://kiosk.qrpay.kz/apk/app/{prod|dev}
+        ▼
+Flutter: OtaUpdateService.downloadAndInstall()   (lib/src/features/kiosk/service/ota_update.dart)
+        │  1. скачивает APK через Dio во временную директорию
+        │  2. зовёт MethodChannel "dpc" → installApk(path)
+        ▼
+Kotlin: MainActivity.installApkSilently()        (android/.../MainActivity.kt)
+        │  3. создаёт PackageInstaller.Session, пишет APK, session.commit()
+        │  4. коммит проходит БЕЗ диалога — потому что приложение Device Owner
+        ▼
+InstallResultReceiver                            (android/.../InstallResultReceiver.kt)
+        │  5. получает статус установки, сохраняет в SharedPreferences
+        ▼
+AppUpdatedReceiver (MY_PACKAGE_REPLACED)
+        │  6. после self-update процесс перезапускается — политики киоска восстанавливаются
+        ▼
+Flutter снова опрашивает getInstallResult() → показывает результат
+```
+
+### 1. Где брать URL сборки
+
+`AppUrls.otaApkUrl` — фиксированный адрес на канал, не версионированный (`lib/src/core/constants/app_url.dart`):
+
+```dart
+static String get otaApkUrl => 'https://kiosk.qrpay.kz/apk/app/$_otaChannel';
+// prod -> https://kiosk.qrpay.kz/apk/app/prod
+// dev  -> https://kiosk.qrpay.kz/apk/app/dev
+```
+
+Каждая новая сборка заливается **на этот же URL**, заменяя предыдущий файл — отдельных ссылок на версии нет, приложение всегда скачивает "текущий файл по адресу".
+
+> ⚠️ Обязательно увеличивайте `version` в `pubspec.yaml` перед заливкой новой сборки на сервер — сравнение версий идёт по семверу (см. п. 2), без этого автообновление не запустится.
+
+### 2. Когда запускается проверка обновления
+
+`checkAndUpdateIfNeeded()` (`lib/src/features/home/vm/qr_menu_vm.dart`) вызывается при заходе на главный экран, сравнивает текущую версию приложения (`PackageInfo.fromPlatform()`) с версией, которую отдаёт сервер:
+
+```dart
+Future<void> checkAndUpdateIfNeeded(String? serverVersion) async {
+  if (serverVersion == null || serverVersion.trim().isEmpty) return;
+  if (otaChecking) return;
+  if (lastServerVersionTried == serverVersion) return; // анти-спам
+
+  otaChecking = true;
+  try {
+    final current = (await PackageInfo.fromPlatform()).version;
+    if (compareSemver(current, serverVersion) < 0) {
+      await sl<OtaUpdateService>().downloadAndInstall();
+      lastServerVersionTried = serverVersion;
+    }
+  } finally {
+    otaChecking = false;
+  }
+}
+```
+
+Плюс есть ручная кнопка "Обновить" в киоск-настройках, которая напрямую вызывает `downloadAndInstall()` — полезно, если нужно обновить прямо сейчас, не дожидаясь автопроверки.
+
+### 3. Dart-сторона: скачивание и запуск установки
+
+**Файл:** `lib/src/features/kiosk/service/ota_update.dart`
+
+```dart
+const _dpc = MethodChannel('dpc');
+
+class OtaUpdateService {
+  final ValueNotifier<OtaStatus> status = ValueNotifier(const OtaStatus.idle());
+  bool _busy = false;
+
+  Future<void> downloadAndInstall() async {
+    if (_busy) return;
+    _busy = true;
+    status.value = const OtaStatus.downloading(0);
+
+    final url = AppUrls.otaApkUrl;
+    final dir = await getTemporaryDirectory();
+    final filePath = p.join(dir.path, 'ota.apk');
+    final dio = Dio();
+
+    try {
+      await _dpc.invokeMethod('clearInstallResult'); // сбросить "хвост" прошлой попытки
+
+      await dio.download(url, filePath, onReceiveProgress: (received, total) {
+        if (total > 0) status.value = OtaStatus.downloading(received / total);
+      });
+
+      status.value = const OtaStatus.installing();
+      await _dpc.invokeMethod('installApk', {'path': filePath});
+
+      // installApk возвращается сразу после session.commit() —
+      // реальная установка асинхронна, поэтому опрашиваем результат.
+      await _pollInstallResult();
+    } finally {
+      status.value = const OtaStatus.idle();
+      _busy = false;
+    }
+  }
+
+  Future<void> _pollInstallResult() async {
+    for (var i = 0; i < 30; i++) { // 30 * 2с = 60с таймаут
+      await Future.delayed(const Duration(seconds: 2));
+      final result = await _dpc.invokeMethod<Map>('getInstallResult');
+      if (result != null) {
+        final status = result['status'] as int? ?? -1;
+        if (status == 0) { // PackageInstaller.STATUS_SUCCESS
+          await Future.delayed(const Duration(seconds: 10)); // ждём self-update kill
+          return;
+        }
+        throw PlatformException(code: 'INSTALL_FAILED', message: result['message'] as String?);
+      }
+    }
+    throw PlatformException(code: 'INSTALL_TIMEOUT', message: 'Превышено время ожидания установки');
+  }
+}
+```
+
+### 4. Kotlin-сторона: тихая установка через PackageInstaller
+
+Добавьте в `MainActivity.kt` (см. [Шаг 4](#шаг-4--mainactivity-логика-киоска)) обработку метода `installApk` и вспомогательную функцию:
+
+```kotlin
+"installApk" -> {
+    val path = call.argument<String>("path")
+    if (path.isNullOrBlank()) {
+        result.error("NO_PATH", "path is required", null)
+        return@setMethodCallHandler
+    }
+    try {
+        installApkSilently(path)
+        result.success(true)
+    } catch (e: Throwable) {
+        result.error("INSTALL_FAILED", e.message, null)
+    }
+}
+
+"getInstallResult" -> {
+    val prefs = getSharedPreferences("ota_prefs", MODE_PRIVATE)
+    val ts = prefs.getLong("install_timestamp", 0)
+    if (ts > 0 && System.currentTimeMillis() - ts < 120_000) {
+        val map = hashMapOf<String, Any?>(
+            "status" to prefs.getInt("install_status", -1),
+            "message" to (prefs.getString("install_message", "") ?: "")
+        )
+        prefs.edit().remove("install_timestamp").remove("install_status").remove("install_message").apply()
+        result.success(map)
+    } else {
+        result.success(null)
+    }
+}
+
+"clearInstallResult" -> {
+    getSharedPreferences("ota_prefs", MODE_PRIVATE).edit()
+        .remove("install_timestamp").remove("install_status").remove("install_message").apply()
+    result.success(true)
+}
+```
+
+```kotlin
+// Тихая установка APK через PackageInstaller session (только для Device Owner)
+private fun installApkSilently(apkPath: String) {
+    val apkFile = File(apkPath)
+    require(apkFile.exists()) { "APK not found: $apkPath" }
+
+    val installer = packageManager.packageInstaller
+    val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
+    val sessionId = installer.createSession(params)
+    val session = installer.openSession(sessionId)
+
+    apkFile.inputStream().use { input ->
+        session.openWrite("ota.apk", 0, apkFile.length()).use { out ->
+            input.copyTo(out)
+            session.fsync(out)
+        }
+    }
+
+    val intent = Intent(this, InstallResultReceiver::class.java)
+    val pending = PendingIntent.getBroadcast(
+        this, sessionId, intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+    )
+
+    // Выходим из lock task перед установкой, чтобы PackageInstaller не был заблокирован.
+    // AppUpdatedReceiver вернёт lock task после обновления.
+    try { stopLockTask() } catch (_: Throwable) {}
+
+    session.commit(pending.intentSender)
+    session.close()
+}
+```
+
+### 5. InstallResultReceiver — получаем результат установки
+
+**Файл:** `kotlin/YOUR_PACKAGE/InstallResultReceiver.kt`
+
+```kotlin
+package YOUR_APP_ID
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageInstaller
+
+class InstallResultReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
+        val msg = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE) ?: ""
+
+        // Сохраняем результат, чтобы Flutter мог прочитать его через getInstallResult()
+        context.getSharedPreferences("ota_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putInt("install_status", status)
+            .putString("install_message", msg)
+            .putLong("install_timestamp", System.currentTimeMillis())
+            .apply()
+
+        // Возвращаемся в приложение и при успехе, и при ошибке —
+        // устройство не должно оставаться "в системе" без присмотра.
+        val launch = Intent(context, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        runCatching { context.startActivity(launch) }
+    }
+}
+```
+
+Не забудьте зарегистрировать его в манифесте — см. [3.6](#36-installresultreceiver-нужен-для-тихого-ota-обновления-раздел-15).
+
+> `STATUS_FAILURE_CONFLICT` в логе почти всегда означает **несовпадение подписи** — новая сборка подписана другим ключом, чем установленная. Тихое обновление (как и обычное `adb install -r`) работает только если ключ подписи не меняется между сборками.
 
 ---
 
@@ -853,6 +1208,21 @@ class DpcChannel {
   }
 }
 ```
+
+Полный набор методов, реализованных в проекте `dd.qrPay` на канале `dpc`:
+
+| Метод | Назначение |
+|---|---|
+| `clearDeviceOwner` | Снять Device Owner и выйти из киоска |
+| `openWifi` | Открыть системный экран/панель Wi-Fi поверх lock task |
+| `enableKiosk` | Вернуть киоск-режим без переустановки (снять флаг "отключено") |
+| `lockDevice` | Заблокировать экран через `dpm.lockNow()` |
+| `installApk` | Тихо установить APK по локальному пути — см. [раздел 15](#установка-новой-сборки-по-ссылке-тихое-ota-обновление) |
+| `getInstallResult` / `clearInstallResult` | Прочитать/сбросить результат последней тихой установки |
+| `getManagedConfig` | Прочитать managed configuration, выставленную через `AdbConfigReceiver` |
+| `getDeviceDisplayName` | Имя устройства из `Settings.Global.DEVICE_NAME` |
+| `getPackageVersion` | Версия установленного пакета по имени |
+| `getDeviceMetrics` | Температура батареи, память, аптайм — для диагностики терминала |
 
 **Получение события смены конфига:**
 ```dart
@@ -891,6 +1261,8 @@ adb shell dpm remove-active-admin "YOUR_APP_ID/.DeviceAdminReceiver"
 adb shell dpm clear-device-owner
 ```
 
+После этого устройство снова обычный планшет — Device Owner можно назначить заново с нуля, если аккаунтов на устройстве по-прежнему нет.
+
 ---
 
 ## Частые ошибки и их решения
@@ -903,7 +1275,6 @@ adb shell dpm clear-device-owner
 
 **Решение:**
 ```kotlin
-// Проверить перед вызовом
 val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 if (dpm.isLockTaskPermitted(packageName)) {
     startLockTask()
@@ -929,13 +1300,15 @@ if (dpm.isLockTaskPermitted(packageName)) {
 adb shell dumpsys package YOUR_APP_ID | grep -A5 "Receivers"
 ```
 
+Если устройство зашифровано и требует PIN при загрузке — до ввода PIN на экране блокировки приложение не запустится, это ограничение Android, а не баг.
+
 ---
 
 ### 4. HOME-кнопка выходит из приложения
 
-**Причина:** Не настроен HOME intent-filter в ManifestActivity или не вызван `addPersistentPreferredActivity`.
+**Причина:** Не настроен HOME intent-filter в AndroidManifest или не вызван `addPersistentPreferredActivity`.
 
-**Решение:** Убедитесь что в ManifestActivity есть:
+**Решение:** Убедитесь что в манифесте у `MainActivity` есть:
 ```xml
 <intent-filter>
     <action android:name="android.intent.action.MAIN"/>
@@ -957,13 +1330,23 @@ adb shell pm clear com.google.android.gms
 
 ---
 
-## Чеклист перед релизом
+### 6. OTA-обновление скачивается, но не ставится / зависает
+
+**Причины и решения:**
+- Версия новой сборки в `pubspec.yaml` не больше версии на устройстве — сравнение по семверу не даст добро на установку, увеличьте `version`.
+- В логе `STATUS_FAILURE_CONFLICT` — новая сборка подписана другим ключом, чем текущая установка. Подписывайте все сборки одним и тем же keystore.
+- Нет интернета на устройстве в момент скачивания — проверьте Wi-Fi (кнопка `openWifi`/`_openWifi` в UI).
+
+---
+
+## Чеклист перед релизом (для разработчика)
 
 - [ ] `DeviceAdminReceiver` класс создан и указан в манифесте
 - [ ] `res/xml/device_admin_receiver.xml` создан
 - [ ] `AndroidManifest.xml` содержит HOME intent-filter у MainActivity
 - [ ] `BootReceiver` зарегистрирован с `directBootAware="true"`
 - [ ] `AppUpdatedReceiver` зарегистрирован с action `MY_PACKAGE_REPLACED`
+- [ ] `InstallResultReceiver` зарегистрирован (если используется тихое OTA)
 - [ ] `applicationId` в `build.gradle` совпадает с пакетом в ADB-команде
 - [ ] APK установлен на устройство **до** назначения Device Owner
 - [ ] На устройстве нет Google-аккаунтов перед назначением DO
@@ -973,6 +1356,22 @@ adb shell pm clear com.google.android.gms
 - [ ] HOME-кнопка не выводит из приложения
 - [ ] Статус-бар и панель навигации скрыты
 - [ ] Кнопки громкости не работают (если нужно)
+- [ ] Новая сборка на OTA-URL (`otaApkUrl`) подписана тем же ключом, что предыдущая
+- [ ] Версия в `pubspec.yaml` увеличена перед заливкой сборки на OTA-URL
+
+---
+
+## Чеклист сдачи устройства (для оператора)
+
+Проверка на конкретном физическом устройстве после настройки по [разделу 0](#0-быстрый-старт-для-оператора):
+
+- [ ] APK установлен
+- [ ] `adb shell dpm list-owners` показывает `dd.qrPay/.DeviceAdminReceiver`
+- [ ] Статус-бар и навигация скрыты
+- [ ] Кнопка "Домой"/"Назад" не выходит из приложения
+- [ ] После перезагрузки приложение открывается само
+- [ ] Wi-Fi подключен, есть интернет
+- [ ] Проверено ручное обновление (кнопка "Обновить" в киоск-настройках) — не падает с ошибкой
 
 ---
 
