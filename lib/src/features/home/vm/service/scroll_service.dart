@@ -58,7 +58,7 @@ class ScrollService {
     this.isTablet = isTablet;
     this.menuData = menuData;
     isAtStart =
-        !isAtStart ? isAtStart : menuData.recommend?.isNotEmpty ?? false;
+        !isAtStart ? isAtStart : menuData.effectiveRecommend.isNotEmpty;
     categoryKeys =
         List.generate(menuData.data?.length ?? 0, (_) => GlobalKey());
     calculateCategoryWidths(menuData);
@@ -90,7 +90,7 @@ class ScrollService {
     //     : 5;
     final tabsHeight = isTablet ? 69.0 : 54.0;
 
-    double offset = menuData.recommend?.isNotEmpty ?? false
+    double offset = menuData.effectiveRecommend.isNotEmpty
         ? isTablet
             ? ((_context!.mediaQuery.size.width / 1.3) - kToolbarHeight) -
                 tabsHeight
@@ -122,20 +122,28 @@ class ScrollService {
               : textPainter.height + 32 + 430;
 
       if (isGridView) {
-        final columns = isTablet ? 3 : 2;
+        // GridMenuWidget всегда рендерит 3 колонки (crossAxisCount: 3),
+        // независимо от isTablet — держим это в синхроне, иначе offset
+        // расходится с реальной версткой.
+        const columns = 3;
         // final itemHeight = isTablet ? 475.0 : 355.0;
         final itemHeight = isTablet
             ? (Platform.isIOS
                 ? 50.1.sh
                 : context.screenSize.width > 600
-                    ? 44.5.sh
+                    ? 42.5.sh
                     : 51.sh)
             : context.mediaQuery.size.width / 1.16;
 
         final numRows = (itemCount / columns).ceil();
         offset += numRows * itemHeight;
       } else {
-        final itemHeight = isTablet ? (15.sh + 32) : 168.0;
+        // ItemMenu рендерит height: 15.sh одинаково на телефоне и планшете
+        // (плюс вертикальный паддинг AppPaddings.all = 16+16) — раньше тут
+        // было отдельное значение для телефона (136 + 32 = 168), но с тех
+        // пор как ItemMenu перестал различать isTablet, эта ветка держим
+        // ту же формулу, иначе offset расходится с реальной версткой.
+        final itemHeight = 15.sh + 32;
         offset += itemCount * itemHeight;
       }
     }
@@ -204,8 +212,7 @@ class ScrollService {
     }
 
     if (_context != null &&
-        (menuData?.recommend != null &&
-            (menuData?.recommend?.isNotEmpty ?? false))) {
+        (menuData?.effectiveRecommend.isNotEmpty ?? false)) {
       final threshold = MediaQuery.of(_context!).size.width / 1.4;
       if (currentOffset < threshold && !isAtStart) {
         isAtStart = true;
@@ -346,17 +353,21 @@ class ScrollService {
       return;
     }
 
-    final position = scrollController.position;
-    final clampedTarget = target.clamp(
-      position.minScrollExtent,
-      position.maxScrollExtent,
-    );
+    // Не обрезаем target по scrollController.position.maxScrollExtent —
+    // сразу после переключения grid/список это лишь оценка Flutter по уже
+    // построенным (measured) детям сливера, и если мы стоим в середине
+    // списка, она занижена (новый layout ещё не достроен). Обрезка по ней
+    // давала недоскролл, который "чинился" только после того, как весь
+    // список был построен целиком (например, доскроллив до начала).
+    // animateTo сам корректно доедет: физика скролла проверяет реальные
+    // границы на каждом кадре анимации, а не устаревшую оценку до её начала.
+    final clampedTarget = target < 0 ? 0.0 : target;
 
     // ⬇️ Ставим флаг "мы сами крутим"
     isProgrammaticScroll = true;
     try {
       await scrollController.animateTo(
-        clampedTarget.toDouble(),
+        clampedTarget,
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
       );
@@ -441,7 +452,7 @@ class ScrollService {
 //   ) {
 //     categoryOffsets.clear();
 
-//     double offset = menuData.recommend?.isNotEmpty ?? false
+//     double offset = menuData.effectiveRecommend.isNotEmpty
 //         ? isTablet
 //             ? ((_context!.mediaQuery.size.width / 1.2) - kToolbarHeight) - 54
 //             : (450 - kToolbarHeight) - 54

@@ -444,6 +444,11 @@ class ItemRecomended extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<QrMenuVm>(context, listen: false);
     final imageUrl = _resolveImageUrl();
+    // Одна высота на все три состояния слота (картинка / плейсхолдер / ошибка).
+    // Раньше они расходились — 1/3, 1/2.7 и жёсткие 300px, — и карточки без
+    // картинки выпадали из сетки.
+    final imageHeight =
+        context.isDesktop ? 500 / 2.8 : context.mediaQuery.size.width / 3;
     return AnimatedCard(
       child: GestureDetector(
         onTap: () {
@@ -479,25 +484,22 @@ class ItemRecomended extends StatelessWidget {
                 const ColumnSpacer(1.6),
 
                 imageUrl.isEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
+                    ? Container(
+                        height: imageHeight,
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         child: Image.asset(
                           AppWebpImages.emptyStatus,
-                          height: context.mediaQuery.size.width / 2.7,
+                          fit: BoxFit.cover,
                         ),
                       )
                     : SafeNetworkImage(
-                        // width: 150,
-                        height: context.isDesktop
-                            ? 500 / 2.8
-                            : context.mediaQuery.size.width / 3,
+                        height: imageHeight,
                         imageUrl: imageUrl,
-                        // item?.image?.first.path ?? '',
-
                         imageBuilder: (context, placeholder) => Container(
-                          height: context.isDesktop
-                              ? 500 / 2.8
-                              : context.mediaQuery.size.width / 2.7,
+                          height: imageHeight,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             image: DecorationImage(

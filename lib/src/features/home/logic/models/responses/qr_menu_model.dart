@@ -24,6 +24,26 @@ class QrMenuModel extends BaseModel<QrMenuModel> {
 
   @override
   QrMenuModel fromJson(Map<String, dynamic> json) => QrMenuModel.fromJson(json);
+
+  /// Бэкенд обычно не присылает рекомендации на корневом уровне ("recommend"
+  /// рядом с "data"), а кладёт их внутрь каждой категории (`data[].recommend`).
+  /// Поэтому для витринных виджетов (шапка меню, блок допродаж) собираем
+  /// рекомендации из категорий, если корневой список пуст.
+  List<Items> get effectiveRecommend {
+    final root = recommend ?? const [];
+    if (root.isNotEmpty) return root;
+
+    final seenIds = <int>{};
+    final aggregated = <Items>[];
+    for (final category in data ?? const <QrMenuDatum>[]) {
+      for (final item in category.recommend ?? const <Items>[]) {
+        if (item.id == null || seenIds.add(item.id!)) {
+          aggregated.add(item);
+        }
+      }
+    }
+    return aggregated;
+  }
 }
 
 @JsonSerializable()

@@ -650,13 +650,17 @@ class _ProductMediaBackground extends StatelessWidget {
         targetWidthPx: heroProxyPx.widthPx,
         targetHeightPx: heroProxyPx.heightPx,
       ),
+      // cacheHeight отдаём самому SafeNetworkImage, а не оборачиваем провайдер
+      // здесь: иначе виджет проверяет декодирование одного провайдера, а
+      // рисуется другой — и картинка декодируется дважды.
+      cacheHeight: cacheHeight,
       imageBuilder: (context, provider) => Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.vertical(
             bottom: Radius.circular(8),
           ),
           image: DecorationImage(
-            image: ResizeImage(provider, height: cacheHeight),
+            image: provider,
             fit: BoxFit.cover,
           ),
         ),

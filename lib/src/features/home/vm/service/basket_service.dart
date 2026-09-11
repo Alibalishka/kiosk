@@ -180,8 +180,8 @@ class BasketService {
   }
 
   List<Items> returnRecommended(QrMenuModel? menuData) {
-    return menuData?.recommend
-            ?.where((i) => !basket.any((b) => b.id == i.id))
+    return menuData?.effectiveRecommend
+            .where((i) => !basket.any((b) => b.id == i.id))
             .toList() ??
         [];
   }

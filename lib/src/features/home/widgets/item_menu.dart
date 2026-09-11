@@ -91,13 +91,14 @@ class ItemMenu extends StatelessWidget {
                               // height: viewModel.isTablet ? 180 : 136,
                               height: 180,
                               imageUrl: resolveImageDatumUrl(item.image!.first),
+                              // Раньше здесь был Colors.transparent — во время
+                              // загрузки на месте картинки не было вообще
+                              // ничего.
                               placeholder: Container(
-                                // height: viewModel.isTablet ? 180 : 136,
                                 height: 180,
-                                // width: viewModel.isTablet ? 175 : 131,
                                 width: 175,
                                 decoration: BoxDecoration(
-                                  color: AppColors.none,
+                                  color: AppColors.primitiveNeutral0,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),

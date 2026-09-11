@@ -38,11 +38,6 @@ class GridMenuWidget extends StatelessWidget {
                       : context.screenSize.width > 600
                           ? 42.5.sh
                           : 51.sh),
-                  // height: viewModel.isTablet
-                  //     ? (Platform.isIOS ? 50.1.sh : 44.5.sh)
-                  //     : context.isDesktop
-                  //         ? 500 / 1.3
-                  //         : context.mediaQuery.size.width / 1.16,
                   child: ItemRecomended(
                     item: item,
                     bottom: viewModel.hasAvailablePayments

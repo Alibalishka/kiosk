@@ -83,9 +83,6 @@ class QrMenuPageState extends State<QrMenuPage>
   /// Порог: 10 попыток × 30 сек ≈ 5 минут
   static const int _maxFailsBeforeError = 10;
 
-  /// Секретный тап для открытия Wi-Fi (только Android)
-  int _wifiTapCount = 0;
-
   @override
   void initState() {
     super.initState();
@@ -172,14 +169,6 @@ class QrMenuPageState extends State<QrMenuPage>
         exitConfirmController: _exitConfirmController,
         onExitFromKiosk: _exitFromKiosk,
       );
-    }
-  }
-
-  void _handleWifiTap() {
-    _wifiTapCount++;
-    if (_wifiTapCount >= 7) {
-      _wifiTapCount = 0;
-      _openWifiPanel();
     }
   }
 
@@ -536,126 +525,253 @@ class QrMenuPageState extends State<QrMenuPage>
                     viewModel.kioskService.isAdVisible &&
                     viewModel.kioskService.currentScreenSaver != null))
               Positioned.fill(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    IgnorePointer(
-                      ignoring: _techWorkCode != null,
-                      child: AdFullScreen(
-                        items: viewModel.kioskService.screenSavers?.data ?? [],
-                        onTap: viewModel.kioskService.onUserInteraction,
+                // Пока идёт techWork/сеть — оверлей статичный (как раньше).
+                // Обычную рекламу пользователь может смахнуть вверх, чтобы
+                // увидеть меню под ней — как штору.
+                child: _techWorkCode != null
+                    ? _buildAdOverlayStack()
+                    : _AdSwipeUpReveal(
+                        onDismissed: viewModel.kioskService.onUserInteraction,
+                        child: _buildAdOverlayStack(),
                       ),
-                    ),
-                    const Positioned(
-                      top: 0,
-                      left: 0,
-                      child: SafeArea(
-                        minimum: EdgeInsets.fromLTRB(24, 24, 0, 0),
-                        child: IgnorePointer(
-                          child: AdLogoCoinShine(height: 24),
-                        ),
-                      ),
-                    ),
-                    if (_techWorkCode != null)
-                      Positioned.fill(
-                        child: TweenAnimationBuilder<double>(
-                          key: ValueKey('tech_work_$_techWorkCode'),
-                          tween: Tween(begin: 0, end: 1),
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeOutCubic,
-                          builder: (context, t, child) => Opacity(
-                            opacity: t,
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 8 * t,
-                                sigmaY: 8 * t,
-                              ),
-                              child: Transform.translate(
-                                offset: Offset(0, (1 - t) * 24),
-                                child: child,
-                              ),
-                            ),
-                          ),
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: Container(
-                              color: Colors.black.withOpacity(0.2),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 32),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    _isNetworkError &&
-                                            _errorFromConsecutiveFails
-                                        ? 'Нет подключения к сети'
-                                        : 'Киоск временно не работает',
-                                    textAlign: TextAlign.center,
-                                    style: AppTextStyles.headingH1.copyWith(
-                                      fontSize: 48,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  Text(
-                                    _isNetworkError &&
-                                            _errorFromConsecutiveFails
-                                        ? 'Проверьте подключение к интернету.\nРабота будет восстановлена автоматически.'
-                                        : 'Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.',
-                                    textAlign: TextAlign.center,
-                                    style: AppTextStyles.bodyL.copyWith(
-                                      fontSize: 28,
-                                      color: Colors.white.withOpacity(0.8),
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 48),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 32, vertical: 16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                          color: Colors.white.withOpacity(0.2)),
-                                    ),
-                                    child: Text(
-                                      _isNetworkError &&
-                                              _errorFromConsecutiveFails
-                                          ? 'Ошибка сети'
-                                          : 'Код ошибки: 64${_techWorkCode}19',
-                                      textAlign: TextAlign.center,
-                                      style: AppTextStyles.headingH1.copyWith(
-                                        fontSize: 32,
-                                        color: Colors.white.withOpacity(0.9),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    // Секретная кнопка Wi-Fi в правом верхнем углу (только Android)
-                    if (_techWorkCode != null && Platform.isAndroid)
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: SafeArea(
-                          minimum: const EdgeInsets.fromLTRB(0, 24, 24, 0),
-                          child: GestureDetector(
-                            onTap: _handleWifiTap,
-                            behavior: HitTestBehavior.opaque,
-                            child: const SizedBox(width: 80, height: 80),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAdOverlayStack() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        IgnorePointer(
+          ignoring: _techWorkCode != null,
+          child: AdFullScreen(
+            items: viewModel.kioskService.screenSavers?.data ?? [],
+            onTap: viewModel.kioskService.onUserInteraction,
+          ),
+        ),
+        const Positioned(
+          top: 0,
+          left: 0,
+          child: SafeArea(
+            minimum: EdgeInsets.fromLTRB(24, 24, 0, 0),
+            child: IgnorePointer(
+              child: AdLogoCoinShine(height: 24),
+            ),
+          ),
+        ),
+        if (_techWorkCode != null)
+          Positioned.fill(
+            child: TweenAnimationBuilder<double>(
+              key: ValueKey('tech_work_$_techWorkCode'),
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOutCubic,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: 8 * t,
+                    sigmaY: 8 * t,
+                  ),
+                  child: Transform.translate(
+                    offset: Offset(0, (1 - t) * 24),
+                    child: child,
+                  ),
+                ),
+              ),
+              child: Material(
+                type: MaterialType.transparency,
+                child: Container(
+                  color: Colors.black.withOpacity(0.2),
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isNetworkError && _errorFromConsecutiveFails
+                            ? 'Нет подключения к сети'
+                            : 'Киоск временно не работает',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.headingH1.copyWith(
+                          fontSize: 48,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        _isNetworkError && _errorFromConsecutiveFails
+                            ? 'Проверьте подключение к интернету.\nРабота будет восстановлена автоматически.'
+                            : 'Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyL.copyWith(
+                          fontSize: 28,
+                          color: Colors.white.withOpacity(0.8),
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        child: Text(
+                          _isNetworkError && _errorFromConsecutiveFails
+                              ? 'Ошибка сети'
+                              : 'Код ошибки: 64${_techWorkCode}19',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.headingH1.copyWith(
+                            fontSize: 32,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                      ),
+                      if (_isNetworkError &&
+                          _errorFromConsecutiveFails &&
+                          Platform.isAndroid) ...[
+                        const SizedBox(height: 24),
+                        _WifiSettingsButton(onTap: _openWifiPanel),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _WifiSettingsButton extends StatelessWidget {
+  const _WifiSettingsButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wifi, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                'Настройки Wi-Fi',
+                style: AppTextStyles.headingH1.copyWith(
+                  fontSize: 24,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Обычная реклама (не techWork) — пользователь может смахнуть её вверх,
+/// чтобы увидеть меню под ней, как штору. Тап по рекламе (см. AdFullScreen)
+/// по-прежнему закрывает её мгновенно — свайп добавляет альтернативный,
+/// анимированный способ сделать то же самое.
+class _AdSwipeUpReveal extends StatefulWidget {
+  const _AdSwipeUpReveal({
+    required this.onDismissed,
+    required this.child,
+  });
+
+  final VoidCallback onDismissed;
+  final Widget child;
+
+  @override
+  State<_AdSwipeUpReveal> createState() => _AdSwipeUpRevealState();
+}
+
+class _AdSwipeUpRevealState extends State<_AdSwipeUpReveal>
+    with SingleTickerProviderStateMixin {
+  /// 0 — реклама на месте, 1 — полностью ушла вверх за экран.
+  late final AnimationController _progress = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  );
+
+  /// Доля высоты экрана, после которой отпускание пальца доводит рекламу
+  /// до конца, а не возвращает на место.
+  static const double _dismissThreshold = 0.28;
+
+  /// Скорость свайпа (px/s), достаточная, чтобы закрыть рекламу даже если
+  /// палец не дошёл до порога — обычный жест "смахнул".
+  static const double _flingVelocity = 700;
+
+  bool _dismissing = false;
+
+  @override
+  void dispose() {
+    _progress.dispose();
+    super.dispose();
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    if (_dismissing) return;
+    final height = MediaQuery.of(context).size.height;
+    if (height <= 0) return;
+
+    // Тянем вверх (delta.dy < 0) — прогресс растёт; вниз — можно вернуть.
+    final delta = -details.delta.dy / height;
+    _progress.value = (_progress.value + delta).clamp(0.0, 1.0);
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    if (_dismissing) return;
+
+    final flungUp = (details.primaryVelocity ?? 0) < -_flingVelocity;
+    final pastThreshold = _progress.value > _dismissThreshold;
+
+    if (flungUp || pastThreshold) {
+      _dismissing = true;
+      _progress.animateTo(1.0, curve: Curves.easeOutCubic).whenComplete(() {
+        if (mounted) widget.onDismissed();
+      });
+    } else {
+      _progress.animateTo(0.0, curve: Curves.easeOutCubic);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragUpdate: _onDragUpdate,
+      onVerticalDragEnd: _onDragEnd,
+      child: AnimatedBuilder(
+        animation: _progress,
+        child: widget.child,
+        builder: (context, child) {
+          final height = MediaQuery.of(context).size.height;
+          return Transform.translate(
+            offset: Offset(0, -_progress.value * height),
+            child: child,
+          );
+        },
       ),
     );
   }

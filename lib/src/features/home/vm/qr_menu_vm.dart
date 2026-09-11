@@ -92,6 +92,9 @@ class QrMenuVm extends ViewModel {
   /// Локальные файлы видео, уже скачанные в дисковый кеш в этой сессии (по URL).
   final Map<String, File> _videoFileCache = {};
 
+  /// Потолок карты локальных видеофайлов.
+  static const int _kMaxVideoFileCacheEntries = 60;
+
   PaymentMethod paymentMethodData = PaymentMethod();
   TextEditingController nameController = TextEditingController();
 
@@ -250,10 +253,24 @@ class QrMenuVm extends ViewModel {
     });
   }
 
-  /// Предзагружает основные изображения блюд в кэш (kioskCacheManager),
-  /// чтобы при открытии ProductPage картинка бралась локально.
+  /// Отменяет прогрев предыдущего меню, когда приходит новое.
+  int _precacheGeneration = 0;
+
+  /// Предзагружает изображения блюд в кэш (kioskCacheManager).
+  ///
+  /// Две фазы, и это принципиально:
+  ///   1. лёгкие превью для сетки меню (~33 КБ, отдаются imgproxy мгновенно);
+  ///   2. только после них — тяжёлые hero-варианты для ProductPage
+  ///      (~220 КБ, imgproxy генерирует их «на холодную» по 5 секунд).
+  ///
+  /// Раньше обе фазы шли вперемешку и вставали в общую очередь загрузок
+  /// вместе с картинками, которые пользователь видит прямо сейчас, — из-за
+  /// чего сетка подолгу оставалась пустой.
   Future<void> _precacheMenuImages(QrMenuModel menu) async {
-    final urls = <String>{};
+    final generation = ++_precacheGeneration;
+
+    final menuUrls = <String>{};
+    final heroUrls = <String>{};
 
     int? targetW;
     int? targetH;
@@ -274,13 +291,13 @@ class QrMenuVm extends ViewModel {
         // 1. Для меню: path-first
         final menuUrl = resolveImageDatumUrl(img);
         if (menuUrl.isNotEmpty) {
-          urls.add(menuUrl);
+          menuUrls.add(menuUrl);
         }
 
         // 2. Для ProductPage: file-first + proxy params
         final rawProductUrl = img.file?.trim() ?? img.path?.trim() ?? '';
         if (rawProductUrl.isNotEmpty) {
-          urls.add(normalizeQrPayInsecureImageUrl(
+          heroUrls.add(normalizeQrPayInsecureImageUrl(
             rawProductUrl,
             targetWidthPx: targetW,
             targetHeightPx: targetH,
@@ -288,8 +305,8 @@ class QrMenuVm extends ViewModel {
         }
         final previewUrl = img.filePreview;
         if (previewUrl != null && previewUrl.isNotEmpty) {
-          urls.add(previewUrl);
-          urls.add(normalizeQrPayInsecureImageUrl(
+          heroUrls.add(previewUrl);
+          heroUrls.add(normalizeQrPayInsecureImageUrl(
             previewUrl,
             targetWidthPx: targetW,
             targetHeightPx: targetH,
@@ -300,7 +317,7 @@ class QrMenuVm extends ViewModel {
 
     // Топовые подборки
     collectFromItems(menu.featured);
-    collectFromItems(menu.recommend);
+    collectFromItems(menu.effectiveRecommend);
 
     // Категории
     for (final cat in menu.data ?? const <QrMenuDatum>[]) {
@@ -309,12 +326,25 @@ class QrMenuVm extends ViewModel {
       collectFromItems(cat.recommend);
     }
 
-    // Параллельная предзагрузка: до 12 одновременных загрузок.
-    // precacheUrl сам заполняет in-memory кеш и использует kioskCacheManager.
+    // Один и тот же URL не качаем дважды.
+    heroUrls.removeAll(menuUrls);
+
+    await _precacheBatch(menuUrls.toList(), generation);
+
+    // Пауза перед тяжёлой фазой: даём сетке дорисоваться на «холодном» старте.
+    await Future<void>.delayed(const Duration(seconds: 2));
+    if (generation != _precacheGeneration) return;
+
+    await _precacheBatch(heroUrls.toList(), generation);
+  }
+
+  /// Качает список URL пачками. `precacheUrl` сам сидит в низкоприоритетном
+  /// пуле, поэтому видимые картинки всегда идут вперёд.
+  Future<void> _precacheBatch(List<String> urls, int generation) async {
     const kBatchSize = 12;
-    final urlList = urls.toList();
-    for (var i = 0; i < urlList.length; i += kBatchSize) {
-      final batch = urlList.skip(i).take(kBatchSize).map(precacheUrl);
+    for (var i = 0; i < urls.length; i += kBatchSize) {
+      if (generation != _precacheGeneration) return;
+      final batch = urls.skip(i).take(kBatchSize).map(precacheUrl);
       await Future.wait(batch);
     }
   }
@@ -338,7 +368,15 @@ class QrMenuVm extends ViewModel {
     try {
       // Если этот URL уже качался в фоне в этой сессии — играем локальный
       // файл сразу же, без похода в сеть.
-      final localFile = _videoFileCache[file];
+      //
+      // Проверяем существование: периодическая чистка кэша
+      // (ImageCacheMaintenance) могла удалить файл по сроку хранения, пока
+      // ссылка на него ещё лежит в _videoFileCache.
+      var localFile = _videoFileCache[file];
+      if (localFile != null && !localFile.existsSync()) {
+        _videoFileCache.remove(file);
+        localFile = null;
+      }
       final ctrl = localFile != null
           ? VideoPlayerController.file(localFile)
           : VideoPlayerController.networkUrl(Uri.parse(file));
@@ -364,7 +402,14 @@ class QrMenuVm extends ViewModel {
       // стартовало мгновенно.
       if (localFile == null) {
         videoCacheThrottled(() async {
-          final info = await kioskCacheManager.getSingleFile(file);
+          final info = await kioskCacheManager
+              .getSingleFile(file)
+              .timeout(kVideoFetchTimeout);
+          // Карта не должна расти бесконечно на киоске, который не
+          // перезапускают неделями.
+          if (_videoFileCache.length >= _kMaxVideoFileCacheEntries) {
+            _videoFileCache.remove(_videoFileCache.keys.first);
+          }
           _videoFileCache[file] = info;
         }).catchError((_) {});
       }
@@ -394,6 +439,20 @@ class QrMenuVm extends ViewModel {
 
   Future<void> switchView() async {
     isGridView = !isGridView;
+
+    // Grid и список — принципиально разная раскладка (ряды по 3 карточки
+    // против одной карточки на ряд). Если переключать вид, оставаясь
+    // прокрученным в середину, SliverList пытается сопоставить старые
+    // построенные элементы с новыми на том же пиксельном offset — и его
+    // внутренний учёт индексов/офсетов расходится с нашей теоретической
+    // таблицей categoryOffsets (чинится только после полного прохода
+    // слайвера от начала, например при скролле к первой категории).
+    // Поэтому сбрасываем скролл в начало перед пересчётом офсетов — новая
+    // раскладка всегда строится с нуля, однозначно.
+    if (scrollService.scrollController.hasClients) {
+      scrollService.scrollController.jumpTo(0);
+    }
+
     scrollService.syncWithMenu(context, menuData!, isGridView, isTablet);
     await Future.delayed(const Duration(milliseconds: 100));
     notifyListeners();

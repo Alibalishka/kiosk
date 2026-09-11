@@ -9,6 +9,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:qr_pay_app/src/core/base/bloc_observer.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
+import 'package:qr_pay_app/src/core/logic/image_cache_maintenance.dart';
 import 'package:qr_pay_app/src/core/resources/localization_loader.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/features/app/logic/logger.dart';
@@ -68,6 +69,11 @@ mixin MainRunner {
 
           /// Иницализация GetIt
           await initGetIt();
+
+          /// Бюджет декодированных картинок + периодическая чистка кэша.
+          /// Киоск работает неделями без перезапуска, поэтому кэш обязан
+          /// чиститься сам, а не расти до заполнения диска.
+          ImageCacheMaintenance.instance.start();
 
           // await Upgrader.clearSavedSettings();
 

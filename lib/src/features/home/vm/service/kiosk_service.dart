@@ -336,6 +336,18 @@ class KioskService {
     _startIdleTimer();
   }
 
+  /// Лёгкий пинг активности: сбрасывает только таймер простоя, но НЕ
+  /// закрывает рекламу. Нужен для onPointerDown, который срабатывает в
+  /// момент касания — ещё до того, как понятно, тап это или свайп-вверх по
+  /// рекламе ([_AdSwipeUpReveal] в qr_menu.dart). Если убирать рекламу уже
+  /// тут, до жеста, свайп никогда не успевает отработать: оверлей исчезает
+  /// раньше, чем палец сдвинется. Саму рекламу закрывает onUserInteraction()
+  /// — по тапу (AdFullScreen.onTap) или по завершению свайпа.
+  void registerActivity() {
+    if (_isTextInputActive) return;
+    _startIdleTimer();
+  }
+
   void startTextInput() {
     _isTextInputActive = true;
     _idleTimer?.cancel();

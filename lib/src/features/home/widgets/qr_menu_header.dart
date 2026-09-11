@@ -58,7 +58,8 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
       widget.viewModel.kioskService.isAdVisible &&
       widget.viewModel.kioskService.currentScreenSaver != null;
 
-  List<Items> get _items => widget.viewModel.menuData?.recommend ?? const [];
+  List<Items> get _items =>
+      widget.viewModel.menuData?.effectiveRecommend ?? const [];
 
   @override
   void initState() {
@@ -73,7 +74,8 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
   @override
   void didUpdateWidget(covariant QrMenuHeaderBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final oldItems = oldWidget.viewModel.menuData?.recommend ?? const <Items>[];
+    final oldItems =
+        oldWidget.viewModel.menuData?.effectiveRecommend ?? const <Items>[];
     final newItems = _items;
 
     if (newItems.isEmpty) {

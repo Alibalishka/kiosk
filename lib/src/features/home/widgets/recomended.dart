@@ -93,7 +93,8 @@ class RecomendedWidget extends StatelessWidget {
                           fontSize: 18.sp,
                           color: AppColors.primitiveNeutralcold0),
                     ),
-                    BasketBtn(viewModel: viewModel, item: currentItem),
+                    if (viewModel.hasAvailablePayments)
+                      BasketBtn(viewModel: viewModel, item: currentItem),
                   ],
                 ),
                 if (recommendCount > 1)

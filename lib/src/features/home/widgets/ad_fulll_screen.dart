@@ -620,6 +620,11 @@ class _AdFullScreenState extends State<AdFullScreen> {
   bool _goNextCoalesceScheduled = false;
   bool _nextPreloadInFlight = false;
 
+  /// Накопленный сдвиг пальца по горизонтали за текущий жест — используется
+  /// вместе со скоростью, чтобы отличить свайп-пролистывание от случайного
+  /// дрожания пальца.
+  double _horizontalDragDx = 0;
+
   ScreenSaversDatum get _current => widget.items[_index];
 
   ScreenSaversDatum get _next =>
@@ -755,7 +760,8 @@ class _AdFullScreenState extends State<AdFullScreen> {
   /// SWITCH
   /// ─────────────────────────────────────────────────────────────
 
-  bool _shouldWaitForNextVideo(String nextUrl, VideoPlayerController? nextCtrl) {
+  bool _shouldWaitForNextVideo(
+      String nextUrl, VideoPlayerController? nextCtrl) {
     if (nextUrl.isEmpty) return false;
     if (nextCtrl != null) {
       if (nextCtrl.value.hasError) return false;
@@ -808,6 +814,55 @@ class _AdFullScreenState extends State<AdFullScreen> {
     _scheduleSlideEnd();
 
     if (mounted) setState(() {});
+  }
+
+  /// Ручной свайп вправо — предыдущий слайд. В отличие от _next, "предыдущий"
+  /// отдельно не прелоадится (свайп назад — редкий путь, не стоит того,
+  /// чтобы ради него держать в памяти ещё один видео-контроллер), поэтому
+  /// просто переинициализируем текущий слайд заново через _bootstrap() —
+  /// он сам корректно освободит старые контроллеры.
+  void _goPrevious() {
+    if (!mounted) return;
+    if (widget.items.length <= 1) return;
+
+    _cancelSlideTimers();
+    _detachVideoEndListener();
+
+    _index = (_index - 1 + widget.items.length) % widget.items.length;
+    setState(() {});
+
+    unawaited(_bootstrap());
+  }
+
+  /// ─────────────────────────────────────────────────────────────
+  /// СВАЙП ГОРИЗОНТАЛЬНО (ручное перелистывание)
+  /// ─────────────────────────────────────────────────────────────
+
+  void _onHorizontalDragStart(DragStartDetails details) {
+    _horizontalDragDx = 0;
+  }
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    _horizontalDragDx += details.delta.dx;
+  }
+
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    if (widget.items.length <= 1) return;
+
+    const velocityThreshold = 300.0;
+    const distanceThreshold = 60.0;
+
+    final velocity = details.primaryVelocity ?? 0;
+    final draggedLeft =
+        velocity < -velocityThreshold || _horizontalDragDx < -distanceThreshold;
+    final draggedRight =
+        velocity > velocityThreshold || _horizontalDragDx > distanceThreshold;
+
+    if (draggedLeft) {
+      _goNext();
+    } else if (draggedRight) {
+      _goPrevious();
+    }
   }
 
   /// ─────────────────────────────────────────────────────────────
@@ -922,6 +977,9 @@ class _AdFullScreenState extends State<AdFullScreen> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: widget.onTap,
+      onHorizontalDragStart: _onHorizontalDragStart,
+      onHorizontalDragUpdate: _onHorizontalDragUpdate,
+      onHorizontalDragEnd: _onHorizontalDragEnd,
       child: Container(
         color: Colors.black,
         child: AnimatedSwitcher(
@@ -932,20 +990,6 @@ class _AdFullScreenState extends State<AdFullScreen> {
             key: ValueKey(_contentKey),
             children: [
               Positioned.fill(child: _buildContent()),
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.4),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

@@ -16,7 +16,11 @@ class KioskInteractionListener extends StatelessWidget {
     return Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: (_) {
-        kioskService.onUserInteraction();
+        // Не onUserInteraction(): это убрало бы рекламу мгновенно на самом
+        // касании, до того как определится жест — свайп вверх по рекламе
+        // (AdSwipeUpReveal) не успевал бы сработать. Здесь только пинг
+        // активности; закрытие рекламы — по тапу или по завершению свайпа.
+        kioskService.registerActivity();
       },
       child: NotificationListener<ScrollNotification>(
         onNotification: (notification) {

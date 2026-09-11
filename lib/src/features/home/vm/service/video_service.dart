@@ -35,7 +35,8 @@ class VideoPreviewService with WidgetsBindingObserver {
   }
 
   Future<void> init(QrMenuModel menuData) async {
-    await loadHeaderVideoForItem(menuData.recommend?.first);
+    final items = menuData.effectiveRecommend;
+    await loadHeaderVideoForItem(items.isNotEmpty ? items.first : null);
   }
 
   Future<void> loadHeaderVideoForItem(Items? item) async {

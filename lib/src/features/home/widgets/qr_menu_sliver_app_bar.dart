@@ -24,7 +24,8 @@ class QrMenuSliverAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasRecommend = viewModel.menuData?.recommend?.isNotEmpty ?? false;
+    final hasRecommend =
+        viewModel.menuData?.effectiveRecommend.isNotEmpty ?? false;
 
     return SliverAppBar(
       pinned: true,
