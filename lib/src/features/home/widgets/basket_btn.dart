@@ -11,6 +11,7 @@ import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -68,7 +69,9 @@ class BasketBtn extends StatelessWidget {
     // final double width = viewModel.isTablet ? 160 : 115;
     final double width = 160;
     // final double height = viewModel.isTablet ? 4.sh : 40;
-    final double height = 4.sh;
+    // В альбоме 4.sh — это 4% короткой стороны, кнопка становится вдвое
+    // ниже; QrMenuLayout держит её тех же пикселей, что и в портрете.
+    final double height = QrMenuLayout.of(context).basketButtonHeight;
 
     return RepaintBoundary(
       child: SizedBox(

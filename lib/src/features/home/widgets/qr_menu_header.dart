@@ -3,11 +3,9 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
-import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
-import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/recomended.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +43,7 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
         end: Alignment.topCenter,
         colors: [
           AppColors.primitiveNeutralwarm1000,
-          AppColors.primitiveNeutralwarm1000.withOpacity(0.1),
+          AppColors.primitiveNeutralwarm1000.withValues(alpha: 0.1),
           AppColors.none,
         ],
         stops: const [0, 0.35, 1.0],
@@ -172,35 +170,44 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
     if (_items.isEmpty) return const SizedBox.shrink();
     final currentItem = _items[_currentIndex];
 
-    return GestureDetector(
-      onTap: (!_adVisible && widget.viewModel.scrollService.isAtStart)
-          ? () async {
-              final headerCtrl =
-                  widget.viewModel.videoService.videoPlayerController;
-              headerCtrl?.pause();
-              _autoSlideTimer?.cancel();
+    // Gate тапа по хедеру раньше обновлялся лишь потому, что прокрутка
+    // пересобирала всю страницу. Теперь isAtStart слушается точечно, а
+    // тяжёлое поддерево (карусель с видео) уходит в child и на смену
+    // значения не перестраивается.
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.viewModel.scrollService.atStart,
+      builder: (context, atStart, child) => GestureDetector(
+        onTap: (!_adVisible && atStart)
+            ? () async {
+                final headerCtrl =
+                    widget.viewModel.videoService.videoPlayerController;
+                headerCtrl?.pause();
+                _autoSlideTimer?.cancel();
 
-              try {
-                context.router.push(
-                  ProductPageRoute(
-                    item: currentItem,
-                  ),
-                );
-                // await showCustomSheet(
-                //   context,
-                //   child: ProductPage(item: currentItem),
-                // );
-              } finally {
-                if (!_adVisible) {
-                  final c = widget.viewModel.videoService.videoPlayerController;
-                  if (c != null && c.value.isInitialized) {
-                    c.play();
+                try {
+                  context.router.push(
+                    ProductPageRoute(
+                      item: currentItem,
+                    ),
+                  );
+                  // await showCustomSheet(
+                  //   context,
+                  //   child: ProductPage(item: currentItem),
+                  // );
+                } finally {
+                  if (!_adVisible) {
+                    final c =
+                        widget.viewModel.videoService.videoPlayerController;
+                    if (c != null && c.value.isInitialized) {
+                      c.play();
+                    }
                   }
+                  _restartAutoSlideTimer();
                 }
-                _restartAutoSlideTimer();
               }
-            }
-          : null,
+            : null,
+        child: child,
+      ),
       child: Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (_) {
@@ -209,8 +216,12 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
         },
         onPointerUp: (_) => _scheduleDragEndSettle(),
         onPointerCancel: (_) => _scheduleDragEndSettle(),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
+        // Прямоугольный клип, а не ClipRRect: скругление держат внешние
+        // карточки (_MenuContent в портрете, панель витрины в альбоме), а
+        // своё в 12 px давало лишний скос на стыке с полосой категорий.
+        // Сам клип нужен — постер и видео ниже намеренно вылезают за края
+        // на 2 px с каждой стороны.
+        child: ClipRect(
           clipBehavior: Clip.hardEdge,
           child: Stack(
             fit: StackFit.expand,
@@ -389,10 +400,6 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
   }
 }
 
-
-
-
-
 // class QrMenuHeaderBackground extends StatelessWidget {
 //   final QrMenuVm viewModel;
 //   final BuildContext context;
@@ -512,8 +519,6 @@ class _QrMenuHeaderBackgroundState extends State<QrMenuHeaderBackground> {
 //   ),
 // );
 
-
 //   }
-
 
 // }

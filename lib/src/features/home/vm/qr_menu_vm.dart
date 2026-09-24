@@ -34,6 +34,8 @@ import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dar
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/logic/repository/home_repository.dart';
 import 'package:qr_pay_app/src/features/home/vm/detail_vm.dart';
+import 'package:qr_pay_app/src/features/qr/logic/models/responses/checkout_model.dart';
+import 'package:qr_pay_app/src/features/qr/logic/repository/cart_repository.dart';
 import 'package:video_player/video_player.dart';
 import 'package:vibration/vibration.dart';
 import 'package:vibration/vibration_presets.dart';
@@ -98,6 +100,18 @@ class QrMenuVm extends ViewModel {
   PaymentMethod paymentMethodData = PaymentMethod();
   TextEditingController nameController = TextEditingController();
 
+  // ======= ПРЕДРАСЧЁТ ЗАКАЗА (POST /orders/checkout) =======
+  /// Ответ предрасчёта для планшетной корзины: сумма, обслуживание, итого.
+  /// null, если нет table_id или запрос не удался — UI работает как раньше.
+  ChekoutDatum? checkoutPreview;
+  bool checkoutPreviewLoading = false;
+
+  bool _checkoutPreviewActive = false;
+  int _checkoutPreviewIndexType = 1;
+  int _checkoutPreviewSeq = 0;
+  Timer? _checkoutPreviewDebounce;
+  // =========================================================
+
   /// Флаг, что мы уже запрашиваем / скачиваем OTA (анти-спам)
   bool otaChecking = false;
 
@@ -137,6 +151,7 @@ class QrMenuVm extends ViewModel {
     scrollService.dispose();
     _statusTimer?.cancel();
     _menuTimer?.cancel();
+    _checkoutPreviewDebounce?.cancel();
 
     kioskService.dispose();
     super.dispose();
@@ -176,6 +191,14 @@ class QrMenuVm extends ViewModel {
   void setKioskSection(SectionData? section) {
     kioskSection = section;
     notifyListeners();
+  }
+
+  /// table_id для pay-order: из QR-параметров, иначе из секции киоска
+  /// (kiosk-status → section.tableId). null, если нигде нет.
+  String? get effectiveTableId {
+    if (tableId.isNotEmpty) return tableId;
+    final sectionTableId = kioskSection?.tableId?.toString();
+    return (sectionTableId?.isNotEmpty ?? false) ? sectionTableId : null;
   }
 
   Future<void> syncAdVisibility(bool isVisible) async {
@@ -458,6 +481,32 @@ class QrMenuVm extends ViewModel {
     notifyListeners();
   }
 
+  /// Поворот экрана: раскладка меняется целиком (две панели вместо одной
+  /// колонки, другие размеры карточек), поэтому таблицу офсетов надо
+  /// пересчитать. Скролл сбрасываем в начало по той же причине, что и в
+  /// [switchView]: сливер иначе сопоставляет старые построенные элементы с
+  /// новой раскладкой на том же пиксельном offset.
+  Future<void> relayoutForOrientation() async {
+    final data = menuData;
+    if (data == null) return;
+
+    if (scrollService.scrollController.hasClients) {
+      scrollService.scrollController.jumpTo(0);
+    }
+
+    scrollService.syncWithMenu(context, data, isGridView, isTablet);
+    notifyListeners();
+
+    // Размеры hero-картинки входят в URL прокси, то есть в ключ кеша, и в
+    // альбоме они другие. Прогретые до поворота ссылки больше не совпадут с
+    // тем, что запросит карточка товара, — греем заново под новую
+    // ориентацию, иначе первое открытие каждого товара идёт по сети.
+    // ignore: unawaited_futures
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _precacheMenuImages(data);
+    });
+  }
+
   Future<void> checkOrganization() async {
     qrError = organizationId.isEmpty || tableId.isEmpty;
     if (qrError) {
@@ -467,7 +516,8 @@ class QrMenuVm extends ViewModel {
   }
 
   Future<void> checkQrCode(BuildContext context, int index) async {
-    qrError = index == 0 ? organizationId.isEmpty || tableId.isEmpty : false;
+    qrError =
+        index == 0 ? organizationId.isEmpty || effectiveTableId == null : false;
     if (qrError) {
       Vibration.vibrate(preset: VibrationPreset.dramaticNotification);
       notifyListeners();
@@ -480,7 +530,7 @@ class QrMenuVm extends ViewModel {
       organizationId: menuData?.organization?.posOrgId ?? '',
       // detailVm?.data.data?.orgId ?? organizationId,
       organizationSecondId: menuData?.organization?.id,
-      tableId: index == 0 ? tableId : null,
+      tableId: index == 0 ? effectiveTableId : null,
       indexType: index,
       addressId: null,
     );
@@ -497,6 +547,109 @@ class QrMenuVm extends ViewModel {
     await Future.delayed(const Duration(milliseconds: 200));
     notifyListeners();
   }
+
+  /// Организация работает «в зале» (in_hall приходит как bool / 1 / '1').
+  bool get organizationInHall {
+    final raw = menuData?.organization?.inHall;
+    return raw == true || raw == 1 || raw == '1';
+  }
+
+  // ======= ПРЕДРАСЧЁТ ЗАКАЗА (POST /orders/checkout) =======
+
+  /// Включает предрасчёт на время жизни TabletCheckoutPage и сразу запрашивает.
+  void startCheckoutPreview({int indexType = 1}) {
+    _checkoutPreviewActive = true;
+    _checkoutPreviewIndexType = indexType;
+    fetchCheckoutPreview();
+  }
+
+  /// Выключает предрасчёт (при уходе со страницы). Ответы в полёте отбрасываются.
+  void stopCheckoutPreview() {
+    _checkoutPreviewActive = false;
+    _checkoutPreviewDebounce?.cancel();
+    _checkoutPreviewSeq++;
+    checkoutPreview = null;
+    checkoutPreviewLoading = false;
+  }
+
+  /// Смена таба «В зале / С собой» — пересчитываем сразу.
+  void setCheckoutPreviewIndexType(int indexType) {
+    if (_checkoutPreviewIndexType == indexType) return;
+    _checkoutPreviewIndexType = indexType;
+    fetchCheckoutPreview();
+  }
+
+  /// Идёт пересчёт (ждём дебаунс или ответ сервера) — оплата недоступна,
+  /// чтобы не уйти на оплату с устаревшей суммой.
+  bool get checkoutPreviewPending =>
+      checkoutPreviewLoading || (_checkoutPreviewDebounce?.isActive ?? false);
+
+  /// Дебаунс, чтобы не слать запрос на каждый тап +/− в корзине.
+  void _refreshCheckoutPreviewIfActive() {
+    if (!_checkoutPreviewActive) return;
+    _checkoutPreviewDebounce?.cancel();
+    // Без table_id запроса не будет — просто сбрасываем возможный
+    // устаревший предрасчёт, не блокируя кнопки на время дебаунса.
+    if (effectiveTableId == null) {
+      fetchCheckoutPreview();
+      return;
+    }
+    _checkoutPreviewDebounce = Timer(
+      const Duration(milliseconds: 350),
+      fetchCheckoutPreview,
+    );
+  }
+
+  /// Запрашивает предрасчёт, только если есть table_id. Без него
+  /// [checkoutPreview] остаётся null и корзина работает как раньше.
+  Future<void> fetchCheckoutPreview() async {
+    _checkoutPreviewDebounce?.cancel();
+    if (!_checkoutPreviewActive) return;
+
+    final tableId = effectiveTableId;
+    final orgId = menuData?.organization?.posOrgId;
+    if (tableId == null || orgId == null || basketService.basket.isEmpty) {
+      if (checkoutPreview != null || checkoutPreviewLoading) {
+        checkoutPreview = null;
+        checkoutPreviewLoading = false;
+        notifyListeners();
+      }
+      return;
+    }
+
+    final request = basketService.buildCheckoutRequest(
+      organizationId: orgId,
+      organizationSecondId: menuData?.organization?.id,
+      tableId: tableId,
+      indexType: _checkoutPreviewIndexType,
+      addressId: null,
+      inHall: organizationInHall && _checkoutPreviewIndexType == 0,
+    );
+    if (request.items?.isEmpty ?? true) return;
+
+    final seq = ++_checkoutPreviewSeq;
+    checkoutPreviewLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await sl<CartRepository>().fetchChekoutMenu(body: request);
+      if (seq != _checkoutPreviewSeq) return; // устаревший ответ
+      result.when(
+        success: (response) => checkoutPreview = response.data,
+        failure: (error) {
+          log('❌ checkout preview failed: ${error.msg}');
+          checkoutPreview = null;
+        },
+      );
+    } on Object catch (e) {
+      if (seq != _checkoutPreviewSeq) return;
+      log('❌ checkout preview error: $e');
+      checkoutPreview = null;
+    }
+    checkoutPreviewLoading = false;
+    notifyListeners();
+  }
+  // =========================================================
 
   List<String> get availablePayments =>
       menuData?.organization?.availablePayments ?? [];
@@ -605,10 +758,7 @@ class QrMenuVm extends ViewModel {
 
     log('✅ iikoOrgId: $orgId');
 
-    final orgInHallRaw = menuData?.organization?.inHall;
-    final orgInHall =
-        orgInHallRaw == true || orgInHallRaw == 1 || orgInHallRaw == '1';
-    final inHall = orgInHall && indexType == 0;
+    final inHall = organizationInHall && indexType == 0;
 
     final request = basketService.buildCheckoutRequest(
       // orgId,
@@ -616,7 +766,7 @@ class QrMenuVm extends ViewModel {
       organizationId: orgId,
       organizationSecondId: menuData?.organization?.id,
       // detailVm?.data.data?.orgId ?? organizationId,
-      tableId: null,
+      tableId: effectiveTableId,
       indexType: indexType,
       addressId: null,
       inHall: inHall,
@@ -688,23 +838,27 @@ class QrMenuVm extends ViewModel {
   Future<void> clearBasket() async {
     basketService.clear();
     nameController.clear();
+    _refreshCheckoutPreviewIfActive();
     notifyListeners();
   }
 
   Future<void> addToBasket(BuildContext context, Items data, int count) async {
     await basketService.add(context, data, count);
+    _refreshCheckoutPreviewIfActive();
     notifyListeners();
   }
 
   Future<bool> addComboBasket(
       BuildContext context, Items data, int count) async {
     bool success = await basketService.addCombo(context, data, count);
+    if (success) _refreshCheckoutPreviewIfActive();
     notifyListeners();
     return success;
   }
 
   Future<void> removeFromBasket(Items item) async {
     await basketService.remove(item);
+    _refreshCheckoutPreviewIfActive();
     notifyListeners();
   }
 

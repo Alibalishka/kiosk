@@ -429,10 +429,16 @@ class ItemRecomended extends StatelessWidget {
     super.key,
     required this.item,
     required this.bottom,
+    this.imageHeight,
   });
 
   final Items? item;
   final Widget? bottom;
+
+  /// Высота картинки, заданная раскладкой (QrMenuLayout). В альбоме карточка
+  /// уже портретной, и высота от ширины экрана не подходит: картинка была бы
+  /// выше самой карточки. `null` — считаем как раньше, по ширине экрана.
+  final double? imageHeight;
 
   String _resolveImageUrl() {
     final images = item?.image;
@@ -447,8 +453,8 @@ class ItemRecomended extends StatelessWidget {
     // Одна высота на все три состояния слота (картинка / плейсхолдер / ошибка).
     // Раньше они расходились — 1/3, 1/2.7 и жёсткие 300px, — и карточки без
     // картинки выпадали из сетки.
-    final imageHeight =
-        context.isDesktop ? 500 / 2.8 : context.mediaQuery.size.width / 3;
+    final imageHeight = this.imageHeight ??
+        (context.isDesktop ? 500 / 2.8 : context.mediaQuery.size.width / 3);
     return AnimatedCard(
       child: GestureDetector(
         onTap: () {

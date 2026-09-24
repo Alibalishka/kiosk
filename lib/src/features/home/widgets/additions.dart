@@ -12,6 +12,7 @@ import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:sizer/sizer.dart';
 
 class AdditionsWidget extends StatelessWidget {
@@ -357,7 +358,12 @@ class _ModifierItemRow extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.bodyXl.copyWith(
-                      fontSize: isTablet ? 1.6.sh : null,
+                      // 1.6.sh — процент высоты экрана: в альбоме кегль
+                      // проседал с 20 до 13 px. safeLongSide держит тот же
+                      // размер в обеих ориентациях.
+                      fontSize: isTablet
+                          ? QrMenuLayout.safeLongSide(context, 1.6)
+                          : null,
                       color: AppComponents.blockBlocktitleHeadingColorDefault,
                     ),
                   ),
@@ -365,7 +371,9 @@ class _ModifierItemRow extends StatelessWidget {
                   Text(
                     '+${item.price ?? 0} ₸',
                     style: AppTextStyles.bodyL.copyWith(
-                      fontSize: isTablet ? 1.6.sh : null,
+                      fontSize: isTablet
+                          ? QrMenuLayout.safeLongSide(context, 1.6)
+                          : null,
                       color: AppColors.semanticBgSurface7,
                     ),
                   ),
@@ -386,7 +394,8 @@ class _ModifierItemRow extends StatelessWidget {
                   count.toString(),
                   style: AppTextStyles.bodyL.copyWith(
                     color: AppComponents.buttongroupButtonGrayIconColorDefault,
-                    fontSize: isTablet ? 2.sh : null,
+                    fontSize:
+                        isTablet ? QrMenuLayout.safeLongSide(context, 2) : null,
                   ),
                 ),
               ),

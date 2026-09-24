@@ -68,6 +68,7 @@ abstract class  LocaleKeys {
   static const restaurantAddress = 'restaurantAddress';
   static const orderAmount = 'orderAmount';
   static const service = 'service';
+  static const serviceFee = 'serviceFee';
   static const placeAnOrder = 'placeAnOrder';
   static const totalPrice = 'totalPrice';
   static const workingHours = 'workingHours';
@@ -272,5 +273,13 @@ abstract class  LocaleKeys {
   static const selectUpToCount = 'selectUpToCount';
   static const selectFromToCount = 'selectFromToCount';
   static const scanAndTrackOrder = 'scanAndTrackOrder';
+  static const menu = 'menu';
+  static const errorCode = 'errorCode';
+  static const wifiSettings = 'wifiSettings';
+  static const noInternetDescription = 'noInternetDescription';
+  static const kioskUnavailableTitle = 'kioskUnavailableTitle';
+  static const kioskUnavailableDescription = 'kioskUnavailableDescription';
+  static const qrPaymentTitle = 'qrPaymentTitle';
+  static const qrPaymentDescription = 'qrPaymentDescription';
 
 }

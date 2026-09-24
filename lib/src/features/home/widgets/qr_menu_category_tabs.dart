@@ -2,6 +2,7 @@ import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/vm/service/scroll_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
@@ -11,41 +12,47 @@ class QrMenuCategoryTabs extends StatelessWidget
 
   const QrMenuCategoryTabs({super.key, required this.viewModel});
 
-  // double get _tabsHeight => viewModel.isTablet ? 69.0 : 54.0;
-  double get _tabsHeight => 69.0;
+  /// Высота полосы. Источник правды — [ScrollService.tabsHeight]: по ней
+  /// считаются офсеты перехода к категории.
+  static const double height = ScrollService.tabsHeight;
+
+  /// Пока категории не пришли (или ключи ещё не посчитаны), полоса не
+  /// рисуется — и не должна резервировать под себя пустое место.
+  bool get _hasTabs {
+    final categories = viewModel.menuData?.data ?? [];
+    return categories.isNotEmpty &&
+        viewModel.scrollService.categoryKeys.length == categories.length;
+  }
 
   @override
-  Size get preferredSize => Size.fromHeight(_tabsHeight);
+  Size get preferredSize => Size.fromHeight(_hasTabs ? height : 0);
 
   @override
   Widget build(BuildContext context) {
-    final categories = viewModel.menuData?.data ?? [];
-
-    if (categories.isEmpty ||
-        viewModel.scrollService.categoryKeys.length != categories.length) {
-      return const SizedBox.shrink();
-    }
+    if (!_hasTabs) return const SizedBox.shrink();
+    final categories = viewModel.menuData!.data!;
 
     return Container(
-      height: preferredSize.height, // ✅ строго совпадает
-      decoration: BoxDecoration(
-        color: AppColors.semanticBgSurface1,
-        border: Border.all(color: AppColors.none),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: ListView.builder(
-        controller: viewModel.scrollService.horizontalController,
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        padding: const EdgeInsets.only(top: 8, bottom: 4),
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final isSelected =
-              viewModel.scrollService.selectedCategoryIndex == index;
+      height: height,
+      // Скругление держит карточка меню (см. _MenuContent) — второй раз
+      // его здесь задавать не нужно.
+      color: AppColors.semanticBgSurface1,
+      // Единственный виджет, который обязан реагировать на вертикальную
+      // прокрутку: подсветка активной категории.
+      child: ValueListenableBuilder<int>(
+        valueListenable: viewModel.scrollService.selectedCategory,
+        builder: (context, selectedIndex, _) => ListView.builder(
+          controller: viewModel.scrollService.horizontalController,
+          scrollDirection: Axis.horizontal,
+          itemCount: categories.length,
+          // 12 + margin чипа 4 = те же 16 от краёв, что и у остального
+          // контента, причём с обеих сторон.
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            final isSelected = selectedIndex == index;
 
-          return Padding(
-            padding: EdgeInsets.only(left: index == 0 ? 16 : 0),
-            child: GestureDetector(
+            return GestureDetector(
               onTap: () =>
                   viewModel.scrollByCategory(category.name ?? '', index),
               child: Container(
@@ -63,17 +70,21 @@ class QrMenuCategoryTabs extends StatelessWidget
                   child: Text(
                     category.name ?? '',
                     style: AppTextStyles.bodyM.copyWith(
-                      // fontSize: viewModel.isTablet ? 14.sp : null,
                       fontSize: 14.sp,
-                      color:
-                          AppComponents.chipgroupChipsSelectedLabelColorDefault,
+                      // Выбранная категория отличается не только фоном,
+                      // но и цветом подписи.
+                      color: isSelected
+                          ? AppComponents
+                              .chipgroupChipsSelectedLabelColorDefault
+                          : AppComponents
+                              .chipgroupChipsNotSelectedLabelColorDefault,
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

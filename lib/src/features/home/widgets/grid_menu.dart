@@ -1,13 +1,10 @@
-import 'dart:io';
-
-import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
 import 'package:qr_pay_app/src/features/home/widgets/in_restaurant_content.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:sizer/sizer.dart';
 
 class GridMenuWidget extends StatelessWidget {
   final List<Items> items;
@@ -21,25 +18,33 @@ class GridMenuWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Размеры карточки берём из QrMenuLayout, а не считаем на месте: по этим
+    // же числам ScrollService считает офсеты перехода по категориям.
+    final layout = QrMenuLayout.of(
+      context,
+      hasRecommend: viewModel.menuData?.effectiveRecommend.isNotEmpty ?? false,
+    );
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      padding: const EdgeInsets.fromLTRB(
+        QrMenuLayout.contentPadding,
+        0,
+        QrMenuLayout.contentPadding,
+        0,
+      ),
       child: StaggeredGrid.count(
-        // crossAxisCount: viewModel.isTablet ? 3 : 2,
-        crossAxisCount: 3,
+        crossAxisCount: layout.gridColumns,
         mainAxisSpacing: 0,
-        crossAxisSpacing: 12,
+        crossAxisSpacing: QrMenuLayout.gridSpacing,
         children: items
             .map(
               (item) => StaggeredGridTile.fit(
                 crossAxisCellCount: 1,
                 child: SizedBox(
-                  height: (Platform.isIOS
-                      ? 50.1.sh
-                      : context.screenSize.width > 600
-                          ? 42.5.sh
-                          : 51.sh),
+                  height: layout.gridTileHeight,
                   child: ItemRecomended(
                     item: item,
+                    imageHeight: layout.gridImageHeight,
                     bottom: viewModel.hasAvailablePayments
                         ? BasketBtn(
                             viewModel: viewModel,

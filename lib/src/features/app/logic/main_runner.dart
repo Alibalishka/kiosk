@@ -53,9 +53,15 @@ mixin MainRunner {
 
           // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
           await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-          // Запрещаем альбомный режим — только портрет
-          await SystemChrome.setPreferredOrientations(
-              [DeviceOrientation.portraitUp]);
+          // Ориентацию не фиксируем из кода: экраны киоска рассчитаны и на
+          // портрет, и на альбом. Разрешённые повороты задаются платформой —
+          // UISupportedInterfaceOrientations в Info.plist и отсутствие
+          // android:screenOrientation в манифесте.
+          //
+          // На iPad программная фиксация всё равно не работает: с iOS 16
+          // Flutter меняет ориентацию через UIWindowScene.requestGeometryUpdate,
+          // а многозадачным приложениям (без UIRequiresFullScreen) система
+          // это запрещает — каждый вызов лишь писал в лог UISceneErrorDomain 101.
 
           FlutterError.onError = Logger.logFlutterError;
 

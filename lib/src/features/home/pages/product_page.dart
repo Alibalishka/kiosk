@@ -21,6 +21,7 @@ import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_mode
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/additions.dart';
 import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:qr_pay_app/src/features/home/widgets/product_info.dart';
 import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
 import 'package:sizer/sizer.dart';
@@ -222,11 +223,60 @@ class _ProductPageState extends State<ProductPage> {
     super.dispose();
   }
 
+  /// Название, цена, описание, характеристики и модификаторы. Одно и то же
+  /// в обеих ориентациях — меняется только то, куда это положено.
+  Widget _details(bool isTablet) => Padding(
+        padding: AppPaddings.horizontal16,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ProductInfoWidget(item: widget.item),
+            if (widget.item.modifiers?.isNotEmpty == true) ...[
+              ColumnSpacer(isTablet ? 5 : 2.4),
+              AdditionsWidget(
+                modifierData: widget.item.modifiers ?? [],
+                onChanged: _bumpModsTickSafe,
+              ),
+              const ColumnSpacer(2.4),
+            ],
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     // ✅ НЕ слушаем весь vm
     final vm = context.read<QrMenuVm>();
     final isTablet = context.select<QrMenuVm, bool>((v) => v.isTablet);
+    final layout = QrMenuLayout.of(context);
+    // В альбоме фото уходит в левую панель на всю высоту, а док с кнопкой —
+    // под правую колонку, чтобы «Добавить в заказ» не растягивалась на всю
+    // ширину экрана.
+    final isLandscape = layout.isLandscape;
+
+    final bottomBar = vm.hasAvailablePayments
+        ? _BottomBar(
+            item: widget.item,
+            isTablet: isTablet,
+            count: _count,
+            modsTick: _modsTick,
+            calcModifiersPrice: () => _calcModifiersPrice(vm),
+            onMinus: () {
+              if (_count.value > 1) _count.value -= 1;
+            },
+            onPlus: () => _count.value += 1,
+            onAdd: () async {
+              final c = _count.value;
+              if (widget.item.modifiers?.isEmpty ?? true) {
+                await vm.addToBasket(context, widget.item, c);
+                if (context.mounted) context.router.pop();
+              } else {
+                final ok = await vm.addComboBasket(context, widget.item, c);
+                if (ok && context.mounted) context.router.pop();
+              }
+            },
+          )
+        : null;
 
     return KioskInteractionListener(
       kioskService: vm.kioskService,
@@ -237,180 +287,238 @@ class _ProductPageState extends State<ProductPage> {
         onLeave: () => context.router.pop(),
         child: Scaffold(
           backgroundColor: AppComponents.modalBgColorDefault,
-          bottomNavigationBar: vm.hasAvailablePayments
-              ? _BottomBar(
-                  item: widget.item,
-                  isTablet: isTablet,
-                  count: _count,
-                  modsTick: _modsTick,
-                  calcModifiersPrice: () => _calcModifiersPrice(vm),
-                  onMinus: () {
-                    if (_count.value > 1) _count.value -= 1;
-                  },
-                  onPlus: () => _count.value += 1,
-                  onAdd: () async {
-                    final c = _count.value;
-                    if (widget.item.modifiers?.isEmpty ?? true) {
-                      await vm.addToBasket(context, widget.item, c);
-                      if (context.mounted) context.router.pop();
-                    } else {
-                      final ok =
-                          await vm.addComboBasket(context, widget.item, c);
-                      if (ok && context.mounted) context.router.pop();
-                    }
-                  },
-                )
-              : null,
-          body: NotificationListener<ScrollNotification>(
-            onNotification: (n) {
-              if (n is! ScrollUpdateNotification) return false;
-
-              final pixels = n.metrics.pixels;
-
-              final atStart = pixels <= 0;
-              if (atStart != _isAtStart.value) _isAtStart.value = atStart;
-
-              final showTitle = pixels >= _titleThreshold;
-              if (showTitle != _isShowTitle.value) {
-                _isShowTitle.value = showTitle;
-              }
-
-              return false;
-            },
-            child: CustomScrollView(
-              physics: _HeaderSnapPhysics(snapExtent: 55.h - 100),
-              slivers: [
-                SliverAppBar(
-                  floating: false,
-                  pinned: true,
-                  stretch: false,
-                  toolbarHeight: 100,
-                  backgroundColor: AppComponents.modalBgColorDefault,
-                  shadowColor: AppColors.none,
-                  surfaceTintColor: AppColors.none,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  bottom: PreferredSize(
-                    preferredSize: const Size.fromHeight(0),
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: _isShowTitle,
-                      builder: (_, show, __) {
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 160),
-                          height: 1,
-                          decoration: BoxDecoration(
-                            boxShadow: show
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.04),
-                                      blurRadius: 16,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ]
-                                : [],
-                          ),
-                        );
-                      },
-                    ),
+          bottomNavigationBar: isLandscape ? null : bottomBar,
+          body: isLandscape
+              ? _LandscapeBody(
+                  mediaWidth: layout.productMediaWidth,
+                  media: _ProductMediaBackground(
+                    item: widget.item,
+                    isVideo: _isVideo,
+                    videoController: _videoController,
+                    isLandscape: true,
                   ),
-                  expandedHeight: 55.h,
-                  leading: ValueListenableBuilder<bool>(
-                    valueListenable: _isShowTitle,
-                    builder: (_, show, __) {
-                      return AnimatedOpacity(
-                        duration: const Duration(milliseconds: 250),
-                        opacity: show ? 1 : 0,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 40),
-                          child: InkWell(
-                            radius: 100,
-                            onTap: () => context.router.pop(),
-                            child: Icon(
-                              CupertinoIcons.back,
-                              size: isTablet ? 20.sp : 32,
-                              color: AppColors.primitiveNeutralcold1000,
+                  details: _details(isTablet),
+                  bottomBar: bottomBar,
+                )
+              : NotificationListener<ScrollNotification>(
+                  onNotification: (n) {
+                    if (n is! ScrollUpdateNotification) return false;
+
+                    final pixels = n.metrics.pixels;
+
+                    final atStart = pixels <= 0;
+                    if (atStart != _isAtStart.value) _isAtStart.value = atStart;
+
+                    final showTitle = pixels >= _titleThreshold;
+                    if (showTitle != _isShowTitle.value) {
+                      _isShowTitle.value = showTitle;
+                    }
+
+                    return false;
+                  },
+                  child: CustomScrollView(
+                    physics: _HeaderSnapPhysics(snapExtent: 55.h - 100),
+                    slivers: [
+                      SliverAppBar(
+                        floating: false,
+                        pinned: true,
+                        stretch: false,
+                        toolbarHeight: 100,
+                        backgroundColor: AppComponents.modalBgColorDefault,
+                        shadowColor: AppColors.none,
+                        surfaceTintColor: AppColors.none,
+                        elevation: 0,
+                        scrolledUnderElevation: 0,
+                        bottom: PreferredSize(
+                          preferredSize: const Size.fromHeight(0),
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: _isShowTitle,
+                            builder: (_, show, __) {
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 160),
+                                height: 1,
+                                decoration: BoxDecoration(
+                                  boxShadow: show
+                                      ? [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.04),
+                                            blurRadius: 16,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ]
+                                      : [],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        expandedHeight: 55.h,
+                        leading: ValueListenableBuilder<bool>(
+                          valueListenable: _isShowTitle,
+                          builder: (_, show, __) {
+                            return AnimatedOpacity(
+                              duration: const Duration(milliseconds: 250),
+                              opacity: show ? 1 : 0,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 40),
+                                child: InkWell(
+                                  radius: 100,
+                                  onTap: () => context.router.pop(),
+                                  child: Icon(
+                                    CupertinoIcons.back,
+                                    size: isTablet ? 20.sp : 32,
+                                    color: AppColors.primitiveNeutralcold1000,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        centerTitle: true,
+                        title: IgnorePointer(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 40),
+                            child: ValueListenableBuilder<bool>(
+                              valueListenable: _isShowTitle,
+                              builder: (_, show, __) {
+                                return AnimatedOpacity(
+                                  duration: const Duration(milliseconds: 250),
+                                  opacity: show ? 1 : 0,
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: widget.item.name ?? '',
+                                          style:
+                                              AppTextStyles.headingH3.copyWith(
+                                            color: AppColors.semanticFgDefault,
+                                            fontSize: isTablet ? 16.sp : null,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  centerTitle: true,
-                  title: IgnorePointer(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 40),
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: _isShowTitle,
-                        builder: (_, show, __) {
-                          return AnimatedOpacity(
-                            duration: const Duration(milliseconds: 250),
-                            opacity: show ? 1 : 0,
-                            child: RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: widget.item.name ?? '',
-                                    style: AppTextStyles.headingH3.copyWith(
-                                      color: AppColors.semanticFgDefault,
-                                      fontSize: isTablet ? 16.sp : null,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  flexibleSpace: FlexibleSpaceBar(
-                    collapseMode: CollapseMode.parallax,
-                    background: RepaintBoundary(
-                      child: _ProductMediaBackground(
-                        item: widget.item,
-                        isVideo: _isVideo,
-                        videoController: _videoController,
-                      ),
-                    ),
-                  ),
-                ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == 0) {
-                        return RepaintBoundary(
-                          child: Padding(
-                            padding: AppPaddings.horizontal16,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ProductInfoWidget(item: widget.item),
-                                if (widget.item.modifiers?.isNotEmpty ==
-                                    true) ...[
-                                  ColumnSpacer(isTablet ? 5 : 2.4),
-                                  AdditionsWidget(
-                                    modifierData: widget.item.modifiers ?? [],
-                                    onChanged: _bumpModsTickSafe,
-                                  ),
-                                  const ColumnSpacer(2.4),
-                                ],
-                              ],
+                        flexibleSpace: FlexibleSpaceBar(
+                          collapseMode: CollapseMode.parallax,
+                          background: RepaintBoundary(
+                            child: _ProductMediaBackground(
+                              item: widget.item,
+                              isVideo: _isVideo,
+                              videoController: _videoController,
                             ),
                           ),
-                        );
-                      }
-                      return const ColumnSpacer(4);
-                    },
-                    childCount: 2,
-                    addRepaintBoundaries: true,
-                    addAutomaticKeepAlives: true,
+                        ),
+                      ),
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            if (index == 0) {
+                              return RepaintBoundary(child: _details(isTablet));
+                            }
+                            return const ColumnSpacer(4);
+                          },
+                          childCount: 2,
+                          addRepaintBoundaries: true,
+                          addAutomaticKeepAlives: true,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Альбом: фото слева на всю высоту, справа — описание с модификаторами и
+/// док с кнопкой под ними.
+///
+/// Сворачивающейся шапки здесь нет намеренно. Её ход в альбоме — 55% высоты
+/// минус тулбар, то есть ~340 px, а заголовок и кнопка «назад» показываются
+/// на пороге `ширина / 1.6` = ~800 px: на широком экране они бы просто не
+/// появились. Закрыть карточку можно крестиком на фото — он виден всегда.
+class _LandscapeBody extends StatelessWidget {
+  const _LandscapeBody({
+    required this.mediaWidth,
+    required this.media,
+    required this.details,
+    required this.bottomBar,
+  });
+
+  final double mediaWidth;
+  final Widget media;
+  final Widget details;
+  final Widget? bottomBar;
+
+  @override
+  Widget build(BuildContext context) {
+    final dock = bottomBar;
+
+    return Stack(
+      children: [
+        _content(context, dock),
+        // Align внутри Positioned.fill хит-тестит только сам крестик —
+        // остальная площадь остаётся кликабельной.
+        Positioned.fill(
+          child: SafeArea(
+            minimum: const EdgeInsets.all(16),
+            child: const Align(
+              alignment: Alignment.topRight,
+              child: _CloseButton(),
             ),
           ),
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _content(BuildContext context, Widget? dock) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: mediaWidth,
+          child: SafeArea(
+            right: false,
+            minimum: const EdgeInsets.fromLTRB(16, 16, 0, 16),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(24)),
+              child: RepaintBoundary(child: media),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(
+                child: SafeArea(
+                  left: false,
+                  bottom: false,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: details,
+                  ),
+                ),
+              ),
+              // Док рассчитан на место снизу экрана и сам берёт SafeArea.
+              // Внутри колонки верхний инсет ему добавлять не за что.
+              if (dock != null)
+                MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: dock,
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -585,7 +693,7 @@ class _BottomBar extends StatelessWidget {
                               ],
                             ),
                           ),
-                          RowSpacer(0.1.sh),
+                          RowSpacer(QrMenuLayout.safeLongSide(context, 0.1)),
                           Expanded(
                             child: AnimatedCard(
                               child: CupertinoButton(
@@ -629,18 +737,34 @@ class _ProductMediaBackground extends StatelessWidget {
     required this.item,
     required this.isVideo,
     this.videoController,
+    this.isLandscape = false,
   });
 
   final Items item;
   final bool isVideo;
   final VideoPlayerController? videoController;
 
+  /// В альбоме медиа — отдельная панель со своим скруглением, а не шапка,
+  /// в которую снизу перетекает контент.
+  final bool isLandscape;
+
   @override
   Widget build(BuildContext context) {
     const bgColor = AppComponents.modalBgColorDefault;
+    // Скругление низа и градиент под ним нужны, только когда под фото
+    // начинается описание. В панели это была бы тёмная полоса ни к чему.
+    final mediaRadius = isLandscape
+        ? BorderRadius.zero
+        : const BorderRadius.vertical(bottom: Radius.circular(8));
     final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+    final screenHeight = MediaQuery.of(context).size.height;
+    // В портрете фото занимает 55% высоты, в альбоме — всю высоту панели.
+    // Считать по портретной доле в альбоме значит просить у прокси картинку
+    // вдвое ниже панели и растягивать её.
     final cacheHeight =
-        (MediaQuery.of(context).size.height * 0.6 * pixelRatio).round();
+        (screenHeight * (isLandscape ? 1.0 : 0.6) * pixelRatio).round();
+    // Считает сама qrPayHeroImageProxyPixels — она же знает про альбом.
+    // Своя формула здесь давала URL, которого нет в прогретом кеше.
     final heroProxyPx = qrPayHeroImageProxyPixels(context);
 
     final photoWidget = SafeNetworkImage(
@@ -656,9 +780,7 @@ class _ProductMediaBackground extends StatelessWidget {
       cacheHeight: cacheHeight,
       imageBuilder: (context, provider) => Container(
         decoration: BoxDecoration(
-          borderRadius: const BorderRadius.vertical(
-            bottom: Radius.circular(8),
-          ),
+          borderRadius: mediaRadius,
           image: DecorationImage(
             image: provider,
             fit: BoxFit.cover,
@@ -710,9 +832,7 @@ class _ProductMediaBackground extends StatelessWidget {
                             milliseconds: 700), // Плавное проявление видео
                         curve: Curves.easeInOut,
                         child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            bottom: Radius.circular(8),
-                          ),
+                          borderRadius: mediaRadius,
                           child: SizedBox.expand(
                             child: FittedBox(
                               fit: BoxFit.cover,
@@ -745,9 +865,7 @@ class _ProductMediaBackground extends StatelessWidget {
             ),
             imageBuilder: (_, provider) => Container(
               decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(8),
-                ),
+                borderRadius: mediaRadius,
                 image: DecorationImage(
                   image: ResizeImage(provider, height: cacheHeight),
                   fit: BoxFit.cover,
@@ -757,53 +875,73 @@ class _ProductMediaBackground extends StatelessWidget {
           )
         else
           Image.asset(AppWebpImages.emptyStatus),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: IgnorePointer(
-            child: SizedBox(
-              height: 120,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [bgColor, bgColor.withOpacity(0.0)],
-                    stops: const [0.0, 1.0],
+        if (!isLandscape)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              child: SizedBox(
+                height: 120,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [bgColor, bgColor.withOpacity(0.0)],
+                      stops: const [0.0, 1.0],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        Align(
-          alignment: Alignment.topRight,
-          child: AnimatedCard(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {
-                Vibration.vibrate();
-                context.router.pop(context);
-              },
-              child: Container(
-                height: 4.sh,
-                width: 4.sh,
-                margin: const EdgeInsets.only(top: 60, right: 16),
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: AppColors.primitiveNeutralwarm0,
-                  shape: BoxShape.circle,
-                ),
-                child: SvgPicture.asset(
-                  AppSvgImages.closeLarge,
-                  color: AppComponents.buttongroupButtonWhiteIconColorDefault,
-                ),
-              ),
+        // В альбоме крестик рисует _LandscapeBody: на углу панели он попал бы
+        // в середину экрана и читался бы как «закрыть фото», а не карточку.
+        if (!isLandscape)
+          const Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: EdgeInsets.only(top: 60, right: 16),
+              child: _CloseButton(),
             ),
           ),
-        ),
       ],
+    );
+  }
+}
+
+/// Круглый крестик «закрыть карточку».
+class _CloseButton extends StatelessWidget {
+  const _CloseButton();
+
+  @override
+  Widget build(BuildContext context) {
+    // 4.sh в альбоме — это 4% короткой стороны: крестик ужимался с 51 до
+    // 32 px и переставал быть киоск-таргетом.
+    final size = QrMenuLayout.safeLongSide(context, 4);
+
+    return AnimatedCard(
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          Vibration.vibrate();
+          context.router.pop(context);
+        },
+        child: Container(
+          height: size,
+          width: size,
+          padding: const EdgeInsets.all(8),
+          decoration: const BoxDecoration(
+            color: AppColors.primitiveNeutralwarm0,
+            shape: BoxShape.circle,
+          ),
+          child: SvgPicture.asset(
+            AppSvgImages.closeLarge,
+            color: AppComponents.buttongroupButtonWhiteIconColorDefault,
+          ),
+        ),
+      ),
     );
   }
 }

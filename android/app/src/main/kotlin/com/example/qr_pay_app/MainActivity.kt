@@ -28,7 +28,6 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
-import android.content.pm.ActivityInfo
 
 class MainActivity : FlutterActivity() {
 
@@ -256,7 +255,10 @@ class MainActivity : FlutterActivity() {
   }
 
   override fun onResume() {
-    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    // Ориентацию здесь не трогаем: requestedOrientation в рантайме перебивает
+    // и android:screenOrientation из манифеста, и системный авто-поворот —
+    // планшет оставался в портрете, даже когда физически висел в альбоме.
+    // Разрешённые повороты задаёт манифест (fullSensor).
     super.onResume()
 
     // Максимальная яркость для киоска (только для нашего окна)

@@ -17,6 +17,7 @@ import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:sizer/sizer.dart';
 
 class ItemCatalog extends StatelessWidget {
@@ -53,9 +54,10 @@ class ItemCatalog extends StatelessWidget {
           Expanded(
             flex: 1,
             child: SizedBox(
-              height: 475,
+              height: QrMenuLayout.catalogHeight,
               child: ItemRecomended(
                 item: items![0],
+                imageHeight: QrMenuLayout.of(context).catalogImageHeight,
                 bottom: BasketBtn(
                   viewModel: viewModel,
                   item: items![0],
@@ -151,7 +153,7 @@ class _ItemCard extends StatelessWidget {
           // ),
           child: Container(
             // height: viewModel.isTablet ? 475 : 430,
-            height: 475,
+            height: QrMenuLayout.catalogHeight,
             // width: viewModel.isTablet
             //     ? context.mediaQuery.size.width / 1.64
             //     : null,

@@ -65,6 +65,7 @@
     "restaurantAddress": "Restaurant address",
     "orderAmount": "Order amount",
     "service": "Service",
+    "serviceFee": "Service fee",
     "placeAnOrder": "Place an order",
     "totalPrice": "Total",
     "workingHours": "Working hours:",
@@ -268,5 +269,13 @@
     "selectExactCount": "Choose {max}",
     "selectUpToCount": "You can choose up to {max}",
     "selectFromToCount": "Choose from {min} to {max}",
-    "scanAndTrackOrder": "Scan the QR to track your order"
+    "scanAndTrackOrder": "Scan the QR to track your order",
+    "menu": "Menu",
+    "errorCode": "Error code",
+    "wifiSettings": "Wi-Fi settings",
+    "noInternetDescription": "Check your internet connection.\nService will resume automatically.",
+    "kioskUnavailableTitle": "The kiosk is temporarily unavailable",
+    "kioskUnavailableDescription": "We are performing system maintenance.\nService will be restored shortly.",
+    "qrPaymentTitle": "Pay by QR",
+    "qrPaymentDescription": "Point your camera at the QR code to pay for your order"
 }

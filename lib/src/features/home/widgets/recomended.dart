@@ -11,6 +11,7 @@ import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:sizer/sizer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -35,7 +36,12 @@ class RecomendedWidget extends StatelessWidget {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.only(bottom: 78),
+      // 78 в портрете — запас под полосу категорий, которая наезжает на
+      // низ раскрытого хедера. В альбоме витрина стоит отдельной панелью,
+      // наезжать нечему, и такой отступ оставлял бы пустую полосу снизу.
+      padding: EdgeInsets.only(
+        bottom: QrMenuLayout.of(context).isLandscape ? 24 : 78,
+      ),
       child: Padding(
         padding: AppPaddings.horizontal16,
         child: Column(

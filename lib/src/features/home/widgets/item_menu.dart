@@ -17,6 +17,7 @@ import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
 import 'package:qr_pay_app/src/features/home/widgets/basket_btn.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:sizer/sizer.dart';
 
 bool _itemMenuNavLocked = false;
@@ -36,7 +37,7 @@ class ItemMenu extends StatelessWidget {
       padding: AppPaddings.all,
       child: SizedBox(
         // height: viewModel.isTablet ? 15.sh : 136,
-        height: 15.sh,
+        height: QrMenuLayout.of(context).listTileHeight,
         child: AnimatedCard(
           child: Row(
             children: [

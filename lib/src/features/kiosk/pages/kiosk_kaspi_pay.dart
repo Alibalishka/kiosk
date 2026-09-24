@@ -1,11 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:lottie/lottie.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+
 import 'package:qr_pay_app/src/core/base/view_model_mixin.dart';
 import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
-import 'package:qr_pay_app/src/core/resources/app_colors.dart';
-import 'package:qr_pay_app/src/core/resources/app_components.dart';
-import 'package:qr_pay_app/src/core/resources/app_lottie.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
@@ -13,17 +14,11 @@ import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
-import 'package:qr_pay_app/src/features/app/router/app_router.dart';
-import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
 import 'package:qr_pay_app/src/features/kiosk/vm/kiosk_kaspi_vm.dart';
+import 'package:qr_pay_app/src/features/kiosk/widgets/payment_status_views.dart';
 import 'package:qr_pay_app/src/features/qr/widgets/custom_appbar.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:sizer/sizer.dart';
 
 class KioskKaspiPayPage extends StatefulWidget {
   const KioskKaspiPayPage({
@@ -43,6 +38,8 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
 
   @override
   Widget build(BuildContext context) {
+    final layout = QrMenuLayout.of(context);
+
     return Scaffold(
       appBar: CustomAppBar(
         text: LocaleKeys.paymentTitle.tr(),
@@ -50,74 +47,7 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
         hasLeading: true,
       ),
       bottomNavigationBar: viewModel.payStatus.data?.status == 'Error'
-          ? Container(
-              decoration: BoxDecoration(
-                color: AppComponents.buttondockBgColorDefault,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    spreadRadius: 0,
-                    blurRadius: 20,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: SafeArea(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          context.read<QrMenuVm>().clearBasket();
-                          context.router.popUntil((route) =>
-                              route.settings.name == QrMenuProviderRoute.name);
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 18),
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: const BorderSide(
-                                color: Color(0xFFE2E2E2), width: 1.5),
-                          ),
-                        ),
-                        child: Text(
-                          LocaleKeys.cancelPurchaseButton.tr(),
-                          style: AppTextStyles.bodyM.copyWith(
-                              fontSize: 18,
-                              color: AppColors.primitiveNeutralcold1000),
-                        ),
-                      ),
-                    ),
-                    const RowSpacer(2),
-                    Expanded(
-                      child: CupertinoButton(
-                        borderRadius: BorderRadius.circular(16),
-                        onPressed: () => context.router.pop(),
-                        color: AppColors.primitiveNeutralcold1000,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 24),
-                          child: Text(
-                            LocaleKeys.tryAgainButton.tr(),
-                            style: AppTextStyles.bodyM.copyWith(
-                                fontSize: 18,
-                                color: AppComponents
-                                    .buttongroupButtonPrimaryTextColorDefault),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
+          ? const PaymentErrorDock()
           : null,
       body: BlocConsumer<KioskBloc, KioskState>(
         bloc: viewModel.kioskBloc,
@@ -138,178 +68,145 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
           successPayData: (response) => viewModel.saveData(response),
           successPay: (response) => viewModel.savePayStatus(context, response),
         ),
-        builder: (context, state) => state.maybeWhen(
-          loading: () => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Text(
-                  LocaleKeys.preparingToAcceptPayment.tr(),
-                  style: AppTextStyles.headingH3.copyWith(
-                    fontSize: 36,
-                  ),
-                ),
-              ),
-              const ColumnSpacer(3),
-              const SizedBox(
-                height: 64,
-                width: 64,
-                child: CircularProgressIndicator(
-                  color: Color(0xffF14635),
-                  strokeWidth: 4,
-                ),
-              ),
-            ],
-          ),
-          orElse: () => Align(
-            alignment: Alignment.center,
-            child: _buildContent(viewModel.payStatus.data?.status ?? ''),
+        builder: (context, state) => PaymentCenteredScroll(
+          child: state.maybeWhen(
+            loading: () => const PaymentLoadingView(),
+            orElse: () => _buildContent(
+              context,
+              viewModel.payStatus.data?.status ?? '',
+              layout,
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildContent(String ststus) {
-    switch (ststus) {
+  Widget _buildContent(
+    BuildContext context,
+    String status,
+    QrMenuLayout layout,
+  ) {
+    switch (status) {
       case 'QrTokenCreated':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              AppSvgImages.qr,
-              height: 120,
-            ),
-            const ColumnSpacer(1.2),
-            Text(
-              LocaleKeys.scanAndPay.tr(),
-              style: AppTextStyles.bodyM.copyWith(
-                fontSize: 40,
-              ),
-            ),
-            const ColumnSpacer(1.2),
-            Text(
-              '${priceFormat(viewModel.payData.totalPrice!.toInt().toString())} ₸',
-              style: AppTextStyles.headingH3.copyWith(
-                fontSize: 100,
-              ),
-            ),
-            QrImageView(
-              data: viewModel.payData.redirectUrl ?? '',
-              version: QrVersions.auto,
-              size: 400.0,
-              embeddedImage: const AssetImage(AppWebpImages.kaspiOutline),
-              embeddedImageStyle: const QrEmbeddedImageStyle(
-                size: Size(82, 82),
-              ),
-            ),
-            const ColumnSpacer(1.2),
-            Text(
-              LocaleKeys.paymentMethods.tr(),
-              style: AppTextStyles.bodyM.copyWith(
-                fontSize: 24,
-              ),
-            ),
-            const ColumnSpacer(1.2),
-            SvgPicture.asset(
-              AppSvgImages.kaspiGold,
-              height: 64,
-            ),
-          ],
+        return _qrContent(context, layout);
+      case 'Error':
+        return const PaymentErrorView();
+      case 'Processed':
+        return PaymentSuccessView(
+          totalPrice: viewModel.payData.totalPrice!.toInt(),
         );
       case 'Wait':
-        return const SizedBox(
-          height: 64,
-          width: 64,
-          child: CircularProgressIndicator(
-            color: Color(0xffF14635),
-            strokeWidth: 4,
-          ),
-        );
-      // Column(
-      //   mainAxisAlignment: MainAxisAlignment.center,
-      //   children: [
-      //     Text(
-      //       'Подтвердите оплату в приложении',
-      //       style: AppTextStyles.headingH3.copyWith(
-      //         fontSize: 36,
-      //       ),
-      //     ),
-      //     const ColumnSpacer(1.2),
-      //     Text(
-      //       'Происходит списание средств',
-      //       style: AppTextStyles.bodyM.copyWith(
-      //         fontSize: 24,
-      //         color: AppColors.primitiveNeutralcold500,
-      //       ),
-      //     ),
-      //     const ColumnSpacer(10),
-      //     SvgPicture.asset(
-      //       AppSvgImages.kaspiCompact,
-      //       height: 148,
-      //     ),
-      //   ],
-      // );
-      case 'Error':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              AppSvgImages.okError,
-              height: 250,
-            ),
-            const ColumnSpacer(4),
-            Text(
-              LocaleKeys.purchaseCancellationTitle.tr(),
-              style: AppTextStyles.headingH3.copyWith(
-                fontSize: 32,
-              ),
-            ),
-            Text(
-              LocaleKeys.youDidNotConfirm.tr(),
-              style: AppTextStyles.bodyM.copyWith(
-                fontSize: 24,
-              ),
-            ),
-          ],
-        );
-      case 'Processed':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // SvgPicture.asset(
-            //   AppSvgImages.ok,
-            //   height: 250,
-            // ),
-            Lottie.asset(
-              AppLottie.success,
-              height: 30.h,
-              repeat: false,
-            ),
-            Text(
-              LocaleKeys.paymentAccepted.tr(),
-              style: AppTextStyles.headingH3.copyWith(
-                fontSize: 32,
-              ),
-            ),
-            Text(
-              '${priceFormat(viewModel.payData.totalPrice!.toInt().toString())} ₸',
-              style: AppTextStyles.headingH3.copyWith(
-                fontSize: 52,
-              ),
-            ),
-          ],
-        );
       default:
-        return const SizedBox(
-          height: 64,
-          width: 64,
-          child: CircularProgressIndicator(
-            color: Color(0xffF14635),
-            strokeWidth: 4,
-          ),
-        );
+        return const PaymentSpinner();
     }
   }
+
+  /// Экран оплаты через Kaspi.
+  ///
+  /// В портрете всё идёт одной колонкой: она занимает ~845 px. В альбоме под
+  /// контент остаётся ~750, поэтому текст с суммой уходит влево, а код —
+  /// вправо.
+  Widget _qrContent(BuildContext context, QrMenuLayout layout) {
+    if (!layout.isLandscape) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _header(CrossAxisAlignment.center),
+          _qrCode(400),
+          const ColumnSpacer(1.2),
+          _paymentMethods(CrossAxisAlignment.center),
+        ],
+      );
+    }
+
+    // Код тянется по короткой стороне экрана, но не крупнее портретного.
+    final qrSize =
+        (MediaQuery.sizeOf(context).shortestSide * 0.55).clamp(240.0, 400.0);
+
+    // Flexible, а не Expanded: колонка занимает свою ширину, а не весь
+    // остаток, — иначе текст прижимается к краю экрана и между ним и кодом
+    // остаётся дыра. Пара блоков центрируется целиком.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _header(CrossAxisAlignment.start),
+                const ColumnSpacer(2.4),
+                _paymentMethods(CrossAxisAlignment.start),
+              ],
+            ),
+          ),
+          const RowSpacer(4.8),
+          _qrCode(qrSize),
+        ],
+      ),
+    );
+  }
+
+  Widget _header(CrossAxisAlignment align) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: align,
+        children: [
+          SvgPicture.asset(
+            AppSvgImages.qr,
+            height: 120,
+          ),
+          const ColumnSpacer(1.2),
+          Text(
+            LocaleKeys.scanAndPay.tr(),
+            style: AppTextStyles.bodyM.copyWith(fontSize: 40),
+          ),
+          const ColumnSpacer(1.2),
+          // Сумма набрана в 100 px: на узкой колонке длинный чек её не
+          // уместит, поэтому уменьшаем кегль, а не обрезаем цифры.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '${priceFormat(viewModel.payData.totalPrice!.toInt().toString())} ₸',
+              style: AppTextStyles.headingH3.copyWith(fontSize: 100),
+            ),
+          ),
+        ],
+      );
+
+  Widget _qrCode(double size) {
+    final redirectUrl = viewModel.payData.redirectUrl ?? '';
+    if (redirectUrl.isEmpty) return const PaymentSpinner();
+
+    return QrImageView(
+      data: redirectUrl,
+      version: QrVersions.auto,
+      size: size,
+      embeddedImage: const AssetImage(AppWebpImages.kaspiOutline),
+      // Логотип в центре масштабируется вместе с кодом: 82 из 400.
+      embeddedImageStyle: QrEmbeddedImageStyle(
+        size: Size(size * 0.205, size * 0.205),
+      ),
+    );
+  }
+
+  Widget _paymentMethods(CrossAxisAlignment align) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: align,
+        children: [
+          Text(
+            LocaleKeys.paymentMethods.tr(),
+            style: AppTextStyles.bodyM.copyWith(fontSize: 24),
+          ),
+          const ColumnSpacer(1.2),
+          SvgPicture.asset(
+            AppSvgImages.kaspiGold,
+            height: 64,
+          ),
+        ],
+      );
 }

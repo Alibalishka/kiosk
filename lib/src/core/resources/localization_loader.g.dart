@@ -80,6 +80,7 @@ class CodegenLoader extends AssetLoader{
   "restaurantAddress": "Мейрамхана мекен-жайы",
   "orderAmount": "Тапсырыс сомасы",
   "service": "Қызмет көрсету",
+  "serviceFee": "Қызмет көрсету ақысы",
   "placeAnOrder": "Тапсырыс беру",
   "totalPrice": "Барлығы",
   "workingHours": "Жұмыс уақыты:",
@@ -283,7 +284,15 @@ class CodegenLoader extends AssetLoader{
   "selectExactCount": "{max} таңдаңыз",
   "selectUpToCount": "{max}-ке дейін таңдауға болады",
   "selectFromToCount": "{min}-ден {max}-ке дейін таңдаңыз",
-  "scanAndTrackOrder": "Тапсырысты қадағалау үшін QR сканерлеңіз"
+  "scanAndTrackOrder": "Тапсырысты қадағалау үшін QR сканерлеңіз",
+  "menu": "Мәзір",
+  "errorCode": "Қате коды",
+  "wifiSettings": "Wi-Fi параметрлері",
+  "noInternetDescription": "Интернет байланысын тексеріңіз.\nЖұмыс автоматты түрде қалпына келтіріледі.",
+  "kioskUnavailableTitle": "Киоск уақытша жұмыс істемейді",
+  "kioskUnavailableDescription": "Жүйеге техникалық қызмет көрсетіліп жатыр.\nЖұмыс жақын арада қалпына келтіріледі.",
+  "qrPaymentTitle": "QR арқылы төлем",
+  "qrPaymentDescription": "Тапсырысты төлеу үшін камераны QR-кодқа бағыттаңыз"
 };
 static const Map<String,dynamic> _ru_RU = {
   "selectCity": "Выберите город",
@@ -351,6 +360,7 @@ static const Map<String,dynamic> _ru_RU = {
   "restaurantAddress": "Адрес ресторана",
   "orderAmount": "Сумма заказа",
   "service": "Обслуживание",
+  "serviceFee": "Плата за обслуживание",
   "placeAnOrder": "Сделать заказ",
   "totalPrice": "Всего",
   "workingHours": "Время работы:",
@@ -555,7 +565,15 @@ static const Map<String,dynamic> _ru_RU = {
   "selectExactCount": "Выберите {max}",
   "selectUpToCount": "Можно выбрать до {max}",
   "selectFromToCount": "Выберите от {min} до {max}",
-  "scanAndTrackOrder": "Отсканируйте QR и отслеживайте заказ"
+  "scanAndTrackOrder": "Отсканируйте QR и отслеживайте заказ",
+  "menu": "Меню",
+  "errorCode": "Код ошибки",
+  "wifiSettings": "Настройки Wi-Fi",
+  "noInternetDescription": "Проверьте подключение к интернету.\nРабота будет восстановлена автоматически.",
+  "kioskUnavailableTitle": "Киоск временно не работает",
+  "kioskUnavailableDescription": "Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.",
+  "qrPaymentTitle": "Оплата по QR",
+  "qrPaymentDescription": "Наведите камеру на QR-код, чтобы оплатить заказ"
 };
 static const Map<String,dynamic> _en_US = {
   "selectCity": "Select a city",
@@ -623,6 +641,7 @@ static const Map<String,dynamic> _en_US = {
   "restaurantAddress": "Restaurant address",
   "orderAmount": "Order amount",
   "service": "Service",
+  "serviceFee": "Service fee",
   "placeAnOrder": "Place an order",
   "totalPrice": "Total",
   "workingHours": "Working hours:",
@@ -826,7 +845,15 @@ static const Map<String,dynamic> _en_US = {
   "selectExactCount": "Choose {max}",
   "selectUpToCount": "You can choose up to {max}",
   "selectFromToCount": "Choose from {min} to {max}",
-  "scanAndTrackOrder": "Scan the QR to track your order"
+  "scanAndTrackOrder": "Scan the QR to track your order",
+  "menu": "Menu",
+  "errorCode": "Error code",
+  "wifiSettings": "Wi-Fi settings",
+  "noInternetDescription": "Check your internet connection.\nService will resume automatically.",
+  "kioskUnavailableTitle": "The kiosk is temporarily unavailable",
+  "kioskUnavailableDescription": "We are performing system maintenance.\nService will be restored shortly.",
+  "qrPaymentTitle": "Pay by QR",
+  "qrPaymentDescription": "Point your camera at the QR code to pay for your order"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"kk_KK": _kk_KK, "ru_RU": _ru_RU, "en_US": _en_US};
 }

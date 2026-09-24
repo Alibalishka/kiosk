@@ -1,9 +1,8 @@
 import 'dart:developer';
-import 'dart:io';
 
-import 'package:qr_pay_app/src/core/extensions/context.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
@@ -16,10 +15,33 @@ class ScrollService {
   List<GlobalKey> categoryKeys = [];
   Map<String, double> categoryOffsets = {};
   List<double> categoryWidths = [];
-  int selectedCategoryIndex = 0;
-  bool isAtStart = true;
+
+  /// Подсвеченная категория и «мы в самом верху» — единственное, что меняет
+  /// вертикальная прокрутка. Это ValueNotifier'ы, чтобы на каждый кадр
+  /// прокрутки перестраивалась только полоса категорий, а не вся страница
+  /// целиком (аппбар с каруселью и все видимые карточки).
+  /// Поля-обёртки ниже оставлены, чтобы остальной код читал и писал их
+  /// ровно как раньше.
+  final ValueNotifier<int> selectedCategory = ValueNotifier<int>(0);
+  final ValueNotifier<bool> atStart = ValueNotifier<bool>(true);
+
+  int get selectedCategoryIndex => selectedCategory.value;
+  set selectedCategoryIndex(int value) => selectedCategory.value = value;
+
+  bool get isAtStart => atStart.value;
+  set isAtStart(bool value) => atStart.value = value;
+
   bool isScrollAnimation = false;
   bool isTablet = false;
+
+  /// Ориентация на момент последнего пересчёта офсетов. В альбоме витрина
+  /// рекомендаций живёт в левой панели, вне скролла, — прокрутка меню её не
+  /// сворачивает, поэтому [isAtStart] там всегда true.
+  bool isLandscape = false;
+
+  /// Высота полосы категорий (QrMenuCategoryTabs.height). По ней считаются
+  /// офсеты перехода к категории — менять только вместе с виджетом.
+  static const double tabsHeight = 69;
 
   BuildContext? _context;
 
@@ -34,6 +56,8 @@ class ScrollService {
     scrollController.removeListener(_onVerticalScroll);
     scrollController.dispose();
     horizontalController.dispose();
+    selectedCategory.dispose();
+    atStart.dispose();
   }
 
   void reset() {
@@ -57,12 +81,14 @@ class ScrollService {
   ) {
     this.isTablet = isTablet;
     this.menuData = menuData;
-    isAtStart =
-        !isAtStart ? isAtStart : menuData.effectiveRecommend.isNotEmpty;
+    isAtStart = !isAtStart ? isAtStart : menuData.effectiveRecommend.isNotEmpty;
     categoryKeys =
         List.generate(menuData.data?.length ?? 0, (_) => GlobalKey());
     calculateCategoryWidths(menuData);
     calculateOffsets(context, menuData, isGridView);
+    // В альбоме витрина рекомендаций вне скролла — она всегда «в начале»,
+    // иначе тап по ней перестаёт открывать карточку товара.
+    if (isLandscape) isAtStart = true;
   }
 
   void calculateCategoryWidths(QrMenuModel menuData) {
@@ -88,22 +114,25 @@ class ScrollService {
     //         ? ((_context!.mediaQuery.size.width / 1.3) - kToolbarHeight) - 54
     //         : (450 - kToolbarHeight) - 54
     //     : 5;
-    final tabsHeight = isTablet ? 69.0 : 54.0;
+    // Раскрытый хедер = QrMenuSliverAppBar.expandedHeight. В альбоме его в
+    // скролле нет (рекомендации переехали в левую панель), поэтому первая
+    // категория начинается сразу под тулбаром.
+    final layout = QrMenuLayout.of(
+      _context!,
+      hasRecommend: menuData.effectiveRecommend.isNotEmpty,
+    );
+    isLandscape = layout.isLandscape;
 
-    double offset = menuData.effectiveRecommend.isNotEmpty
-        ? isTablet
-            ? ((_context!.mediaQuery.size.width / 1.3) - kToolbarHeight) -
-                tabsHeight
-            : (450 - kToolbarHeight) - tabsHeight
-        : 5;
+    final headerHeight = layout.headerExpandedHeight;
+    double offset =
+        headerHeight != null ? (headerHeight - kToolbarHeight) - tabsHeight : 5;
     // isAtStart = menuData.recommend?.isNotEmpty ?? false;
 
     final textPainter = TextPainter(
       text: TextSpan(
           text: 'Ex',
-          style: AppTextStyles.headingH3.copyWith(
-            fontSize: isTablet ? 16.sp : null,
-          )),
+          // CategoryHeaderWidget рисует заголовок в 16.sp везде.
+          style: AppTextStyles.headingH3.copyWith(fontSize: 16.sp)),
       textDirection: TextDirection.ltr,
     )..layout();
 
@@ -115,36 +144,19 @@ class ScrollService {
 
       categoryOffsets[category.name ?? ''] = offset;
 
-      offset += category.recommend?.isEmpty ?? true
+      // ItemCatalog рендерит карусель рекомендаций фиксированной высотой
+      // независимо от ориентации.
+      offset += (category.recommend?.isEmpty ?? true)
           ? textPainter.height + 32
-          : isTablet
-              ? textPainter.height + 32 + 475
-              : textPainter.height + 32 + 430;
+          : textPainter.height + 32 + QrMenuLayout.catalogHeight;
 
       if (isGridView) {
-        // GridMenuWidget всегда рендерит 3 колонки (crossAxisCount: 3),
-        // независимо от isTablet — держим это в синхроне, иначе offset
-        // расходится с реальной версткой.
-        const columns = 3;
-        // final itemHeight = isTablet ? 475.0 : 355.0;
-        final itemHeight = isTablet
-            ? (Platform.isIOS
-                ? 50.1.sh
-                : context.screenSize.width > 600
-                    ? 42.5.sh
-                    : 51.sh)
-            : context.mediaQuery.size.width / 1.16;
-
-        final numRows = (itemCount / columns).ceil();
-        offset += numRows * itemHeight;
+        final numRows = (itemCount / layout.gridColumns).ceil();
+        offset += numRows * layout.gridTileHeight;
       } else {
-        // ItemMenu рендерит height: 15.sh одинаково на телефоне и планшете
-        // (плюс вертикальный паддинг AppPaddings.all = 16+16) — раньше тут
-        // было отдельное значение для телефона (136 + 32 = 168), но с тех
-        // пор как ItemMenu перестал различать isTablet, эта ветка держим
-        // ту же формулу, иначе offset расходится с реальной версткой.
-        final itemHeight = 15.sh + 32;
-        offset += itemCount * itemHeight;
+        // Высота строки плюс вертикальный паддинг AppPaddings.all (16 + 16).
+        offset +=
+            itemCount * (layout.listTileHeight + QrMenuLayout.listTilePadding);
       }
     }
 
@@ -212,6 +224,7 @@ class ScrollService {
     }
 
     if (_context != null &&
+        !isLandscape &&
         (menuData?.effectiveRecommend.isNotEmpty ?? false)) {
       final threshold = MediaQuery.of(_context!).size.width / 1.4;
       if (currentOffset < threshold && !isAtStart) {
@@ -221,7 +234,9 @@ class ScrollService {
       }
     }
 
-    onUpdate();
+    // onUpdate() здесь больше не нужен: оба изменённых значения —
+    // ValueNotifier'ы, и их слушают ровно те два виджета, которым они
+    // нужны. Остальные пути (scrollToCategory) обновление не потеряли.
   }
 
   // void scrollToHorizontalCategory(int index) {

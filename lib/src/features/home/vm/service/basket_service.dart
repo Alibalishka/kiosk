@@ -204,10 +204,13 @@ class BasketService {
     dynamic inHall,
     required dynamic organizationSecondId,
   }) {
+    // Есть стол (table_id) — заказ к столу (`order`), иначе как раньше — `pickup`.
+    final hasTable = tableId != null && tableId.isNotEmpty;
+
     return MenuCheckoutRequest(
       organizationId: organizationId,
       tableId: tableId,
-      deliveryType: DeliveryType.pickup,
+      deliveryType: hasTable ? DeliveryType.order : DeliveryType.pickup,
       // addressId == null
       //     ? indexType == 0
       //         ? DeliveryType.delivery

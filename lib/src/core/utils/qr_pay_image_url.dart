@@ -2,10 +2,18 @@ import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/items_model.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 
 /// Целевой размер (физ. пиксели) для imgproxy под hero на ProductPage.
 ///
+/// Размеры попадают прямо в URL прокси, то есть в ключ кеша. Поэтому считать
+/// их нужно **только здесь**: прогрев меню, precache по тапу и сама
+/// ProductPage обязаны получить один и тот же URL. Разойдутся — прогрев
+/// промахнётся, и фото будет качаться с нуля при открытии карточки.
+///
 /// [heightFraction] должен совпадать с `expandedHeight: 55.h` в sizer (55% высоты экрана).
+/// В альбоме шапки нет: фото занимает левую панель во всю высоту, и доля
+/// не применяется.
 ({int widthPx, int heightPx}) qrPayHeroImageProxyPixels(
   BuildContext context, {
   double heightFraction = 0.55,
@@ -13,6 +21,15 @@ import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_mode
   final size = MediaQuery.sizeOf(context);
   final dpr = MediaQuery.devicePixelRatioOf(context);
   int clampPx(int v) => v.clamp(256, 4096);
+
+  final layout = QrMenuLayout.of(context);
+  if (layout.isLandscape) {
+    return (
+      widthPx: clampPx((layout.productMediaWidth * dpr).round()),
+      heightPx: clampPx((size.height * dpr).round()),
+    );
+  }
+
   final widthPx = clampPx((size.width * dpr).round());
   final heightPx = clampPx((size.height * heightFraction * dpr).round());
   return (widthPx: widthPx, heightPx: heightPx);

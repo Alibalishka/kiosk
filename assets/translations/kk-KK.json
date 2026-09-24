@@ -65,6 +65,7 @@
     "restaurantAddress": "Мейрамхана мекен-жайы",
     "orderAmount": "Тапсырыс сомасы",
     "service": "Қызмет көрсету",
+    "serviceFee": "Қызмет көрсету ақысы",
     "placeAnOrder": "Тапсырыс беру",
     "totalPrice": "Барлығы",
     "workingHours": "Жұмыс уақыты:",
@@ -268,5 +269,13 @@
     "selectExactCount": "{max} таңдаңыз",
     "selectUpToCount": "{max}-ке дейін таңдауға болады",
     "selectFromToCount": "{min}-ден {max}-ке дейін таңдаңыз",
-    "scanAndTrackOrder": "Тапсырысты қадағалау үшін QR сканерлеңіз"
+    "scanAndTrackOrder": "Тапсырысты қадағалау үшін QR сканерлеңіз",
+    "menu": "Мәзір",
+    "errorCode": "Қате коды",
+    "wifiSettings": "Wi-Fi параметрлері",
+    "noInternetDescription": "Интернет байланысын тексеріңіз.\nЖұмыс автоматты түрде қалпына келтіріледі.",
+    "kioskUnavailableTitle": "Киоск уақытша жұмыс істемейді",
+    "kioskUnavailableDescription": "Жүйеге техникалық қызмет көрсетіліп жатыр.\nЖұмыс жақын арада қалпына келтіріледі.",
+    "qrPaymentTitle": "QR арқылы төлем",
+    "qrPaymentDescription": "Тапсырысты төлеу үшін камераны QR-кодқа бағыттаңыз"
 }

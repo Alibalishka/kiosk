@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -10,6 +12,7 @@ import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/language_bloc/language_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/language.dart';
 
@@ -48,7 +51,9 @@ class LanguagePopupDialog {
                 );
               },
               child: Container(
-                width: MediaQuery.of(ctx).size.width * 0.85,
+                // В альбоме 85% ширины — это больше тысячи пикселей под три
+                // строки языков; ограничиваем диалог читаемой шириной.
+                width: math.min(MediaQuery.of(ctx).size.width * 0.85, 520),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -101,9 +106,8 @@ class LanguagePopupDialog {
                                 child: Row(
                                   children: [
                                     SvgPicture.asset(
-                                      Language.icons[lang.languageCode] ??
-                                          '',
-                                      width: 3.h,
+                                      Language.icons[lang.languageCode] ?? '',
+                                      width: QrMenuLayout.longSide(ctx, 3),
                                     ),
                                     const SizedBox(width: 20),
                                     Text(
@@ -120,7 +124,7 @@ class LanguagePopupDialog {
                                       isSelected
                                           ? AppSvgImages.radiobuttonOn
                                           : AppSvgImages.radiobuttonOff,
-                                      height: 3.h,
+                                      height: QrMenuLayout.longSide(ctx, 3),
                                     ),
                                   ],
                                 ),
@@ -137,7 +141,7 @@ class LanguagePopupDialog {
                         onTap: () => context.router.pop(),
                         child: SvgPicture.asset(
                           AppSvgImages.closeLarge,
-                          height: 3.h,
+                          height: QrMenuLayout.longSide(ctx, 3),
                         ),
                       ),
                     ),
@@ -151,4 +155,3 @@ class LanguagePopupDialog {
     );
   }
 }
-

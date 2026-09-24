@@ -64,6 +64,7 @@
     "restaurantAddress": "Адрес ресторана",
     "orderAmount": "Сумма заказа",
     "service": "Обслуживание",
+    "serviceFee": "Плата за обслуживание",
     "placeAnOrder": "Сделать заказ",
     "totalPrice": "Всего",
     "workingHours": "Время работы:",
@@ -268,5 +269,13 @@
     "selectExactCount": "Выберите {max}",
     "selectUpToCount": "Можно выбрать до {max}",
     "selectFromToCount": "Выберите от {min} до {max}",
-    "scanAndTrackOrder": "Отсканируйте QR и отслеживайте заказ"
+    "scanAndTrackOrder": "Отсканируйте QR и отслеживайте заказ",
+    "menu": "Меню",
+    "errorCode": "Код ошибки",
+    "wifiSettings": "Настройки Wi-Fi",
+    "noInternetDescription": "Проверьте подключение к интернету.\nРабота будет восстановлена автоматически.",
+    "kioskUnavailableTitle": "Киоск временно не работает",
+    "kioskUnavailableDescription": "Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.",
+    "qrPaymentTitle": "Оплата по QR",
+    "qrPaymentDescription": "Наведите камеру на QR-код, чтобы оплатить заказ"
 }

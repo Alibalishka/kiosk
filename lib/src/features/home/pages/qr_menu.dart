@@ -1,47 +1,86 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io' show Platform;
 import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
-import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
-import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
-import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
-import 'package:qr_pay_app/src/core/widgets/inactivity_watcher.dart';
-import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
-import 'package:qr_pay_app/src/features/home/widgets/ad_fulll_screen.dart';
-import 'package:qr_pay_app/src/features/home/widgets/ad_logo_coin_shine.dart';
-import 'package:qr_pay_app/src/features/home/widgets/category_header.dart';
-import 'package:qr_pay_app/src/features/home/widgets/grid_menu.dart';
-import 'package:qr_pay_app/src/features/home/widgets/qr_menu_bottom_bar.dart';
-import 'package:qr_pay_app/src/features/home/widgets/qr_menu_sliver_app_bar.dart';
-import 'package:qr_pay_app/src/features/home/widgets/powered_by_footer.dart';
-import 'package:qr_pay_app/src/features/home/widgets/device_info_dialog.dart';
-import 'package:qr_pay_app/src/features/home/widgets/language_popup_dialog.dart';
-import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
-import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
-import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
-import 'package:qr_pay_app/src/core/base/view_model_mixin.dart';
-import 'package:qr_pay_app/src/core/resources/resources.dart';
-import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
-import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
-import 'package:qr_pay_app/src/features/app/router/app_router.dart';
-import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dart';
-import 'package:qr_pay_app/src/features/home/widgets/entrance_fade.dart';
-import 'package:qr_pay_app/src/features/home/widgets/item_menu.dart';
-import 'package:qr_pay_app/src/features/home/widgets/shimmer_qr_menu.dart';
-import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
-import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'dart:async';
+
+import 'package:qr_pay_app/src/core/base/view_model_mixin.dart';
+import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
+import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
-import 'package:qr_pay_app/src/features/qr/widgets/custom_button.dart';
+import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
+import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
+import 'package:qr_pay_app/src/core/resources/resources.dart';
+import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
+import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
+import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
+import 'package:qr_pay_app/src/core/widgets/inactivity_watcher.dart';
+import 'package:qr_pay_app/src/features/app/router/app_router.dart';
+import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dart';
+import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
+import 'package:qr_pay_app/src/features/home/widgets/ad_fulll_screen.dart';
+import 'package:qr_pay_app/src/features/home/widgets/ad_logo_coin_shine.dart';
+import 'package:qr_pay_app/src/features/home/widgets/category_header.dart';
+import 'package:qr_pay_app/src/features/home/widgets/device_info_dialog.dart';
+import 'package:qr_pay_app/src/features/home/widgets/entrance_fade.dart';
+import 'package:qr_pay_app/src/features/home/widgets/grid_menu.dart';
+import 'package:qr_pay_app/src/features/home/widgets/item_menu.dart';
+import 'package:qr_pay_app/src/features/home/widgets/kiosk_table_badge.dart';
+import 'package:qr_pay_app/src/features/home/widgets/language_popup_dialog.dart';
+import 'package:qr_pay_app/src/features/home/widgets/powered_by_footer.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_bottom_bar.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_header.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
+import 'package:qr_pay_app/src/features/home/widgets/qr_menu_sliver_app_bar.dart';
+import 'package:qr_pay_app/src/features/home/widgets/shimmer_qr_menu.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
+import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
+import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
+
+/// Причина, по которой меню закрыто заглушкой.
+enum _OutageKind {
+  /// Сервер сам объявил технические работы.
+  techWork,
+
+  /// Серия запросов не ушла вовсе — нет сети.
+  network,
+
+  /// Сервер отвечает ошибкой.
+  server,
+}
+
+@immutable
+class _Outage {
+  const _Outage.techWork()
+      : kind = _OutageKind.techWork,
+        code = null;
+
+  const _Outage.network()
+      : kind = _OutageKind.network,
+        code = null;
+
+  const _Outage.server(this.code) : kind = _OutageKind.server;
+
+  final _OutageKind kind;
+
+  /// Числовой хвост для экрана: первая цифра — источник
+  /// ([_statusSource] / [_menuSource]), дальше HTTP-код.
+  /// Только цифры — персонал диктует его в поддержку как есть.
+  final String? code;
+
+  /// Заглушка показана из-за серии неудачных запросов, а не по флагу сервера.
+  bool get fromFailures => kind != _OutageKind.techWork;
+}
 
 class QrMenuPage extends StatefulWidget {
   const QrMenuPage({
@@ -59,11 +98,18 @@ class QrMenuPageState extends State<QrMenuPage>
     with ViewModelMixin<QrMenuPage, QrMenuVm>, SingleTickerProviderStateMixin {
   static const MethodChannel _dpc = MethodChannel('dpc');
 
+  /// Источники ошибок в коде для поддержки: статус киоска и меню.
+  static const int _statusSource = 1;
+  static const int _menuSource = 2;
+
+  /// Сколько первых элементов списка появляются с анимацией. Остальные
+  /// строятся уже во время прокрутки и должны показываться сразу.
+  static const int _animatedEntranceCount = 8;
+
   @override
   QrMenuVm get viewModel => widget.viewModel;
 
   String? _appVersion;
-  String? _techWorkCode;
   int _secretTapCount = 0;
   Timer? _secretTapResetTimer;
   final TextEditingController _exitConfirmController = TextEditingController();
@@ -71,14 +117,15 @@ class QrMenuPageState extends State<QrMenuPage>
   bool _lastAdVisible = false;
   bool _managedKioskDisableHandled = false;
 
+  /// Текущая заглушка поверх меню (null — меню доступно).
+  _Outage? _outage;
+
   /// Счётчик подряд идущих ошибок (HTTP и сетевых)
   int _consecutiveFailCount = 0;
 
-  /// true если последняя ошибка — сетевая (errorCode == null)
-  bool _isNetworkError = false;
-
-  /// true если экран ошибки показан из-за счётчика, а не из-за techWork
-  bool _errorFromConsecutiveFails = false;
+  /// Ориентация прошлого кадра. Поворот меняет раскладку целиком, поэтому
+  /// таблицу офсетов категорий нужно пересчитать — см. [_syncOrientation].
+  Orientation? _lastOrientation;
 
   /// Порог: 10 попыток × 30 сек ≈ 5 минут
   static const int _maxFailsBeforeError = 10;
@@ -96,6 +143,17 @@ class QrMenuPageState extends State<QrMenuPage>
     _lastAdVisible = viewModel.adVisible;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       viewModel.syncAdVisibility(_lastAdVisible);
+    });
+  }
+
+  /// Поворот: пересчитываем офсеты категорий под новую раскладку.
+  void _syncOrientation(Orientation orientation) {
+    final previous = _lastOrientation;
+    _lastOrientation = orientation;
+    if (previous == null || previous == orientation) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) viewModel.relayoutForOrientation();
     });
   }
 
@@ -151,6 +209,29 @@ class QrMenuPageState extends State<QrMenuPage>
     return null;
   }
 
+  /// Запрос не удался. Пока ошибок меньше порога — молчим, меню остаётся
+  /// на экране; на пороге показываем заглушку.
+  void _registerFailure({required int source, int? errorCode}) {
+    _consecutiveFailCount++;
+    log('outage source: $source, errorCode: $errorCode, '
+        'failCount: $_consecutiveFailCount/$_maxFailsBeforeError');
+    if (_consecutiveFailCount < _maxFailsBeforeError) return;
+
+    setState(() {
+      _outage = errorCode == null
+          ? const _Outage.network()
+          : _Outage.server('$source$errorCode');
+    });
+  }
+
+  /// Сервер снова ответил — снимаем заглушку, если она была показана
+  /// из-за серии ошибок (флаг техработ снимает только сам сервер).
+  void _registerSuccess() {
+    _consecutiveFailCount = 0;
+    if (_outage?.fromFailures != true) return;
+    setState(() => _outage = null);
+  }
+
   void _handleSecretTap() {
     _secretTapResetTimer?.cancel();
     _secretTapResetTimer = Timer(const Duration(seconds: 2), () {
@@ -184,10 +265,6 @@ class QrMenuPageState extends State<QrMenuPage>
     if (_exitInProgress) return;
     setState(() => _exitInProgress = true);
     try {
-      final deviceId = await const DeviceIdService().getOrCreate();
-      // viewModel.kioskService.kioskBloc.add(
-      //   KioskEvent.disconnectKiosk(deviceId: deviceId),
-      // );
       viewModel.kioskService.stopSendingStatusKiosk();
       sl<KTokenStorage>().deleteToken();
       sl<HostStorage>().deleteHost();
@@ -211,14 +288,26 @@ class QrMenuPageState extends State<QrMenuPage>
     }
   }
 
+  bool get _adOverlayVisible =>
+      viewModel.isKioskMode &&
+      viewModel.kioskService.isAdVisible &&
+      viewModel.kioskService.currentScreenSaver != null;
+
   @override
   Widget build(BuildContext context) {
+    final layout = QrMenuLayout.of(
+      context,
+      hasRecommend: viewModel.menuData?.effectiveRecommend.isNotEmpty ?? false,
+    );
+    _syncOrientation(
+      layout.isLandscape ? Orientation.landscape : Orientation.portrait,
+    );
+    // В альбоме док заказа переезжает под витрину в левую панель, чтобы
+    // кнопка не растягивалась на всю ширину экрана.
+    final dockInScaffold = layout.showcaseWidth <= 0;
+
     return KioskInteractionListener(
       kioskService: viewModel.kioskService,
-      // onPointerDown: (_) {
-      //   // любое касание экрана (и по контенту, и по рекламе)
-      //   viewModel.kioskService.onUserInteraction();
-      // },
       child: InactivityWatcher(
         isKioskMode: viewModel.isKioskMode,
         inactivityDuration: viewModel.kioskService.idleDuration,
@@ -232,10 +321,10 @@ class QrMenuPageState extends State<QrMenuPage>
         },
         child: Stack(
           children: [
-            // --- ВСЁ, ЧТО БЫЛО ВНУТРИ build() РАНЬШЕ: Scaffold ---
             Scaffold(
               backgroundColor: AppComponents.buttondockBgColorDefault,
-              bottomNavigationBar: QrMenuBottomBar(viewModel: viewModel),
+              bottomNavigationBar:
+                  dockInScaffold ? QrMenuBottomBar(viewModel: viewModel) : null,
               body: MultiBlocListener(
                 listeners: [
                   BlocListener<BankCartBloc, BankCartState>(
@@ -255,15 +344,8 @@ class QrMenuPageState extends State<QrMenuPage>
                       successScreenSavers: (response) =>
                           viewModel.kioskService.saveScreenSavers(response),
                       successKioskStatus: (response) {
-                        _consecutiveFailCount = 0;
-                        if (_errorFromConsecutiveFails &&
-                            _techWorkCode != null) {
-                          setState(() {
-                            _techWorkCode = null;
-                            _errorFromConsecutiveFails = false;
-                            _isNetworkError = false;
-                          });
-                        }
+                        _registerSuccess();
+
                         viewModel.setKioskSection(response.data?.section);
                         final serverVersion = response.data?.version;
                         if (!Platform.isIOS) {
@@ -281,38 +363,24 @@ class QrMenuPageState extends State<QrMenuPage>
                           viewModel.kioskService.fetchScreenSavers();
                         }
                         return null;
-
-                        // if (context.router.currentPath == 'kiosk-tech-work') {
-                        //   context.read<QrMenuVm>().clearBasket();
-                        //   context.read<QrMenuVm>().fetchMenu();
-                        //   context.router.popUntil((route) =>
-                        //       route.settings.name == QrMenuProviderRoute.name);
-                        // }
                       },
                       successTechWork: (response) {
                         // techWork ответил — сервер доступен
                         _consecutiveFailCount = 0;
-                        if ((response.data?.active ?? false) == true) {
-                          setState(() {
-                            _techWorkCode = response.data?.header ?? '';
-                            _isNetworkError = false;
-                            _errorFromConsecutiveFails = false;
-                          });
-                        } else if ((response.data?.active ?? false) == false) {
-                          if (_techWorkCode != null) {
-                            setState(() {
-                              _techWorkCode = null;
-                              _isNetworkError = false;
-                              _errorFromConsecutiveFails = false;
-                            });
-                            context.read<QrMenuVm>().clearBasket();
-                            context.read<QrMenuVm>().fetchMenu();
+                        final active = response.data?.active ?? false;
+
+                        if (active) {
+                          if (_outage?.kind != _OutageKind.techWork) {
+                            setState(() => _outage = const _Outage.techWork());
                           }
+                        } else if (_outage != null) {
+                          setState(() => _outage = null);
+                          context.read<QrMenuVm>().clearBasket();
+                          context.read<QrMenuVm>().fetchMenu();
                         }
                         return null;
                       },
                       failed: (_, errorCode) {
-                        // if (errorCode == 422 || errorCode == 401)
                         if (errorCode == 422) {
                           viewModel.kioskService.stopSendingStatusKiosk();
                           sl<KTokenStorage>().deleteToken();
@@ -320,15 +388,10 @@ class QrMenuPageState extends State<QrMenuPage>
                           context.router
                               .replaceAll([const KioskProviderRoute()]);
                         } else {
-                          _consecutiveFailCount++;
-                          log('errorCode: $errorCode, failCount: $_consecutiveFailCount/$_maxFailsBeforeError');
-                          if (_consecutiveFailCount >= _maxFailsBeforeError) {
-                            setState(() {
-                              _isNetworkError = errorCode == null;
-                              _techWorkCode = errorCode?.toString() ?? 'net';
-                              _errorFromConsecutiveFails = true;
-                            });
-                          }
+                          _registerFailure(
+                            source: _statusSource,
+                            errorCode: errorCode,
+                          );
                         }
                         return null;
                       },
@@ -353,29 +416,16 @@ class QrMenuPageState extends State<QrMenuPage>
                         dismissType: DismissType.onSwipe,
                       );
 
-                      _consecutiveFailCount++;
-                      log('menu errorCode: $errorCode, failCount: $_consecutiveFailCount/$_maxFailsBeforeError');
-                      if (_consecutiveFailCount >= _maxFailsBeforeError) {
-                        setState(() {
-                          _isNetworkError = errorCode == null;
-                          _techWorkCode = 'menu${errorCode ?? 'net'}';
-                          _errorFromConsecutiveFails = true;
-                        });
-                      }
+                      _registerFailure(
+                        source: _menuSource,
+                        errorCode: errorCode,
+                      );
                       return null;
                     },
                     success: (responseData) {
-                      _consecutiveFailCount = 0;
-                      if (_techWorkCode != null &&
-                          (_techWorkCode!.startsWith('menu') ||
-                              _errorFromConsecutiveFails)) {
-                        setState(() {
-                          _techWorkCode = null;
-                          _errorFromConsecutiveFails = false;
-                          _isNetworkError = false;
-                        });
-                      }
+                      _registerSuccess();
                       viewModel.syncData(responseData);
+                      return null;
                     },
                   ),
                   builder: (context, state) => AnimatedSwitcher(
@@ -383,134 +433,16 @@ class QrMenuPageState extends State<QrMenuPage>
                     switchInCurve: Curves.easeOut,
                     switchOutCurve: Curves.easeIn,
                     child: state.maybeWhen(
-                      loading: () =>
-                          const ShimmerQrMenu(key: ValueKey('shimmer')),
+                      loading: () => ShimmerQrMenu(
+                        key: const ValueKey('shimmer'),
+                        isLandscape: layout.isLandscape,
+                      ),
                       orElse: () => viewModel.menuData != null
-                          ? Container(
+                          ? _MenuBody(
                               key: const ValueKey('content'),
-                              decoration: const BoxDecoration(
-                                color: AppColors.semanticBgSurface1,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(24),
-                                  topRight: Radius.circular(24),
-                                ),
-                              ),
-                              child: NotificationListener<ScrollNotification>(
-                                onNotification: (notification) {
-                                  // любой скролл = взаимодействие
-                                  viewModel.kioskService.onUserInteraction();
-                                  return false;
-                                },
-                                child: RefreshIndicator(
-                                  onRefresh: () => viewModel.refreshMenu(),
-                                  edgeOffset: 25,
-                                  color: AppColors.semanticFgDefault,
-                                  backgroundColor: AppColors.semanticBgSurface1,
-                                  strokeWidth: 2,
-                                  elevation: 0,
-                                  child: CustomScrollView(
-                                    physics: viewModel.isKioskMode
-                                        ? const AlwaysScrollableScrollPhysics(
-                                            parent: ClampingScrollPhysics(),
-                                          )
-                                        : const AlwaysScrollableScrollPhysics(),
-                                    controller: viewModel
-                                        .scrollService.scrollController,
-                                    slivers: [
-                                      // // здесь
-                                      // if (viewModel.kioskSection != null)
-                                      //   SliverToBoxAdapter(
-                                      //     child: _SectionInfoBar(
-                                      //       number:
-                                      //           viewModel.kioskSection?.number,
-                                      //       groupName:
-                                      //           viewModel.kioskSection?.groupName,
-                                      //     ),
-                                      //   ),
-                                      // // ==========
-                                      QrMenuSliverAppBar(
-                                        viewModel: viewModel,
-                                        currentLanguageCode:
-                                            getCurrentLanguageCode(context),
-                                        onLanguageTap: () {
-                                          viewModel.kioskService
-                                              .onUserInteraction();
-                                          LanguagePopupDialog.show(
-                                            context: context,
-                                            viewModel: viewModel,
-                                            onSecretTap: _handleSecretTap,
-                                          );
-                                        },
-                                      ),
-                                      // SliverToBoxAdapter(
-                                      //   child: CustomButton(
-                                      //     text: 'DATA',
-                                      //     onPressed: () {
-                                      //       context.router.root.push(
-                                      //         KioskSuccessPageRoute(
-                                      //           id: 41104,
-                                      //           orderWaitTime: 0,
-                                      //         ),
-                                      //       );
-                                      //     },
-                                      //   ),
-                                      // ),
-
-                                      SliverList(
-                                        delegate: SliverChildBuilderDelegate(
-                                          (context, index) {
-                                            final item =
-                                                viewModel.flattenedItems[index];
-
-                                            Widget? child;
-                                            if (item is CategoryTitle) {
-                                              child = CategoryHeaderWidget(
-                                                title: item.title,
-                                                recommend: item.recommend,
-                                                items: item.items,
-                                                viewModel: viewModel,
-                                              );
-                                            } else if (item is GridMenuItems) {
-                                              child = GridMenuWidget(
-                                                items: item.items,
-                                                viewModel: viewModel,
-                                              );
-                                            } else if (item is SingleMenuItem) {
-                                              child = ItemMenu(
-                                                key: ValueKey(item.item.id),
-                                                item: item.item,
-                                                viewModel: viewModel,
-                                              );
-                                            }
-
-                                            if (child == null) {
-                                              return const SizedBox.shrink();
-                                            }
-
-                                            return EntranceFade(
-                                              delay: Duration(
-                                                milliseconds:
-                                                    30 * index.clamp(0, 8),
-                                              ),
-                                              child: child,
-                                            );
-                                          },
-                                          childCount:
-                                              viewModel.flattenedItems.length,
-                                        ),
-                                      ),
-                                      const SliverToBoxAdapter(
-                                        child: ColumnSpacer(4),
-                                      ),
-
-                                      PoweredByFooter(appVersion: _appVersion),
-                                      const SliverToBoxAdapter(
-                                        child: ColumnSpacer(2),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              viewModel: viewModel,
+                              layout: layout,
+                              slivers: _buildSlivers(context),
                             )
                           : const SizedBox.shrink(key: ValueKey('empty')),
                     ),
@@ -520,15 +452,12 @@ class QrMenuPageState extends State<QrMenuPage>
             ),
 
             // --- ПОЛНОЭКРАННАЯ РЕКЛАМА НАД ВСЕМ ---
-            if (_techWorkCode != null ||
-                (viewModel.isKioskMode &&
-                    viewModel.kioskService.isAdVisible &&
-                    viewModel.kioskService.currentScreenSaver != null))
+            if (_outage != null || _adOverlayVisible)
               Positioned.fill(
                 // Пока идёт techWork/сеть — оверлей статичный (как раньше).
                 // Обычную рекламу пользователь может смахнуть вверх, чтобы
                 // увидеть меню под ней — как штору.
-                child: _techWorkCode != null
+                child: _outage != null
                     ? _buildAdOverlayStack()
                     : _AdSwipeUpReveal(
                         onDismissed: viewModel.kioskService.onUserInteraction,
@@ -541,12 +470,83 @@ class QrMenuPageState extends State<QrMenuPage>
     );
   }
 
+  List<Widget> _buildSlivers(BuildContext context) {
+    return [
+      QrMenuSliverAppBar(
+        viewModel: viewModel,
+        currentLanguageCode: getCurrentLanguageCode(context),
+        onLanguageTap: () {
+          // context.router.replace(KioskSuccessPageRoute(
+          //   id: 150660,
+          //   orderWaitTime: 2,
+          // ));
+          viewModel.kioskService.onUserInteraction();
+          LanguagePopupDialog.show(
+            context: context,
+            viewModel: viewModel,
+            onSecretTap: _handleSecretTap,
+          );
+        },
+      ),
+      SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final item = viewModel.flattenedItems[index];
+
+            Widget? child;
+            if (item is CategoryTitle) {
+              child = CategoryHeaderWidget(
+                title: item.title,
+                recommend: item.recommend,
+                items: item.items,
+                viewModel: viewModel,
+              );
+            } else if (item is GridMenuItems) {
+              child = GridMenuWidget(
+                items: item.items,
+                viewModel: viewModel,
+              );
+            } else if (item is SingleMenuItem) {
+              child = ItemMenu(
+                key: ValueKey(item.item.id),
+                item: item.item,
+                viewModel: viewModel,
+              );
+            }
+
+            if (child == null) {
+              return const SizedBox.shrink();
+            }
+
+            // Появление анимируем только на первом экране: элементы, которые
+            // строятся лениво уже во время прокрутки, должны быть видны сразу,
+            // иначе список моргает на каждом новом ряду.
+            if (index >= _animatedEntranceCount) return child;
+
+            return EntranceFade(
+              delay: Duration(milliseconds: 30 * index),
+              child: child,
+            );
+          },
+          childCount: viewModel.flattenedItems.length,
+        ),
+      ),
+      const SliverToBoxAdapter(child: ColumnSpacer(4)),
+      PoweredByFooter(appVersion: _appVersion),
+      // Когда корзина пуста, боттом-бар схлопнут и футер оказывается под
+      // системной полосой — добавляем её высоту вручную.
+      SliverToBoxAdapter(
+        child: SizedBox(height: 8 + MediaQuery.viewPaddingOf(context).bottom),
+      ),
+    ];
+  }
+
   Widget _buildAdOverlayStack() {
     return Stack(
       fit: StackFit.expand,
       children: [
         IgnorePointer(
-          ignoring: _techWorkCode != null,
+          ignoring: _outage != null,
           child: AdFullScreen(
             items: viewModel.kioskService.screenSavers?.data ?? [],
             onTap: viewModel.kioskService.onUserInteraction,
@@ -562,90 +562,303 @@ class QrMenuPageState extends State<QrMenuPage>
             ),
           ),
         ),
-        if (_techWorkCode != null)
+        // Номер стола — крупно в правом нижнем углу, с градиентом на всю
+        // ширину. Не перехватывает касания: тап по нему закрывает рекламу
+        // так же, как тап по ролику.
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            child: KioskTableOverlayBadge(
+              groupName: viewModel.kioskSection?.groupName,
+              number: viewModel.kioskSection?.number,
+            ),
+          ),
+        ),
+        if (_outage != null)
           Positioned.fill(
-            child: TweenAnimationBuilder<double>(
-              key: ValueKey('tech_work_$_techWorkCode'),
-              tween: Tween(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOutCubic,
-              builder: (context, t, child) => Opacity(
-                opacity: t,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 8 * t,
-                    sigmaY: 8 * t,
-                  ),
-                  child: Transform.translate(
-                    offset: Offset(0, (1 - t) * 24),
-                    child: child,
-                  ),
-                ),
-              ),
-              child: Material(
-                type: MaterialType.transparency,
-                child: Container(
-                  color: Colors.black.withOpacity(0.2),
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _isNetworkError && _errorFromConsecutiveFails
-                            ? 'Нет подключения к сети'
-                            : 'Киоск временно не работает',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.headingH1.copyWith(
-                          fontSize: 48,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        _isNetworkError && _errorFromConsecutiveFails
-                            ? 'Проверьте подключение к интернету.\nРабота будет восстановлена автоматически.'
-                            : 'Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyL.copyWith(
-                          fontSize: 28,
-                          color: Colors.white.withOpacity(0.8),
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 48),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.2)),
-                        ),
-                        child: Text(
-                          _isNetworkError && _errorFromConsecutiveFails
-                              ? 'Ошибка сети'
-                              : 'Код ошибки: 64${_techWorkCode}19',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.headingH1.copyWith(
-                            fontSize: 32,
-                            color: Colors.white.withOpacity(0.9),
-                          ),
-                        ),
-                      ),
-                      if (_isNetworkError &&
-                          _errorFromConsecutiveFails &&
-                          Platform.isAndroid) ...[
-                        const SizedBox(height: 24),
-                        _WifiSettingsButton(onTap: _openWifiPanel),
-                      ],
-                    ],
+            child: _OutageMessage(
+              key: ValueKey('outage_${_outage!.kind}_${_outage!.code}'),
+              outage: _outage!,
+              onWifiTap: _openWifiPanel,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Тело экрана меню: слева панель-витрина, справа прокручиваемое меню.
+///
+/// В портрете витрина нулевой ширины — рекомендации там живут в раскрытом
+/// SliverAppBar, как раньше. В альбоме такая шапка (`width / 1.3`) выше
+/// самого экрана, поэтому она переезжает в закреплённую левую панель, а
+/// меню занимает правую.
+///
+/// Панель не убирается из дерева условно, а схлопывается до нулевой ширины:
+/// иначе при повороте [_MenuContent] меняет место в дереве, пересоздаётся —
+/// и общий `scrollService.scrollController` успевает оказаться прицепленным
+/// сразу к двум вьюпортам.
+class _MenuBody extends StatelessWidget {
+  const _MenuBody({
+    super.key,
+    required this.viewModel,
+    required this.layout,
+    required this.slivers,
+  });
+
+  final QrMenuVm viewModel;
+  final QrMenuLayout layout;
+  final List<Widget> slivers;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasShowcase = layout.showcaseWidth > 0;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: layout.showcaseWidth,
+          child: hasShowcase ? _Showcase(viewModel: viewModel) : null,
+        ),
+        Expanded(
+          child: _MenuContent(
+            viewModel: viewModel,
+            slivers: slivers,
+            // Верх без скругления: карточка примыкает к краю экрана, и
+            // аппбар внутри неё не срезается по углам. В альбоме остаётся
+            // только нижний левый — он смотрит на панель витрины.
+            borderRadius: hasShowcase
+                ? const BorderRadius.only(bottomLeft: Radius.circular(28))
+                : BorderRadius.zero,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Левая панель альбома: карусель рекомендаций на всю высоту и док заказа
+/// под ней. Док здесь, а не в скаффолде, чтобы кнопка «Заказать» не
+/// растягивалась полосой во всю ширину альбомного экрана.
+class _Showcase extends StatelessWidget {
+  const _Showcase({required this.viewModel});
+
+  final QrMenuVm viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: SafeArea(
+            right: false,
+            minimum: const EdgeInsets.fromLTRB(16, 16, 0, 16),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(24)),
+              child: ColoredBox(
+                color: Colors.black,
+                child: RepaintBoundary(
+                  child: QrMenuHeaderBackground(
+                    viewModel: viewModel,
+                    context: context,
                   ),
                 ),
               ),
             ),
           ),
+        ),
+        QrMenuBottomBar(viewModel: viewModel),
       ],
+    );
+  }
+}
+
+/// Прокручиваемое меню: «карточка» поверх фона скаффолда.
+class _MenuContent extends StatelessWidget {
+  const _MenuContent({
+    required this.viewModel,
+    required this.slivers,
+    this.borderRadius = BorderRadius.zero,
+  });
+
+  final QrMenuVm viewModel;
+  final List<Widget> slivers;
+
+  /// Сверху скругления нет — иначе оно срезает углы аппбара внутри
+  /// карточки. В альбоме скругляется только нижний левый угол, обращённый
+  /// к панели витрины.
+  final BorderRadius borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // Без clipBehavior декорация не обрезает детей: тёмная подложка
+      // хедера с рекомендациями рисует квадратные углы поверх скругления.
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.semanticBgSurface1,
+        borderRadius: borderRadius,
+      ),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          // любой скролл = взаимодействие
+          viewModel.kioskService.onUserInteraction();
+          return false;
+        },
+        child: RefreshIndicator(
+          onRefresh: () => viewModel.refreshMenu(),
+          edgeOffset: 25,
+          color: AppColors.semanticFgDefault,
+          backgroundColor: AppColors.semanticBgSurface1,
+          strokeWidth: 2,
+          elevation: 0,
+          child: CustomScrollView(
+            physics: viewModel.isKioskMode
+                ? const AlwaysScrollableScrollPhysics(
+                    parent: ClampingScrollPhysics(),
+                  )
+                : const AlwaysScrollableScrollPhysics(),
+            controller: viewModel.scrollService.scrollController,
+            slivers: slivers,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Заглушка поверх меню: техработы, ошибка сервера или пропавшая сеть.
+class _OutageMessage extends StatelessWidget {
+  const _OutageMessage({
+    super.key,
+    required this.outage,
+    required this.onWifiTap,
+  });
+
+  final _Outage outage;
+  final VoidCallback onWifiTap;
+
+  static const Color _white = AppColors.primitiveNeutralcold0;
+  static const Color _black = AppColors.primitiveNeutralcold1000;
+
+  bool get _isNetwork => outage.kind == _OutageKind.network;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = _isNetwork
+        ? LocaleKeys.noInternetConnection.tr()
+        : LocaleKeys.kioskUnavailableTitle.tr();
+    final description = _isNetwork
+        ? LocaleKeys.noInternetDescription.tr()
+        : LocaleKeys.kioskUnavailableDescription.tr();
+    final code = outage.code;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8 * t, sigmaY: 8 * t),
+          child: Transform.translate(
+            offset: Offset(0, (1 - t) * 24),
+            child: child,
+          ),
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: Container(
+          color: _black.withValues(alpha: 0.2),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          // В альбоме экран ниже, а строка описания — шире. Держим текст в
+          // колонке ограниченной ширины, по центру пока он помещается, и
+          // даём прокрутить, если перевод окажется длиннее экрана.
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.headingH1.copyWith(
+                            fontSize: 48,
+                            color: _white,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          description,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyL.copyWith(
+                            fontSize: 28,
+                            color: _white.withValues(alpha: 0.8),
+                            height: 1.4,
+                          ),
+                        ),
+                        if (_isNetwork || code != null) ...[
+                          const SizedBox(height: 48),
+                          _GlassPanel(
+                            child: Text(
+                              _isNetwork
+                                  ? LocaleKeys.networkError.tr()
+                                  : '${LocaleKeys.errorCode.tr()}: 64${code}19',
+                              textAlign: TextAlign.center,
+                              style: AppTextStyles.headingH1.copyWith(
+                                fontSize: 32,
+                                color: _white.withValues(alpha: 0.9),
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (_isNetwork && Platform.isAndroid) ...[
+                          const SizedBox(height: 24),
+                          _WifiSettingsButton(onTap: onWifiTap),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Полупрозрачная плашка на тёмном фоне заглушки.
+class _GlassPanel extends StatelessWidget {
+  const _GlassPanel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.primitiveNeutralcold0.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primitiveNeutralcold0.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        child: child,
+      ),
     );
   }
 }
@@ -662,23 +875,21 @@ class _WifiSettingsButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
-          ),
+        child: _GlassPanel(
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wifi, color: Colors.white, size: 28),
+              const Icon(
+                Icons.wifi,
+                color: AppColors.primitiveNeutralcold0,
+                size: 28,
+              ),
               const SizedBox(width: 12),
               Text(
-                'Настройки Wi-Fi',
+                LocaleKeys.wifiSettings.tr(),
                 style: AppTextStyles.headingH1.copyWith(
                   fontSize: 24,
-                  color: Colors.white,
+                  color: AppColors.primitiveNeutralcold0,
                 ),
               ),
             ],
@@ -772,56 +983,6 @@ class _AdSwipeUpRevealState extends State<_AdSwipeUpReveal>
             child: child,
           );
         },
-      ),
-    );
-  }
-}
-
-class _SectionInfoBar extends StatelessWidget {
-  const _SectionInfoBar({
-    required this.number,
-    required this.groupName,
-  });
-
-  final String? number;
-  final String? groupName;
-
-  @override
-  Widget build(BuildContext context) {
-    final n = number?.trim() ?? '';
-    final g = groupName?.trim() ?? '';
-    if (n.isEmpty && g.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.primitiveNeutralcold1000,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(
-              g,
-              // [
-
-              //   if (g.isNotEmpty) g,
-              // ],
-              style: AppTextStyles.headingH1.copyWith(
-                  fontSize: 40, color: AppColors.primitiveNeutralcold0),
-            ),
-          ),
-          if (n.isNotEmpty)
-            Text(
-              n,
-              style: AppTextStyles.headingH1.copyWith(
-                fontSize: 100,
-                color: AppColors.primitiveNeutralcold0,
-                fontWeight: FontWeight.bold,
-              ),
-            )
-        ],
       ),
     );
   }

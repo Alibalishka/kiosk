@@ -83,15 +83,19 @@ class _QrMenuBottomBarState extends State<QrMenuBottomBar>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 spreadRadius: 0,
                 blurRadius: 20,
                 offset: const Offset(0, -2),
               ),
             ],
           ),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
           child: SafeArea(
+            top: false,
+            // Берём большее из двух — системный инсет или собственный
+            // отступ дока. Иначе на iPhone home-indicator и padding
+            // складываются, и низ получается вдвое толще верха.
+            minimum: const EdgeInsets.fromLTRB(16, 16, 16, 18),
             child: AnimatedBuilder(
               animation: viewModel,
               builder: (context, _) {
