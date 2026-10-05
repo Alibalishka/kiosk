@@ -268,8 +268,8 @@ class _ProductPageState extends State<ProductPage> {
             onAdd: () async {
               final c = _count.value;
               if (widget.item.modifiers?.isEmpty ?? true) {
-                await vm.addToBasket(context, widget.item, c);
-                if (context.mounted) context.router.pop();
+                final ok = await vm.addToBasket(context, widget.item, c);
+                if (ok && context.mounted) context.router.pop();
               } else {
                 final ok = await vm.addComboBasket(context, widget.item, c);
                 if (ok && context.mounted) context.router.pop();
@@ -785,7 +785,7 @@ class _ProductMediaBackground extends StatelessWidget {
             image: provider,
             fit: BoxFit.cover,
           ),
-        ),
+        ), 
       ),
       errorWidget: Container(
         height: 300,

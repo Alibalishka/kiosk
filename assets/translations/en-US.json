@@ -277,5 +277,11 @@
     "kioskUnavailableTitle": "The kiosk is temporarily unavailable",
     "kioskUnavailableDescription": "We are performing system maintenance.\nService will be restored shortly.",
     "qrPaymentTitle": "Pay by QR",
-    "qrPaymentDescription": "Point your camera at the QR code to pay for your order"
+    "qrPaymentDescription": "Point your camera at the QR code to pay for your order",
+    "payWithCash": "Cash payment",
+    "alcoholWarningTitle": "Alcoholic beverage",
+    "alcoholWarningMessage": "You have selected an alcoholic drink.\n\nBy continuing, you confirm that you have reached the legal age to order alcohol (21) and accept responsibility for your order.",
+    "alcoholWarningConfirm": "I'm 21 or older",
+    "cashPaymentConfirmMessage": "Your order will be sent to the venue and start being prepared.",
+    "cashPaymentConfirm": "Confirm cash payment"
 }

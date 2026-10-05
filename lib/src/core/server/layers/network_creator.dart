@@ -15,7 +15,7 @@ class NetworkCreator {
   }) =>
       dio.fetch(
         RequestOptions(
-          headers: dio.options.headers,
+          headers: {...dio.options.headers, ...?route.headers},
           baseUrl: dio.options.baseUrl,
           method: route.method,
           path: route.path,

@@ -292,7 +292,13 @@ class CodegenLoader extends AssetLoader{
   "kioskUnavailableTitle": "Киоск уақытша жұмыс істемейді",
   "kioskUnavailableDescription": "Жүйеге техникалық қызмет көрсетіліп жатыр.\nЖұмыс жақын арада қалпына келтіріледі.",
   "qrPaymentTitle": "QR арқылы төлем",
-  "qrPaymentDescription": "Тапсырысты төлеу үшін камераны QR-кодқа бағыттаңыз"
+  "qrPaymentDescription": "Тапсырысты төлеу үшін камераны QR-кодқа бағыттаңыз",
+  "payWithCash": "Қолма-қол төлем",
+  "alcoholWarningTitle": "Алкогольді өнім",
+  "alcoholWarningMessage": "Сіз алкогольді сусынды таңдадыңыз.\n\nЖалғастыру арқылы сіз алкоголь тапсырыс беруге рұқсат етілген жасқа (21 жас) толғаныңызды растайсыз және тапсырыс үшін жауапкершілікті өз мойныңызға аласыз.",
+  "alcoholWarningConfirm": "Маған 21 жас толды",
+  "cashPaymentConfirmMessage": "Тапсырыс мекемеге жіберіліп, жұмысқа қабылданады.",
+  "cashPaymentConfirm": "Қолма-қол төлемді растау"
 };
 static const Map<String,dynamic> _ru_RU = {
   "selectCity": "Выберите город",
@@ -573,7 +579,13 @@ static const Map<String,dynamic> _ru_RU = {
   "kioskUnavailableTitle": "Киоск временно не работает",
   "kioskUnavailableDescription": "Проводим обслуживание системы.\nРабота будет восстановлена в ближайшее время.",
   "qrPaymentTitle": "Оплата по QR",
-  "qrPaymentDescription": "Наведите камеру на QR-код, чтобы оплатить заказ"
+  "qrPaymentDescription": "Наведите камеру на QR-код, чтобы оплатить заказ",
+  "payWithCash": "Оплата наличными",
+  "alcoholWarningTitle": "Алкогольная продукция",
+  "alcoholWarningMessage": "Вы выбрали алкогольный напиток.\n\nПродолжая, вы подтверждаете, что достигли возраста, с которого разрешено заказывать алкоголь (21 год), и берёте ответственность за заказ на себя.",
+  "alcoholWarningConfirm": "Мне есть 21 год",
+  "cashPaymentConfirmMessage": "Заказ будет отправлен в заведение и принят в работу.",
+  "cashPaymentConfirm": "Подтвердить оплату наличными"
 };
 static const Map<String,dynamic> _en_US = {
   "selectCity": "Select a city",
@@ -853,7 +865,13 @@ static const Map<String,dynamic> _en_US = {
   "kioskUnavailableTitle": "The kiosk is temporarily unavailable",
   "kioskUnavailableDescription": "We are performing system maintenance.\nService will be restored shortly.",
   "qrPaymentTitle": "Pay by QR",
-  "qrPaymentDescription": "Point your camera at the QR code to pay for your order"
+  "qrPaymentDescription": "Point your camera at the QR code to pay for your order",
+  "payWithCash": "Cash payment",
+  "alcoholWarningTitle": "Alcoholic beverage",
+  "alcoholWarningMessage": "You have selected an alcoholic drink.\n\nBy continuing, you confirm that you have reached the legal age to order alcohol (21) and accept responsibility for your order.",
+  "alcoholWarningConfirm": "I'm 21 or older",
+  "cashPaymentConfirmMessage": "Your order will be sent to the venue and start being prepared.",
+  "cashPaymentConfirm": "Confirm cash payment"
 };
 static const Map<String, Map<String,dynamic>> mapLocales = {"kk_KK": _kk_KK, "ru_RU": _ru_RU, "en_US": _en_US};
 }

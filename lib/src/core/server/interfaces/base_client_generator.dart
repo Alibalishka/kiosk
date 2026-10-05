@@ -10,6 +10,9 @@ abstract class BaseClientGenerator {
   String get method;
   dynamic get body;
   Map<String, dynamic>? get queryParameters;
+
+  /// Заголовки конкретного запроса поверх общих заголовков Dio.
+  Map<String, dynamic>? get headers => null;
   int? get sendTimeout => _sendTimeOut;
   int? get receiveTimeOut => _receiveTimeOut;
 }

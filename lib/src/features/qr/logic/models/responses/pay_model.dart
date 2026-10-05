@@ -30,10 +30,14 @@ class PayDatum extends BaseModel<PayDatum> {
   PaymentMethod? paymentMethod;
   String? redirectUrl;
 
+  /// Статус заказа: new, inprogress, error. Приходит при оплате на месте.
+  String? statusRaw;
+
   PayDatum({
     this.id,
     this.paymentMethod,
     this.redirectUrl,
+    this.statusRaw,
   });
 
   factory PayDatum.fromJson(Map<String, dynamic> json) =>

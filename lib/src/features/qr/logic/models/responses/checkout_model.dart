@@ -37,6 +37,12 @@ class ChekoutDatum extends BaseModel<ChekoutDatum> {
   bool? kaspiPayReady;
   bool? cardPayReady;
 
+  /// Доступна ли оплата на месте (наличными на кассе).
+  bool? payAtVenueReady;
+
+  /// payment_method_id, с которым pay-order уходит как оплата на месте.
+  int? payAtVenuePaymentMethodId;
+
   ChekoutDatum({
     this.guestsCount,
     this.totalPrice,
@@ -54,6 +60,8 @@ class ChekoutDatum extends BaseModel<ChekoutDatum> {
     this.table,
     this.kaspiPayReady,
     this.cardPayReady,
+    this.payAtVenueReady,
+    this.payAtVenuePaymentMethodId,
   });
 
   factory ChekoutDatum.fromJson(Map<String, dynamic> json) =>

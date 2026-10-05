@@ -106,4 +106,9 @@ abstract class CartApi extends BaseClientGenerator with _$CartApi {
         fetchChekout: (data) => data.toJson(),
         payByCart: (data) => data.toJson(),
       );
+
+  @override
+  Map<String, dynamic>? get headers => whenOrNull(
+        payMenu: (body) => {'Idempotency-Key': body.idempotencyKey},
+      );
 }

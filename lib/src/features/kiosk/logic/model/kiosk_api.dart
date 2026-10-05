@@ -65,4 +65,9 @@ abstract class KioskApi extends BaseClientGenerator with _$KioskApi {
   /// Параметры запросов
   @override
   Map<String, dynamic>? get queryParameters => whenOrNull();
+
+  @override
+  Map<String, dynamic>? get headers => whenOrNull(
+        payKaspi: (body) => {'Idempotency-Key': body.idempotencyKey},
+      );
 }

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'menu_checkout.g.dart';
 
@@ -19,6 +20,13 @@ class MenuCheckoutRequest {
   String? token;
   String? fullName;
   dynamic inHall;
+
+  /// Заголовок Idempotency-Key для pay-order. Один на объект запроса: на
+  /// каждую попытку оплаты запрос собирается заново и получает новый ключ,
+  /// а повтор той же отправки (ретрай при обрыве связи) идёт с прежним —
+  /// сервер не создаст второй заказ. В тело запроса не входит.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  late final String idempotencyKey = const Uuid().v4();
 
   MenuCheckoutRequest({
     this.organizationId,

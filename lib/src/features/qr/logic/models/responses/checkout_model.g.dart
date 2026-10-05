@@ -41,6 +41,9 @@ ChekoutDatum _$ChekoutDatumFromJson(Map<String, dynamic> json) => ChekoutDatum(
       table: json['table'] as String?,
       kaspiPayReady: json['kaspi_pay_ready'] as bool?,
       cardPayReady: json['card_pay_ready'] as bool?,
+      payAtVenueReady: json['pay_at_venue_ready'] as bool?,
+      payAtVenuePaymentMethodId:
+          (json['pay_at_venue_payment_method_id'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$ChekoutDatumToJson(ChekoutDatum instance) =>
@@ -60,6 +63,8 @@ Map<String, dynamic> _$ChekoutDatumToJson(ChekoutDatum instance) =>
       'table': instance.table,
       'kaspi_pay_ready': instance.kaspiPayReady,
       'card_pay_ready': instance.cardPayReady,
+      'pay_at_venue_ready': instance.payAtVenueReady,
+      'pay_at_venue_payment_method_id': instance.payAtVenuePaymentMethodId,
     };
 
 Dish _$DishFromJson(Map<String, dynamic> json) => Dish(

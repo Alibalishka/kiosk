@@ -28,10 +28,12 @@ PayDatum _$PayDatumFromJson(Map<String, dynamic> json) => PayDatum(
           : PaymentMethod.fromJson(
               json['payment_method'] as Map<String, dynamic>),
       redirectUrl: json['redirect_url'] as String?,
+      statusRaw: json['status_raw'] as String?,
     );
 
 Map<String, dynamic> _$PayDatumToJson(PayDatum instance) => <String, dynamic>{
       'id': instance.id,
       'payment_method': instance.paymentMethod,
       'redirect_url': instance.redirectUrl,
+      'status_raw': instance.statusRaw,
     };

@@ -281,5 +281,11 @@ abstract class  LocaleKeys {
   static const kioskUnavailableDescription = 'kioskUnavailableDescription';
   static const qrPaymentTitle = 'qrPaymentTitle';
   static const qrPaymentDescription = 'qrPaymentDescription';
+  static const payWithCash = 'payWithCash';
+  static const alcoholWarningTitle = 'alcoholWarningTitle';
+  static const alcoholWarningMessage = 'alcoholWarningMessage';
+  static const alcoholWarningConfirm = 'alcoholWarningConfirm';
+  static const cashPaymentConfirmMessage = 'cashPaymentConfirmMessage';
+  static const cashPaymentConfirm = 'cashPaymentConfirm';
 
 }

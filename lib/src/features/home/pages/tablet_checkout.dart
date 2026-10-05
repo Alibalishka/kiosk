@@ -19,6 +19,7 @@ import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/pages/product_page.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
+import 'package:qr_pay_app/src/features/home/widgets/cash_payment_confirm_dialog.dart';
 import 'package:qr_pay_app/src/features/home/widgets/in_restaurant_content.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_checkout.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
@@ -31,6 +32,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+
+enum _PayMethod { kaspi, card, venue }
+
+/// Предрасчёт с сервера (есть только при table_id), иначе — локальная сумма
+/// корзины. Одна формула и для панели итогов, и для подтверждения наличных.
+int _checkoutTotal(QrMenuVm vm) =>
+    vm.checkoutPreview?.totalPrice ?? vm.getTotalPrice().toInt();
 
 class TabletCheckoutPage extends StatefulWidget {
   const TabletCheckoutPage({
@@ -45,7 +53,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late QrMenuVm _vm;
-  bool _pendingKaspiCheckout = true;
+  _PayMethod _pendingPayMethod = _PayMethod.kaspi;
 
   String _capitalizeFirstLetter(String value) {
     if (value.isEmpty) return value;
@@ -91,6 +99,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
       kioskService: context.read<QrMenuVm>().kioskService,
       child: InactivityWatcher(
         isKioskMode: context.read<QrMenuVm>().isKioskMode,
+        // inactivityDuration: Duration(seconds: 10),
         inactivityDuration: context.read<QrMenuVm>().kioskService.idleDuration,
         decisionDuration: const Duration(seconds: 10),
         onLeave: () {
@@ -124,9 +133,10 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
               : _CheckoutSummaryPanel(
                   isLandscape: false,
                   onKaspiPay: () =>
-                      _onCheckoutPressed(context, isKaspiPay: true),
-                  onCardPay: () =>
-                      _onCheckoutPressed(context, isKaspiPay: false),
+                      _onCheckoutPressed(context, _PayMethod.kaspi),
+                  onCardPay: () => _onCheckoutPressed(context, _PayMethod.card),
+                  onVenuePay: () =>
+                      _onCheckoutPressed(context, _PayMethod.venue),
                 ),
           body: Consumer<QrMenuVm>(
             builder: (context, value, state) {
@@ -411,9 +421,11 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                             )
                           : null,
                       onKaspiPay: () =>
-                          _onCheckoutPressed(context, isKaspiPay: true),
+                          _onCheckoutPressed(context, _PayMethod.kaspi),
                       onCardPay: () =>
-                          _onCheckoutPressed(context, isKaspiPay: false),
+                          _onCheckoutPressed(context, _PayMethod.card),
+                      onVenuePay: () =>
+                          _onCheckoutPressed(context, _PayMethod.venue),
                     ),
                   ),
                 ],
@@ -454,10 +466,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
     );
   }
 
-  void _onCheckoutPressed(
-    BuildContext context, {
-    required bool isKaspiPay,
-  }) {
+  void _onCheckoutPressed(BuildContext context, _PayMethod method) {
     final viewModel = context.read<QrMenuVm>();
 
     // Имя спрашиваем только затем, чтобы заказ нашли, когда неизвестно куда
@@ -468,15 +477,37 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
         viewModel.nameController.text.trim().isEmpty;
 
     if (needsName) {
-      _pendingKaspiCheckout = isKaspiPay;
+      _pendingPayMethod = method;
       _showNameInputDialog(context);
+      return;
+    }
+
+    _pay(method);
+  }
+
+  /// Контекст страницы, а не диалога имени: оплата на месте ждёт ответа
+  /// сервера, а контекст закрытого диалога к тому времени уже размонтирован.
+  Future<void> _pay(_PayMethod method) async {
+    final viewModel = context.read<QrMenuVm>();
+
+    if (method == _PayMethod.venue) {
+      // Подтверждение — последний шаг, уже после имени: «Подтвердить» сразу
+      // отправляет заказ в заведение, отмена ничего не создаёт.
+      final confirmed = await CashPaymentConfirmDialog.show(
+        context,
+        totalPrice: _checkoutTotal(viewModel),
+        autoCancelAfter:
+            viewModel.isKioskMode ? viewModel.kioskService.idleDuration : null,
+      );
+      if (!confirmed || !mounted) return;
+      viewModel.tabletPayAtVenue(context, indexType: _tabController.index);
       return;
     }
 
     viewModel.tabletCheckout(
       context,
       indexType: _tabController.index,
-      isKaspiPay: isKaspiPay,
+      isKaspiPay: method == _PayMethod.kaspi,
     );
   }
 
@@ -624,13 +655,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                                       .instance.primaryFocus
                                                       ?.unfocus();
                                                   Navigator.of(context).pop();
-                                                  viewModel.tabletCheckout(
-                                                    context,
-                                                    indexType:
-                                                        _tabController.index,
-                                                    isKaspiPay:
-                                                        _pendingKaspiCheckout,
-                                                  );
+                                                  _pay(_pendingPayMethod);
                                                 },
                                           child: Text(
                                             'Сохранить',
@@ -649,11 +674,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                             FocusManager.instance.primaryFocus
                                                 ?.unfocus();
                                             Navigator.of(context).pop();
-                                            viewModel.tabletCheckout(
-                                              context,
-                                              indexType: _tabController.index,
-                                              isKaspiPay: _pendingKaspiCheckout,
-                                            );
+                                            _pay(_pendingPayMethod);
                                           },
                                           child: Text(
                                             'Пропустить',
@@ -709,12 +730,14 @@ class _CheckoutSummaryPanel extends StatelessWidget {
     required this.isLandscape,
     required this.onKaspiPay,
     required this.onCardPay,
+    required this.onVenuePay,
     this.header,
   });
 
   final bool isLandscape;
   final VoidCallback onKaspiPay;
   final VoidCallback onCardPay;
+  final VoidCallback onVenuePay;
 
   /// Табы «В зале / С собой». В альбоме они переезжают сюда: выбор способа
   /// заказа логичнее держать рядом с оплатой, чем над списком блюд.
@@ -747,12 +770,9 @@ class _CheckoutSummaryPanel extends StatelessWidget {
         top: !isLandscape,
         child: Consumer<QrMenuVm>(
           builder: (context, value, state) {
-            // Предрасчёт с сервера (есть только при table_id),
-            // иначе — локальная сумма корзины, как раньше.
             final preview = value.checkoutPreview;
             final serviceSum = preview?.serviceSum?.toInt() ?? 0;
-            final totalPrice =
-                preview?.totalPrice ?? value.getTotalPrice().toInt();
+            final totalPrice = _checkoutTotal(value);
             final orderAmount = totalPrice - serviceSum;
             // Пока идёт пересчёт — оплата недоступна.
             final pending = value.checkoutPreviewPending;
@@ -789,9 +809,11 @@ class _CheckoutSummaryPanel extends StatelessWidget {
                 _total(context, value, totalPrice, pending, isTablet),
                 const ColumnSpacer(1.2),
                 // IgnorePointer — чтобы AnimatedCard не «нажимался»,
-                // пока кнопки недоступны.
+                // пока кнопки недоступны. Во время pay-order за наличные
+                // закрыты все способы: иначе можно успеть уйти на Kaspi
+                // и создать второй заказ.
                 IgnorePointer(
-                  ignoring: pending,
+                  ignoring: pending || value.payAtVenueLoading,
                   child: AnimatedOpacity(
                     duration: const Duration(milliseconds: 200),
                     opacity: pending ? 0.5 : 1,
@@ -939,25 +961,44 @@ class _CheckoutSummaryPanel extends StatelessWidget {
       if (value.hasKaspiPay) _kaspiButton(context, pending, isTablet),
       if (value.hasAirbaPay) _cardButton(context, pending, isTablet),
     ];
+    final venue = value.hasPayAtVenue
+        ? _venueButton(context, pending, value.payAtVenueLoading, isTablet)
+        : null;
 
     if (isLandscape) {
+      final all = [...buttons, if (venue != null) venue];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (int i = 0; i < buttons.length; i++) ...[
+          for (int i = 0; i < all.length; i++) ...[
             if (i > 0) const ColumnSpacer(1.2),
-            buttons[i],
+            all[i],
           ],
         ],
       );
     }
 
-    return Row(
+    final row = Row(
       children: [
         for (int i = 0; i < buttons.length; i++) ...[
           if (i > 0) const SizedBox(width: 16),
           Expanded(child: buttons[i]),
         ],
+      ],
+    );
+    if (venue == null) return row;
+
+    // Третья кнопка в ряду ужала бы подписи Kaspi и карты через FittedBox —
+    // наличные идут отдельной строкой под ними.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (buttons.isNotEmpty) ...[
+          row,
+          const ColumnSpacer(1.2),
+        ],
+        venue,
       ],
     );
   }
@@ -1042,6 +1083,53 @@ class _CheckoutSummaryPanel extends StatelessWidget {
                 SvgPicture.asset(
                   AppSvgImages.applePayLight,
                   height: QrMenuLayout.safeLongSide(context, 2.2),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _venueButton(
+    BuildContext context,
+    bool pending,
+    bool loading,
+    bool isTablet,
+  ) {
+    const color = AppComponents.buttongroupButtonGrayTextColorDefault;
+
+    return AnimatedCard(
+      child: CupertinoButton(
+        borderRadius: BorderRadius.circular(16),
+        onPressed: pending || loading ? null : onVenuePay,
+        color: AppComponents.buttongroupButtonGrayBgColorDefault,
+        disabledColor: AppComponents.buttongroupButtonGrayBgColorDefault,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (loading)
+                  const CupertinoActivityIndicator()
+                else
+                  SvgPicture.asset(
+                    AppSvgImages.cash,
+                    height: QrMenuLayout.safeLongSide(context, 2.5),
+                    color: color,
+                  ),
+                const RowSpacer(1.2),
+                Text(
+                  LocaleKeys.payWithCash.tr(),
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMStrong.copyWith(
+                    fontSize: isTablet ? 15.sp : null,
+                    color: color,
+                  ),
                 ),
               ],
             ),

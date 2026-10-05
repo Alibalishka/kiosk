@@ -10,12 +10,14 @@ import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/utils/version_compare.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
+import 'package:qr_pay_app/src/features/home/vm/service/alcohol_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/basket_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/kiosk_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/scroll_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/video_service.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_status.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/ota_update.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/model/responses/payment_method.dart';
@@ -34,7 +36,9 @@ import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dar
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/logic/repository/home_repository.dart';
 import 'package:qr_pay_app/src/features/home/vm/detail_vm.dart';
+import 'package:qr_pay_app/src/features/home/widgets/alcohol_warning_dialog.dart';
 import 'package:qr_pay_app/src/features/qr/logic/models/responses/checkout_model.dart';
+import 'package:qr_pay_app/src/features/qr/logic/models/responses/pay_model.dart';
 import 'package:qr_pay_app/src/features/qr/logic/repository/cart_repository.dart';
 import 'package:video_player/video_player.dart';
 import 'package:vibration/vibration.dart';
@@ -44,12 +48,16 @@ class QrMenuVm extends ViewModel {
   static const String kaspiPayProvider = 'kaspi_pay';
   static const String airbaPayProvider = 'airba_pay';
 
+  /// status_raw, при которых заказ за наличные дошёл до кассы.
+  static const Set<String> _payAtVenueAcceptedStatuses = {'new', 'inprogress'};
+
   final BuildContext context;
   // final bool isTabletMode;
   final BasketService basketService;
   final ScrollService scrollService;
   final VideoPreviewService videoService;
   final MenuDataService menuDataService;
+  final AlcoholService _alcoholService = const AlcoholService();
 
   QrMenuVm({
     required this.context,
@@ -798,6 +806,116 @@ class QrMenuVm extends ViewModel {
     }
   }
 
+  // ======= ОПЛАТА НА МЕСТЕ (наличными на кассе) =======
+
+  /// Доступность и payment_method_id приходят в предрасчёте: в
+  /// [paymentMethodData] этого способа может не быть. null — кнопку не
+  /// показываем.
+  int? get payAtVenuePaymentMethodId {
+    final preview = checkoutPreview;
+    if (preview?.payAtVenueReady != true) return null;
+    return preview?.payAtVenuePaymentMethodId;
+  }
+
+  bool get hasPayAtVenue => payAtVenuePaymentMethodId != null;
+
+  /// Идёт pay-order за наличные. Кнопки оплаты недоступны, чтобы повторный
+  /// тап не создал второй заказ.
+  bool payAtVenueLoading = false;
+
+  /// Создаёт заказ с оплатой на месте и сразу ведёт на билет с номером:
+  /// ждать оплату здесь нечего — гость платит на кассе. Успех решает
+  /// status_raw в ответе: new / inprogress — заказ принят, иначе он не
+  /// дошёл до кассы, и гостю нужен официант.
+  Future<void> tabletPayAtVenue(
+    BuildContext context, {
+    int indexType = 1,
+  }) async {
+    if (payAtVenueLoading) return;
+
+    final orgId = menuData?.organization?.posOrgId;
+    final paymentMethodId = payAtVenuePaymentMethodId;
+    if (orgId == null || paymentMethodId == null) {
+      log('❌ pay at venue blocked: orgId=$orgId, '
+          'paymentMethodId=$paymentMethodId');
+      _showPaymentError(
+        context,
+        'Пожалуйста, обратитесь к менеджеру, чтобы уведомить организацию о проблеме',
+      );
+      return;
+    }
+
+    final request = basketService.buildCheckoutRequest(
+      organizationId: orgId,
+      organizationSecondId: menuData?.organization?.id,
+      tableId: effectiveTableId,
+      indexType: indexType,
+      addressId: null,
+      inHall: organizationInHall && indexType == 0,
+    );
+    if (request.items?.isEmpty ?? true) return;
+    request.paymentMethodId = paymentMethodId;
+    request.isFastpay = false;
+    request.isKaspipay = false;
+    request.fullName = nameController.text;
+
+    payAtVenueLoading = true;
+    notifyListeners();
+
+    PayModel? payData;
+    String? error;
+    try {
+      final result = await sl<KioskRepository>().payKaspi(body: request);
+      result.when(
+        success: (response) => payData = response,
+        failure: (e) => error = e.msg,
+      );
+    } on Object catch (e) {
+      log('❌ pay at venue error: $e');
+    }
+
+    payAtVenueLoading = false;
+    notifyListeners();
+    if (!context.mounted) return;
+
+    final response = payData;
+    if (response == null) {
+      log('❌ pay at venue failed: $error');
+      _showPaymentError(context, error ?? 'Не удалось оформить заказ');
+      return;
+    }
+
+    // Здесь, в отличие от Kaspi, order_id в корне нет: заказ целиком
+    // приходит в data.
+    final status = response.data?.statusRaw?.toLowerCase();
+    final orderId = response.data?.id;
+    if (orderId == null || !_payAtVenueAcceptedStatuses.contains(status)) {
+      log('❌ pay at venue not accepted: status=$status, orderId=$orderId');
+      _showPaymentError(
+        context,
+        'Не удалось передать заказ, позовите официанта',
+      );
+      return;
+    }
+
+    context.router.push(KioskSuccessPageRoute(
+      id: orderId,
+      orderWaitTime: menuData?.organization?.orderWaitTime ?? 0,
+    ));
+  }
+
+  void _showPaymentError(BuildContext context, String message) {
+    showTopSnackBar(
+      Overlay.of(context),
+      CustomSnackBar.error(
+        textAlign: TextAlign.start,
+        message: message,
+      ),
+      dismissType: DismissType.onSwipe,
+    );
+  }
+  // =========================================================
+
   void showBottomSheetIfNeeded(BuildContext context, dynamic value) {
     if (value != null) {
       showCustomSheet(
@@ -842,14 +960,35 @@ class QrMenuVm extends ViewModel {
     notifyListeners();
   }
 
-  Future<void> addToBasket(BuildContext context, Items data, int count) async {
+  /// Алкоголь, которого ещё нет в заказе, добавляется только после явного
+  /// подтверждения возраста. Если товар уже в корзине, гость подтвердил его
+  /// раньше — «+» в корзине и на карточке больше не переспрашивает.
+  Future<bool> _confirmAlcoholIfNeeded(BuildContext context, Items data) async {
+    if (basketService.containInBasket(data)) return true;
+    if (!_alcoholService.isAlcoholItem(menuData, data)) return true;
+
+    final confirmed = await AlcoholWarningDialog.show(context);
+    // Диалог лежит над страницей и касаний в слушатель киоска не пропускает.
+    kioskService.onUserInteraction();
+    return confirmed && context.mounted;
+  }
+
+  /// `false` — гость отказался подтвердить возраст, товар не добавлен.
+  Future<bool> addToBasket(BuildContext context, Items data, int count) async {
+    if (!await _confirmAlcoholIfNeeded(context, data)) return false;
+    if (!context.mounted) return false;
+
     await basketService.add(context, data, count);
     _refreshCheckoutPreviewIfActive();
     notifyListeners();
+    return true;
   }
 
   Future<bool> addComboBasket(
       BuildContext context, Items data, int count) async {
+    if (!await _confirmAlcoholIfNeeded(context, data)) return false;
+    if (!context.mounted) return false;
+
     bool success = await basketService.addCombo(context, data, count);
     if (success) _refreshCheckoutPreviewIfActive();
     notifyListeners();
