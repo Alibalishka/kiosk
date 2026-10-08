@@ -24,10 +24,13 @@ import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/inactivity_watcher.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dart';
+import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
+import 'package:qr_pay_app/src/features/home/vm/service/order_assistant.dart';
 import 'package:qr_pay_app/src/features/home/widgets/ad_fulll_screen.dart';
 import 'package:qr_pay_app/src/features/home/widgets/ad_logo_coin_shine.dart';
+import 'package:qr_pay_app/src/features/home/widgets/assistant_visuals.dart';
 import 'package:qr_pay_app/src/features/home/widgets/category_header.dart';
 import 'package:qr_pay_app/src/features/home/widgets/device_info_dialog.dart';
 import 'package:qr_pay_app/src/features/home/widgets/entrance_fade.dart';
@@ -35,6 +38,7 @@ import 'package:qr_pay_app/src/features/home/widgets/grid_menu.dart';
 import 'package:qr_pay_app/src/features/home/widgets/item_menu.dart';
 import 'package:qr_pay_app/src/features/home/widgets/kiosk_table_badge.dart';
 import 'package:qr_pay_app/src/features/home/widgets/language_popup_dialog.dart';
+import 'package:qr_pay_app/src/features/home/widgets/order_assistant_overlay.dart';
 import 'package:qr_pay_app/src/features/home/widgets/powered_by_footer.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_bottom_bar.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_header.dart';
@@ -129,6 +133,14 @@ class QrMenuPageState extends State<QrMenuPage>
 
   /// Порог: 10 попыток × 30 сек ≈ 5 минут
   static const int _maxFailsBeforeError = 10;
+
+  /// Открыт помощник подбора заказа.
+  bool _assistantOpen = false;
+
+  /// Меню, по которому собран [_assistant]: пересобираем только при смене
+  /// меню, а не на каждый notifyListeners.
+  QrMenuModel? _assistantMenu;
+  OrderAssistant? _assistant;
 
   @override
   void initState() {
@@ -288,6 +300,26 @@ class QrMenuPageState extends State<QrMenuPage>
     }
   }
 
+  OrderAssistant? get _orderAssistant {
+    final menu = viewModel.menuData;
+    if (menu == null) return null;
+    if (!identical(menu, _assistantMenu)) {
+      _assistantMenu = menu;
+      _assistant = OrderAssistant(menu);
+    }
+    return _assistant;
+  }
+
+  void _openAssistant() {
+    viewModel.kioskService.onUserInteraction();
+    setState(() => _assistantOpen = true);
+  }
+
+  void _closeAssistant() {
+    if (!_assistantOpen || !mounted) return;
+    setState(() => _assistantOpen = false);
+  }
+
   bool get _adOverlayVisible =>
       viewModel.isKioskMode &&
       viewModel.kioskService.isAdVisible &&
@@ -305,6 +337,15 @@ class QrMenuPageState extends State<QrMenuPage>
     // В альбоме док заказа переезжает под витрину в левую панель, чтобы
     // кнопка не растягивалась на всю ширину экрана.
     final dockInScaffold = layout.showcaseWidth <= 0;
+
+    final assistant = viewModel.isKioskMode ? _orderAssistant : null;
+    final assistantAvailable =
+        (assistant?.isAvailable ?? false) && _outage == null;
+    // Скринсейвер или заглушка — следующий гость не должен застать чужой
+    // диалог с помощником.
+    if (_assistantOpen && (_adOverlayVisible || !assistantAvailable)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _closeAssistant());
+    }
 
     return KioskInteractionListener(
       kioskService: viewModel.kioskService,
@@ -325,6 +366,16 @@ class QrMenuPageState extends State<QrMenuPage>
               backgroundColor: AppComponents.buttondockBgColorDefault,
               bottomNavigationBar:
                   dockInScaffold ? QrMenuBottomBar(viewModel: viewModel) : null,
+              floatingActionButton: assistantAvailable && !_assistantOpen
+                  ? TickerMode(
+                      // Под рекламой кнопку не видно — не крутим анимацию зря.
+                      enabled: !_adOverlayVisible,
+                      child: AssistantLauncher(
+                        label: LocaleKeys.assistantLauncher.tr(),
+                        onTap: _openAssistant,
+                      ),
+                    )
+                  : null,
               body: MultiBlocListener(
                 listeners: [
                   BlocListener<BankCartBloc, BankCartState>(
@@ -450,6 +501,22 @@ class QrMenuPageState extends State<QrMenuPage>
                 ),
               ),
             ),
+
+            if (_assistantOpen && assistant != null)
+              Positioned.fill(
+                child: OrderAssistantOverlay(
+                  assistant: assistant,
+                  idleTimeout: viewModel.kioskService.idleDuration,
+                  onAddToBasket: viewModel.hasAvailablePayments
+                      ? viewModel.addToBasket
+                      : null,
+                  onClose: _closeAssistant,
+                  basketItemIds: {
+                    for (final item in viewModel.basketService.basket)
+                      if (item.id != null) item.id!,
+                  },
+                ),
+              ),
 
             // --- ПОЛНОЭКРАННАЯ РЕКЛАМА НАД ВСЕМ ---
             if (_outage != null || _adOverlayVisible)

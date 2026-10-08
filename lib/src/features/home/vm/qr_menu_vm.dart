@@ -197,7 +197,12 @@ class QrMenuVm extends ViewModel {
       kioskService.currentScreenSaver != null;
 
   void setKioskSection(SectionData? section) {
+    final previousTableId = effectiveTableId;
     kioskSection = section;
+    // Стол закрепили, сменили или сняли, пока гость в корзине: предрасчёт,
+    // а с ним наличные и обслуживание, посчитан для прежнего стола. Опрос
+    // статуса с тем же столом заново ничего не запрашивает.
+    if (effectiveTableId != previousTableId) _refreshCheckoutPreviewIfActive();
     notifyListeners();
   }
 
@@ -662,7 +667,13 @@ class QrMenuVm extends ViewModel {
   List<String> get availablePayments =>
       menuData?.organization?.availablePayments ?? [];
 
-  bool get hasAvailablePayments => availablePayments.isNotEmpty;
+  /// Гостю есть чем заплатить — только тогда показываем «Добавить», иначе
+  /// он соберёт заказ и упрётся в корзину без кнопок оплаты. Считаем то,
+  /// для чего в корзине есть кнопка: Kaspi, карта и наличные на кассе.
+  /// Наличные — только за столом: без стола заказ некуда нести, и
+  /// предрасчёт, где приходит их доступность, не делается.
+  bool get hasAvailablePayments =>
+      hasKaspiPay || hasAirbaPay || effectiveTableId != null;
 
   bool get hasKaspiPay => availablePayments.contains(kaspiPayProvider);
 
@@ -812,6 +823,10 @@ class QrMenuVm extends ViewModel {
   /// [paymentMethodData] этого способа может не быть. null — кнопку не
   /// показываем.
   int? get payAtVenuePaymentMethodId {
+    // Без стола наличных нет. Предрасчёт без стола и не запрашивается, но
+    // секция киоска может потерять стол, пока гость в корзине: старый
+    // ответ ещё лежит, а заказ ушёл бы без table_id.
+    if (effectiveTableId == null) return null;
     final preview = checkoutPreview;
     if (preview?.payAtVenueReady != true) return null;
     return preview?.payAtVenuePaymentMethodId;

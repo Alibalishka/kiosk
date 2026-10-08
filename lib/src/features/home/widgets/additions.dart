@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,8 @@ import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/vm/service/per_guest_modifiers.dart';
+import 'package:qr_pay_app/src/features/home/widgets/guest_count_picker.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:sizer/sizer.dart';
 
@@ -20,10 +23,19 @@ class AdditionsWidget extends StatelessWidget {
     super.key,
     required this.modifierData,
     this.onChanged,
+    this.guests,
+    this.onGuestsChanged,
   });
 
   final List<Modifier> modifierData;
   final VoidCallback? onChanged;
+
+  /// Ответ на «Сколько вас?» для добавок на каждого гостя
+  /// ([PerGuestModifiers]). Хранит его страница блюда: она же переспрашивает,
+  /// если гость нажал «Добавить», не ответив. Без них такие группы
+  /// показываются обычным счётчиком.
+  final ValueListenable<int?>? guests;
+  final ValueChanged<int>? onGuestsChanged;
 
   String _buildRangeText(Modifier m) {
     final min = m.min ?? 0;
@@ -48,57 +60,132 @@ class AdditionsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<QrMenuVm>(context, listen: false);
+    final guests = this.guests;
+    final onGuestsChanged = this.onGuestsChanged;
+
+    final perGuest = <int>{
+      if (guests != null && onGuestsChanged != null)
+        for (int i = 0; i < modifierData.length; i++)
+          if (PerGuestModifiers.matches(modifierData[i])) i,
+    };
+    // Один вопрос на все такие группы — на месте первой из них.
+    final shown = [
+      for (int i = 0; i < modifierData.length; i++)
+        if (!perGuest.contains(i) || i == perGuest.first) i,
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (int i = 0; i < modifierData.length; i++) ...[
-          if (i > 0) const ColumnSpacer(2.4),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                modifierData[i].name ?? '',
-                style: AppTextStyles.headingH3.copyWith(
-                  // fontSize: viewModel.isTablet ? 16.sp : null,
-                  fontSize: 16.sp,
-                  color: AppComponents.blockBlocktitleHeadingColorDefault,
-                ),
-              ),
-              if (_buildRangeText(modifierData[i]).isNotEmpty) ...[
-                const ColumnSpacer(0.6),
+        for (final i in shown) ...[
+          if (i != shown.first) const ColumnSpacer(2.4),
+          if (perGuest.contains(i))
+            _GuestsBlock(
+              groups: [for (final j in perGuest) modifierData[j]],
+              guests: guests!,
+              onChanged: onGuestsChanged!,
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                 Text(
-                  _buildRangeText(modifierData[i]),
-                  style: AppTextStyles.bodyM.copyWith(
-                    // fontSize: viewModel.isTablet ? 14.sp : null,
-                    fontSize: 14.sp,
-                    color: AppComponents.blockBlocktitleHeadingColorDefault
-                        .withOpacity(0.7),
+                  modifierData[i].name ?? '',
+                  style: AppTextStyles.headingH3.copyWith(
+                    // fontSize: viewModel.isTablet ? 16.sp : null,
+                    fontSize: 16.sp,
+                    color: AppComponents.blockBlocktitleHeadingColorDefault,
                   ),
                 ),
+                if (_buildRangeText(modifierData[i]).isNotEmpty) ...[
+                  const ColumnSpacer(0.6),
+                  Text(
+                    _buildRangeText(modifierData[i]),
+                    style: AppTextStyles.bodyM.copyWith(
+                      // fontSize: viewModel.isTablet ? 14.sp : null,
+                      fontSize: 14.sp,
+                      color: AppComponents.blockBlocktitleHeadingColorDefault
+                          .withOpacity(0.7),
+                    ),
+                  ),
+                ],
+                const ColumnSpacer(2),
+                Modifiers(
+                  items: modifierData[i].items,
+                  min: modifierData[i].min ?? 0,
+                  max: modifierData[i].max ?? 1,
+                  onChanged: (items) {
+                    final m = Modifier(
+                      id: modifierData[i].id,
+                      name: modifierData[i].name,
+                      min: modifierData[i].min,
+                      max: modifierData[i].max,
+                      // iikoId: modifierData[i].iikoId,
+                      posId: modifierData[i].posId,
+                      items: List.from(items ?? []),
+                    );
+                    viewModel.saveModifier(m);
+                    onChanged?.call();
+                  },
+                ),
               ],
-              const ColumnSpacer(2),
-              Modifiers(
-                items: modifierData[i].items,
-                min: modifierData[i].min ?? 0,
-                max: modifierData[i].max ?? 1,
-                onChanged: (items) {
-                  final m = Modifier(
-                    id: modifierData[i].id,
-                    name: modifierData[i].name,
-                    min: modifierData[i].min,
-                    max: modifierData[i].max,
-                    // iikoId: modifierData[i].iikoId,
-                    posId: modifierData[i].posId,
-                    items: List.from(items ?? []),
-                  );
-                  viewModel.saveModifier(m);
-                  onChanged?.call();
-                },
-              ),
-            ],
-          ),
+            ),
         ],
+      ],
+    );
+  }
+}
+
+/// «Сколько вас?» вместо счётчика у добавок на каждого гостя: заголовок
+/// группы вроде «Дополнительно» гостю ничего не говорит.
+class _GuestsBlock extends StatelessWidget {
+  const _GuestsBlock({
+    required this.groups,
+    required this.guests,
+    required this.onChanged,
+  });
+
+  final List<Modifier> groups;
+  final ValueListenable<int?> guests;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final isTablet = context.read<QrMenuVm>().isTablet;
+    final range = PerGuestModifiers.guestRange(groups);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          LocaleKeys.guestCountTitle.tr(),
+          style: AppTextStyles.headingH3.copyWith(
+            fontSize: 16.sp,
+            color: AppComponents.blockBlocktitleHeadingColorDefault,
+          ),
+        ),
+        const ColumnSpacer(0.6),
+        Text(
+          guestCountHint(groups),
+          style: AppTextStyles.bodyM.copyWith(
+            fontSize: 14.sp,
+            color: AppComponents.blockBlocktitleHeadingColorDefault
+                .withValues(alpha: 0.7),
+          ),
+        ),
+        const ColumnSpacer(2),
+        ValueListenableBuilder<int?>(
+          valueListenable: guests,
+          builder: (context, value, _) => GuestCountPicker(
+            value: value,
+            min: range.min,
+            max: range.max,
+            size: isTablet ? 64 : 48,
+            onChanged: onChanged,
+          ),
+        ),
+        // Как вертикальный отступ строк у остальных групп.
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -258,7 +345,10 @@ class _ModifiersState extends State<Modifiers> {
 
         final canIncrement = !_isSingleChoice &&
             (widget.max == 0 || _totalSelected() < widget.max);
-        final canDecrement = !_isSingleChoice && count > 0 && !isItemRequired;
+        // Обязательную позицию нельзя убрать совсем, но со 2 до 1 — можно,
+        // как и в _changeCount.
+        final canDecrement =
+            !_isSingleChoice && count > (isItemRequired ? 1 : 0);
 
         return _ModifierItemRow(
           item: item,

@@ -83,17 +83,17 @@ class ProductInfoWidget extends StatelessWidget {
               ),
             ),
           ],
-          item.characteristics?.isNotEmpty ?? false
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    LocaleKeys.gram100.tr(),
-                    style: AppTextStyles.bodyS.copyWith(
-                        fontSize: isTablet ? 13.sp : null,
-                        color: AppColors.semanticFgSoft),
-                  ),
-                )
-              : const SizedBox.shrink()
+          // item.characteristics?.isNotEmpty ?? false
+          //     ? Padding(
+          //         padding: const EdgeInsets.only(top: 8),
+          //         child: Text(
+          //           LocaleKeys.gram100.tr(),
+          //           style: AppTextStyles.bodyS.copyWith(
+          //               fontSize: isTablet ? 13.sp : null,
+          //               color: AppColors.semanticFgSoft),
+          //         ),
+          //       )
+          //     : const SizedBox.shrink()
         ],
       );
     });

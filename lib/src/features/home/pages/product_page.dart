@@ -19,8 +19,10 @@ import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/safe_network_image.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
+import 'package:qr_pay_app/src/features/home/vm/service/per_guest_modifiers.dart';
 import 'package:qr_pay_app/src/features/home/widgets/additions.dart';
 import 'package:qr_pay_app/src/features/home/widgets/animated_card.dart';
+import 'package:qr_pay_app/src/features/home/widgets/guest_count_picker.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:qr_pay_app/src/features/home/widgets/product_info.dart';
 import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
@@ -98,6 +100,13 @@ class _ProductPageState extends State<ProductPage> {
   // если AdditionsWidget не триггерит notifyListeners() — этим тиком обновим цену
   final ValueNotifier<int> _modsTick = ValueNotifier<int>(0);
 
+  /// Добавки на каждого гостя (соус к хого): их количество — ответ на
+  /// «Сколько вас?», а не счётчик.
+  late final List<Modifier> _perGuest = PerGuestModifiers.of(widget.item);
+
+  /// null — гость ещё не ответил.
+  final ValueNotifier<int?> _guests = ValueNotifier<int?>(null);
+
   double _titleThreshold = 0.0;
 
   VideoPlayerController? _videoController;
@@ -125,6 +134,11 @@ class _ProductPageState extends State<ProductPage> {
 
     final vm = context.read<QrMenuVm>();
     vm.basketService.selectedModifiers = [];
+    // Пустой выбор сразу: не ответит гость — проверка минимума в корзине не
+    // даст добавить блюдо без добавки, даже в обход вопроса.
+    for (final group in _perGuest) {
+      vm.saveModifier(PerGuestModifiers.selection(group, null));
+    }
 
     if (widget.preloadedVideo != null) {
       _videoController = widget.preloadedVideo;
@@ -195,6 +209,35 @@ class _ProductPageState extends State<ProductPage> {
     });
   }
 
+  void _setGuests(int guests) {
+    _guests.value = guests;
+    final vm = context.read<QrMenuVm>();
+    for (final group in _perGuest) {
+      vm.saveModifier(PerGuestModifiers.selection(group, guests));
+    }
+    _bumpModsTickSafe();
+  }
+
+  /// Гость нажал «Добавить», не ответив «Сколько вас?», — спрашиваем в
+  /// диалоге. false — передумал, ничего не добавляем.
+  Future<bool> _ensureGuests(QrMenuVm vm) async {
+    if (_perGuest.isEmpty || _guests.value != null) return true;
+
+    final range = PerGuestModifiers.guestRange(_perGuest);
+    final guests = await GuestCountDialog.show(
+      context,
+      min: range.min,
+      max: range.max,
+      hint: guestCountHint(_perGuest),
+    );
+    // Диалог лежит над страницей и касаний в слушатель киоска не пропускает.
+    vm.kioskService.onUserInteraction();
+    if (guests == null || !mounted) return false;
+
+    _setGuests(guests);
+    return true;
+  }
+
   bool _modsTickScheduled = false;
 
   void _bumpModsTickSafe() {
@@ -214,6 +257,7 @@ class _ProductPageState extends State<ProductPage> {
     _isAtStart.dispose();
     _isShowTitle.dispose();
     _modsTick.dispose();
+    _guests.dispose();
     _videoController?.removeListener(_onPreloadedVideoUpdate);
     if (_ownsVideoController) {
       _videoController?.dispose();
@@ -236,6 +280,8 @@ class _ProductPageState extends State<ProductPage> {
               AdditionsWidget(
                 modifierData: widget.item.modifiers ?? [],
                 onChanged: _bumpModsTickSafe,
+                guests: _guests,
+                onGuestsChanged: _setGuests,
               ),
               const ColumnSpacer(2.4),
             ],
@@ -248,17 +294,24 @@ class _ProductPageState extends State<ProductPage> {
     // ✅ НЕ слушаем весь vm
     final vm = context.read<QrMenuVm>();
     final isTablet = context.select<QrMenuVm, bool>((v) => v.isTablet);
+    // Стол приходит со статусом киоска и может появиться или пропасть,
+    // пока карточка открыта, — кнопка должна это увидеть.
+    final canAdd =
+        context.select<QrMenuVm, bool>((v) => v.hasAvailablePayments);
     final layout = QrMenuLayout.of(context);
     // В альбоме фото уходит в левую панель на всю высоту, а док с кнопкой —
     // под правую колонку, чтобы «Добавить в заказ» не растягивалась на всю
     // ширину экрана.
     final isLandscape = layout.isLandscape;
 
-    final bottomBar = vm.hasAvailablePayments
+    final bottomBar = canAdd
         ? _BottomBar(
             item: widget.item,
             isTablet: isTablet,
             count: _count,
+            // «Сколько вас?» относится к одному котлу: при двух соусы
+            // умножились бы на два. Второй котёл добавляют отдельно.
+            showCount: _perGuest.isEmpty,
             modsTick: _modsTick,
             calcModifiersPrice: () => _calcModifiersPrice(vm),
             onMinus: () {
@@ -266,6 +319,8 @@ class _ProductPageState extends State<ProductPage> {
             },
             onPlus: () => _count.value += 1,
             onAdd: () async {
+              if (!await _ensureGuests(vm)) return;
+              if (!context.mounted) return;
               final c = _count.value;
               if (widget.item.modifiers?.isEmpty ?? true) {
                 final ok = await vm.addToBasket(context, widget.item, c);
@@ -528,6 +583,7 @@ class _BottomBar extends StatelessWidget {
     required this.item,
     required this.isTablet,
     required this.count,
+    required this.showCount,
     required this.modsTick,
     required this.calcModifiersPrice,
     required this.onMinus,
@@ -539,6 +595,7 @@ class _BottomBar extends StatelessWidget {
   final bool isTablet;
 
   final ValueNotifier<int> count;
+  final bool showCount;
   final ValueNotifier<int> modsTick;
 
   final int Function() calcModifiersPrice;
@@ -623,77 +680,79 @@ class _BottomBar extends StatelessWidget {
                       const ColumnSpacer(1.2),
                       Row(
                         children: [
-                          Container(
-                            width: isTablet ? 150 : 107,
-                            height: 65,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              color: AppComponents
-                                  .buttongroupButtonGrayBgColorDefault,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: AnimatedCard(
-                                    child: GestureDetector(
-                                      onTap: onMinus,
-                                      child: Container(
-                                        color: AppColors.none,
-                                        child: Padding(
-                                          padding: AppPaddings.sym16x12,
-                                          child: SvgPicture.asset(
-                                            AppSvgImages.minus,
-                                            height: isTablet ? 24 : null,
-                                            color: AppComponents
-                                                .buttongroupButtonGrayIconColorDefault,
+                          if (showCount) ...[
+                            Container(
+                              width: isTablet ? 150 : 107,
+                              height: 65,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                color: AppComponents
+                                    .buttongroupButtonGrayBgColorDefault,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: AnimatedCard(
+                                      child: GestureDetector(
+                                        onTap: onMinus,
+                                        child: Container(
+                                          color: AppColors.none,
+                                          child: Padding(
+                                            padding: AppPaddings.sym16x12,
+                                            child: SvgPicture.asset(
+                                              AppSvgImages.minus,
+                                              height: isTablet ? 24 : null,
+                                              color: AppComponents
+                                                  .buttongroupButtonGrayIconColorDefault,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 200),
-                                  switchInCurve: Curves.easeOutBack,
-                                  switchOutCurve: Curves.easeIn,
-                                  transitionBuilder: (child, animation) =>
-                                      ScaleTransition(
-                                    scale: animation,
-                                    child: child,
-                                  ),
-                                  child: Text(
-                                    c.toString(),
-                                    key: ValueKey(c),
-                                    style: AppTextStyles.bodyLStrong.copyWith(
-                                      fontSize: isTablet ? 16.sp : null,
-                                      color: AppComponents
-                                          .buttongroupButtonGrayIconColorDefault,
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 200),
+                                    switchInCurve: Curves.easeOutBack,
+                                    switchOutCurve: Curves.easeIn,
+                                    transitionBuilder: (child, animation) =>
+                                        ScaleTransition(
+                                      scale: animation,
+                                      child: child,
+                                    ),
+                                    child: Text(
+                                      c.toString(),
+                                      key: ValueKey(c),
+                                      style: AppTextStyles.bodyLStrong.copyWith(
+                                        fontSize: isTablet ? 16.sp : null,
+                                        color: AppComponents
+                                            .buttongroupButtonGrayIconColorDefault,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: AnimatedCard(
-                                    child: GestureDetector(
-                                      onTap: onPlus,
-                                      child: Container(
-                                        color: AppColors.none,
-                                        child: Padding(
-                                          padding: AppPaddings.sym16x12,
-                                          child: SvgPicture.asset(
-                                            AppSvgImages.plus,
-                                            height: isTablet ? 18 : null,
-                                            color: AppComponents
-                                                .buttongroupButtonGrayIconColorDefault,
+                                  Expanded(
+                                    child: AnimatedCard(
+                                      child: GestureDetector(
+                                        onTap: onPlus,
+                                        child: Container(
+                                          color: AppColors.none,
+                                          child: Padding(
+                                            padding: AppPaddings.sym16x12,
+                                            child: SvgPicture.asset(
+                                              AppSvgImages.plus,
+                                              height: isTablet ? 18 : null,
+                                              color: AppComponents
+                                                  .buttongroupButtonGrayIconColorDefault,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          RowSpacer(QrMenuLayout.safeLongSide(context, 0.1)),
+                            RowSpacer(QrMenuLayout.safeLongSide(context, 0.1)),
+                          ],
                           Expanded(
                             child: AnimatedCard(
                               child: CupertinoButton(
