@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -72,16 +71,8 @@ class _KioskCardPayPageState extends State<KioskCardPayPage>
           bloc: viewModel.kioskBloc,
           listener: (context, state) => state.maybeWhen(
             orElse: () => null,
-            failed: (error, _) {
-              showTopSnackBar(
-                Overlay.of(context),
-                CustomSnackBar.error(
-                  textAlign: TextAlign.start,
-                  message: error,
-                ),
-                dismissType: DismissType.onSwipe,
-              );
-              context.router.pop();
+            failed: (error, _, reason) {
+              leaveFailedOnlinePayment(context, message: error, reason: reason);
               return null;
             },
             successPayData: (response) => viewModel.saveData(response),

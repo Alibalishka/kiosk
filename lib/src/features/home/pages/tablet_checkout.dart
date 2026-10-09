@@ -808,18 +808,7 @@ class _CheckoutSummaryPanel extends StatelessWidget {
                 ],
                 _total(context, value, totalPrice, pending, isTablet),
                 const ColumnSpacer(1.2),
-                // IgnorePointer — чтобы AnimatedCard не «нажимался»,
-                // пока кнопки недоступны. Во время pay-order за наличные
-                // закрыты все способы: иначе можно успеть уйти на Kaspi
-                // и создать второй заказ.
-                IgnorePointer(
-                  ignoring: pending || value.payAtVenueLoading,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: pending ? 0.5 : 1,
-                    child: _payButtons(context, value, pending, isTablet),
-                  ),
-                ),
+                _payArea(context, value, pending, isTablet),
               ],
             );
 
@@ -949,6 +938,44 @@ class _CheckoutSummaryPanel extends StatelessWidget {
     );
   }
 
+  /// Способы оплаты — ровно те, что разрешил предрасчёт. Пока его нет —
+  /// ждём; ошибка или пустой набор — объясняем, почему платить нечем.
+  Widget _payArea(
+    BuildContext context,
+    QrMenuVm value,
+    bool pending,
+    bool isTablet,
+  ) {
+    if (value.checkoutPreview == null) {
+      final error = value.checkoutPreviewError;
+      if (error == null || pending) return const _PayMethodsLoading();
+      return _CheckoutNotice(
+        message: error,
+        isTablet: isTablet,
+        onRetry:
+            value.checkoutPreviewRetryable ? value.fetchCheckoutPreview : null,
+      );
+    }
+
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: pending ? 0.5 : 1,
+      child: value.hasAnyPaymentMethod
+          // IgnorePointer — чтобы AnimatedCard не «нажимался», пока кнопки
+          // недоступны. Во время pay-order у официанта закрыты все
+          // способы: иначе можно успеть уйти на Kaspi и создать второй
+          // заказ.
+          ? IgnorePointer(
+              ignoring: pending || value.payAtVenueLoading,
+              child: _payButtons(context, value, pending, isTablet),
+            )
+          : _CheckoutNotice(
+              message: LocaleKeys.noPaymentMethods.tr(),
+              isTablet: isTablet,
+            ),
+    );
+  }
+
   /// В узкой панели две кнопки рядом не помещаются — FittedBox ужимал бы
   /// подписи до нечитаемого. Ставим их в колонку.
   Widget _payButtons(
@@ -958,8 +985,8 @@ class _CheckoutSummaryPanel extends StatelessWidget {
     bool isTablet,
   ) {
     final buttons = <Widget>[
-      if (value.hasKaspiPay) _kaspiButton(context, pending, isTablet),
-      if (value.hasAirbaPay) _cardButton(context, pending, isTablet),
+      if (value.canPayByKaspi) _kaspiButton(context, pending, isTablet),
+      if (value.canPayByCard) _cardButton(context, pending, isTablet),
     ];
     final venue = value.hasPayAtVenue
         ? _venueButton(context, pending, value.payAtVenueLoading, isTablet)
@@ -1184,6 +1211,86 @@ class _TabBarSliverDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
       oldDelegate is _TabBarSliverDelegate && oldDelegate.height != height;
+}
+
+/// Предрасчёт ещё не пришёл — каких кнопок оплаты ждать, неизвестно.
+class _PayMethodsLoading extends StatelessWidget {
+  const _PayMethodsLoading();
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(
+        height: 64,
+        child: Center(child: CupertinoActivityIndicator()),
+      );
+}
+
+/// Почему платить нечем: ошибка предрасчёта («Заведение скоро
+/// закрывается») или ни одного разрешённого способа.
+class _CheckoutNotice extends StatelessWidget {
+  const _CheckoutNotice({
+    required this.message,
+    required this.isTablet,
+    this.onRetry,
+  });
+
+  final String message;
+  final bool isTablet;
+
+  /// Только для ошибок связи: отказ заведения повтор не исправит.
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.semanticErrorDefault.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.semanticErrorDefault,
+                  size: 28,
+                ),
+                const RowSpacer(1.2),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: AppTextStyles.bodyLStrong.copyWith(
+                      fontSize: isTablet ? 14.sp : null,
+                      color: AppColors.semanticFgDefault,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (onRetry != null) ...[
+              const ColumnSpacer(1.2),
+              CupertinoButton(
+                borderRadius: BorderRadius.circular(16),
+                onPressed: onRetry,
+                color: AppComponents.buttongroupButtonGrayBgColorDefault,
+                child: Text(
+                  LocaleKeys.tryAgainButton.tr(),
+                  style: AppTextStyles.bodyMStrong.copyWith(
+                    fontSize: isTablet ? 15.sp : null,
+                    color: AppComponents.buttongroupButtonGrayTextColorDefault,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Строка предрасчёта в нижней панели: «Сумма заказа», «Плата за обслуживание».

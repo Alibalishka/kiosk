@@ -146,22 +146,26 @@ void main() {
 
       vm.startCheckoutPreview(indexType: 0);
       await tester.pump();
-      expect(cart.requests, isEmpty, reason: 'без стола предрасчёта нет');
+      // Способы оплаты знает только предрасчёт, поэтому он идёт и без стола —
+      // навынос. Оплаты у официанта без стола нет, что бы он ни ответил.
+      expect(cart.requests.single.tableId, isNull);
       expect(vm.hasPayAtVenue, isFalse);
 
       vm.setKioskSection(SectionData(tableId: 12));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(cart.requests.single.tableId, '12');
+      expect(cart.requests, hasLength(2));
+      expect(cart.requests.last.tableId, '12');
       expect(vm.hasPayAtVenue, isTrue);
 
       // Опрос статуса раз в 30 секунд присылает тот же стол.
       vm.setKioskSection(SectionData(tableId: 12));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(cart.requests, hasLength(1));
+      expect(cart.requests, hasLength(2));
 
       vm.setKioskSection(null);
-      await tester.pump();
-      expect(vm.checkoutPreview, isNull);
+      expect(vm.hasPayAtVenue, isFalse, reason: 'сразу, не дожидаясь ответа');
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(cart.requests.last.tableId, isNull);
       expect(vm.hasPayAtVenue, isFalse);
     });
   });

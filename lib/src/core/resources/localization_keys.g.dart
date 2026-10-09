@@ -355,5 +355,37 @@ abstract class  LocaleKeys {
   static const guestCountTitle = 'guestCountTitle';
   static const guestCountPerGuest = 'guestCountPerGuest';
   static const guestCountPerGuestPrice = 'guestCountPerGuestPrice';
+  static const tableOrders = 'tableOrders';
+  static const tableOrdersEmpty = 'tableOrdersEmpty';
+  static const tableOrdersEmptyHint = 'tableOrdersEmptyHint';
+  static const tableOrdersUnavailable = 'tableOrdersUnavailable';
+  static const tableOrdersRetryHint = 'tableOrdersRetryHint';
+  static const tableOrdersInvalidTable = 'tableOrdersInvalidTable';
+  static const tableOrdersStale = 'tableOrdersStale';
+  static const tableOrderNumber = 'tableOrderNumber';
+  static const tableOrderStageNew = 'tableOrderStageNew';
+  static const tableOrderStageCooking = 'tableOrderStageCooking';
+  static const tableOrderStageReady = 'tableOrderStageReady';
+  static const tableOrderStageIssued = 'tableOrderStageIssued';
+  static const tableOrderBill = 'tableOrderBill';
+  static const tableOrderHintNew = 'tableOrderHintNew';
+  static const tableOrderHintCooking = 'tableOrderHintCooking';
+  static const tableOrderHintReady = 'tableOrderHintReady';
+  static const tableOrderHintIssued = 'tableOrderHintIssued';
+  static const tableOrderErrorTitle = 'tableOrderErrorTitle';
+  static const tableOrderPaid = 'tableOrderPaid';
+  static const tableOrderPayAtVenue = 'tableOrderPayAtVenue';
+  static const tableOrderNotPaid = 'tableOrderNotPaid';
+  static const tableOrderRoundFirst = 'tableOrderRoundFirst';
+  static const tableOrderRoundMore = 'tableOrderRoundMore';
+  static const tableOrderRoundWaiter = 'tableOrderRoundWaiter';
+  static const tableOrderRoundPending = 'tableOrderRoundPending';
+  static const payAtVenueCallWaiter = 'payAtVenueCallWaiter';
+  static const payAtVenueNoConnection = 'payAtVenueNoConnection';
+  static const orderNotPlaced = 'orderNotPlaced';
+  static const checkoutFailed = 'checkoutFailed';
+  static const noPaymentMethods = 'noPaymentMethods';
+  static const onlinePaymentDisabled = 'onlinePaymentDisabled';
+  static const tableOrdersCallWaiter = 'tableOrdersCallWaiter';
 
 }

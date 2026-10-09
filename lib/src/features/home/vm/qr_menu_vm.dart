@@ -5,6 +5,9 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_pay_app/src/core/extensions/context.dart';
+import 'package:qr_pay_app/src/core/server/api_error_codes.dart';
+import 'package:qr_pay_app/src/core/server/exceptions/network_exception.dart';
+import 'package:qr_pay_app/src/core/server/result.dart';
 import 'package:qr_pay_app/src/core/utils/qr_pay_image_url.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/utils/version_compare.dart';
@@ -15,6 +18,7 @@ import 'package:qr_pay_app/src/features/home/vm/service/basket_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/kiosk_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/menu_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/scroll_service.dart';
+import 'package:qr_pay_app/src/features/home/vm/service/table_orders_service.dart';
 import 'package:qr_pay_app/src/features/home/vm/service/video_service.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_status.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
@@ -33,6 +37,7 @@ import 'package:qr_pay_app/src/core/widgets/bottom_sheet_content.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_sheet.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/logic/bloc/qr_menu/qr_menu_bloc.dart';
+import 'package:qr_pay_app/src/features/home/logic/models/requests/menu_checkout.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:qr_pay_app/src/features/home/logic/repository/home_repository.dart';
 import 'package:qr_pay_app/src/features/home/vm/detail_vm.dart';
@@ -77,6 +82,10 @@ class QrMenuVm extends ViewModel {
   );
   // =========================================
 
+  /// Опрос заказов стола (GET /orders/table). Запускает и останавливает его
+  /// страница меню; стол и заведение — те же, что уходят в pay-order.
+  late final TableOrdersService tableOrders = TableOrdersService();
+
   bool isAtStart = true;
   DetailVm? detailVm;
   int? menuId;
@@ -113,6 +122,17 @@ class QrMenuVm extends ViewModel {
   /// null, если нет table_id или запрос не удался — UI работает как раньше.
   ChekoutDatum? checkoutPreview;
   bool checkoutPreviewLoading = false;
+
+  /// Предрасчёт не удался — текст для гостя (400 «Заведение закрыто», нет
+  /// связи…). Пока он есть, способов оплаты нет.
+  String? checkoutPreviewError;
+
+  /// Ошибка не от сервера (связь, 5xx) — предрасчёт можно повторить.
+  bool checkoutPreviewRetryable = false;
+
+  /// pay-order за Kaspi или картой ответил online_payment_disabled, пока
+  /// гость был в корзине: эти кнопки убраны до выхода из неё.
+  bool _onlinePaymentDisabled = false;
 
   bool _checkoutPreviewActive = false;
   int _checkoutPreviewIndexType = 1;
@@ -162,6 +182,7 @@ class QrMenuVm extends ViewModel {
     _checkoutPreviewDebounce?.cancel();
 
     kioskService.dispose();
+    tableOrders.dispose();
     super.dispose();
   }
 
@@ -203,8 +224,20 @@ class QrMenuVm extends ViewModel {
     // а с ним наличные и обслуживание, посчитан для прежнего стола. Опрос
     // статуса с тем же столом заново ничего не запрашивает.
     if (effectiveTableId != previousTableId) _refreshCheckoutPreviewIfActive();
+    _syncTableOrdersTable();
     notifyListeners();
   }
+
+  /// `i` и `t` опроса — те же, что в pay-order: `raw.i` и `table_id`. Пока
+  /// меню не пришло, заведение — из подключения планшета: заказы стола
+  /// зависят только от того, есть ли стол.
+  void _syncTableOrdersTable() => tableOrders.setTable(
+        venueId: menuData?.organization?.id ?? menuId,
+        tableId: effectiveTableId,
+      );
+
+  /// Экран «Заказы стола» есть только у киоска, закреплённого за столом.
+  bool get hasTableOrders => isKioskMode && effectiveTableId != null;
 
   /// table_id для pay-order: из QR-параметров, иначе из секции киоска
   /// (kiosk-status → section.tableId). null, если нигде нет.
@@ -261,6 +294,7 @@ class QrMenuVm extends ViewModel {
     organizationId = '';
     tableId = '';
     qrError = false;
+    _syncTableOrdersTable();
   }
 
   void clearSubscription() {
@@ -270,6 +304,7 @@ class QrMenuVm extends ViewModel {
 
   Future<void> syncData(QrMenuModel menuData) async {
     this.menuData = menuData;
+    _syncTableOrdersTable();
     await videoService.init(menuData);
     menuDataService.setMenuData(menuData);
     if (context.mounted) {
@@ -573,6 +608,7 @@ class QrMenuVm extends ViewModel {
   void startCheckoutPreview({int indexType = 1}) {
     _checkoutPreviewActive = true;
     _checkoutPreviewIndexType = indexType;
+    _onlinePaymentDisabled = false;
     fetchCheckoutPreview();
   }
 
@@ -583,6 +619,8 @@ class QrMenuVm extends ViewModel {
     _checkoutPreviewSeq++;
     checkoutPreview = null;
     checkoutPreviewLoading = false;
+    checkoutPreviewError = null;
+    _onlinePaymentDisabled = false;
   }
 
   /// Смена таба «В зале / С собой» — пересчитываем сразу.
@@ -601,30 +639,29 @@ class QrMenuVm extends ViewModel {
   void _refreshCheckoutPreviewIfActive() {
     if (!_checkoutPreviewActive) return;
     _checkoutPreviewDebounce?.cancel();
-    // Без table_id запроса не будет — просто сбрасываем возможный
-    // устаревший предрасчёт, не блокируя кнопки на время дебаунса.
-    if (effectiveTableId == null) {
-      fetchCheckoutPreview();
-      return;
-    }
     _checkoutPreviewDebounce = Timer(
       const Duration(milliseconds: 350),
       fetchCheckoutPreview,
     );
   }
 
-  /// Запрашивает предрасчёт, только если есть table_id. Без него
-  /// [checkoutPreview] остаётся null и корзина работает как раньше.
+  /// Запрашивает предрасчёт. Какими способами можно заплатить, решает только
+  /// он, поэтому запрос идёт и без стола — тогда заказ навынос.
   Future<void> fetchCheckoutPreview() async {
     _checkoutPreviewDebounce?.cancel();
     if (!_checkoutPreviewActive) return;
 
-    final tableId = effectiveTableId;
     final orgId = menuData?.organization?.posOrgId;
-    if (tableId == null || orgId == null || basketService.basket.isEmpty) {
-      if (checkoutPreview != null || checkoutPreviewLoading) {
+    if (orgId == null || basketService.basket.isEmpty) {
+      // Без организации на кассе заказ не рассчитать — и не оплатить.
+      final error = orgId == null ? LocaleKeys.checkoutFailed.tr() : null;
+      if (checkoutPreview != null ||
+          checkoutPreviewLoading ||
+          checkoutPreviewError != error) {
         checkoutPreview = null;
         checkoutPreviewLoading = false;
+        checkoutPreviewError = error;
+        checkoutPreviewRetryable = false;
         notifyListeners();
       }
       return;
@@ -633,7 +670,7 @@ class QrMenuVm extends ViewModel {
     final request = basketService.buildCheckoutRequest(
       organizationId: orgId,
       organizationSecondId: menuData?.organization?.id,
-      tableId: tableId,
+      tableId: effectiveTableId,
       indexType: _checkoutPreviewIndexType,
       addressId: null,
       inHall: organizationInHall && _checkoutPreviewIndexType == 0,
@@ -648,19 +685,64 @@ class QrMenuVm extends ViewModel {
       final result = await sl<CartRepository>().fetchChekoutMenu(body: request);
       if (seq != _checkoutPreviewSeq) return; // устаревший ответ
       result.when(
-        success: (response) => checkoutPreview = response.data,
+        success: (response) {
+          // Пустой ответ — как сбой: способов оплаты из него не узнать.
+          final data = response.data;
+          checkoutPreview = data;
+          checkoutPreviewError =
+              data == null ? LocaleKeys.checkoutFailed.tr() : null;
+          checkoutPreviewRetryable = data == null;
+        },
         failure: (error) {
           log('❌ checkout preview failed: ${error.msg}');
           checkoutPreview = null;
+          // 4xx — ответ заведения («Заведение скоро закрывается»): его текст
+          // и показываем. Связь и 5xx — наша беда, её можно повторить.
+          final status = error.errorCode;
+          final rejected = status != null && status >= 400 && status < 500;
+          checkoutPreviewError = rejected
+              ? _guestErrorText(error, LocaleKeys.checkoutFailed.tr())
+              : LocaleKeys.checkoutFailed.tr();
+          checkoutPreviewRetryable = !rejected;
         },
       );
     } on Object catch (e) {
       if (seq != _checkoutPreviewSeq) return;
       log('❌ checkout preview error: $e');
       checkoutPreview = null;
+      checkoutPreviewError = LocaleKeys.checkoutFailed.tr();
+      checkoutPreviewRetryable = true;
     }
     checkoutPreviewLoading = false;
     notifyListeners();
+  }
+
+  /// Способы оплаты в корзине — ровно те, что разрешил предрасчёт.
+  bool get canPayByKaspi =>
+      !_onlinePaymentDisabled && checkoutPreview?.kaspiPayReady == true;
+
+  bool get canPayByCard =>
+      !_onlinePaymentDisabled && checkoutPreview?.cardPayReady == true;
+
+  bool get hasAnyPaymentMethod =>
+      canPayByKaspi || canPayByCard || hasPayAtVenue;
+
+  /// pay-order за Kaspi или картой ответил online_payment_disabled: обе
+  /// кнопки уходят, пока гость не выйдет из корзины.
+  void disableOnlinePayments() {
+    if (_onlinePaymentDisabled) return;
+    _onlinePaymentDisabled = true;
+    notifyListeners();
+  }
+
+  /// Текст ошибки от сервера (`data.message`), если это не голый машинный
+  /// код, — иначе [fallback].
+  static String _guestErrorText(NetworkException error, String fallback) {
+    final message = error.msg?.trim();
+    if (message == null || message.isEmpty || ApiErrorCodes.isKnown(message)) {
+      return fallback;
+    }
+    return message;
   }
   // =========================================================
 
@@ -670,13 +752,17 @@ class QrMenuVm extends ViewModel {
   /// Гостю есть чем заплатить — только тогда показываем «Добавить», иначе
   /// он соберёт заказ и упрётся в корзину без кнопок оплаты. Считаем то,
   /// для чего в корзине есть кнопка: Kaspi, карта и наличные на кассе.
-  /// Наличные — только за столом: без стола заказ некуда нести, и
-  /// предрасчёт, где приходит их доступность, не делается.
+  /// Наличные — только за столом: без стола заказ некуда нести.
+  ///
+  /// Это лишь прогноз до корзины: какие кнопки в ней показать, решает
+  /// предрасчёт ([canPayByKaspi], [canPayByCard], [hasPayAtVenue]).
   bool get hasAvailablePayments =>
       hasKaspiPay || hasAirbaPay || effectiveTableId != null;
 
+  /// Только для прогноза в [hasAvailablePayments], не для кнопок корзины.
   bool get hasKaspiPay => availablePayments.contains(kaspiPayProvider);
 
+  /// Только для прогноза в [hasAvailablePayments], не для кнопок корзины.
   bool get hasAirbaPay => availablePayments.contains(airbaPayProvider);
 
   int? paymentMethodIdFor(String provider) {
@@ -751,12 +837,8 @@ class QrMenuVm extends ViewModel {
     }
 
     final provider = isKaspiPay ? kaspiPayProvider : airbaPayProvider;
-    if (isKaspiPay && !hasKaspiPay) {
-      log('❌ kaspi_pay is not available for this organization');
-      return;
-    }
-    if (!isKaspiPay && !hasAirbaPay) {
-      log('❌ airba_pay is not available for this organization');
+    if (isKaspiPay ? !canPayByKaspi : !canPayByCard) {
+      log('❌ $provider is not allowed by checkout');
       return;
     }
 
@@ -817,15 +899,25 @@ class QrMenuVm extends ViewModel {
     }
   }
 
-  // ======= ОПЛАТА НА МЕСТЕ (наличными на кассе) =======
+  // ======= ОПЛАТА НА МЕСТЕ (у официанта) =======
+
+  /// pay_at_venue_busy: касса занята заказом этого же стола. Повторяем с тем
+  /// же Idempotency-Key через 2–3 с — но не бесконечно.
+  static const Duration _payAtVenueBusyDelay = Duration(milliseconds: 2500);
+  static const int _payAtVenueBusyRetries = 10;
+
+  /// Ответа нет: связь оборвалась, а заказ мог и создаться. Повтор с тем же
+  /// Idempotency-Key — второго заказа сервер не создаст.
+  static const Duration _payAtVenueNetworkDelay = Duration(seconds: 3);
+  static const int _payAtVenueNetworkRetries = 3;
 
   /// Доступность и payment_method_id приходят в предрасчёте: в
   /// [paymentMethodData] этого способа может не быть. null — кнопку не
   /// показываем.
   int? get payAtVenuePaymentMethodId {
-    // Без стола наличных нет. Предрасчёт без стола и не запрашивается, но
-    // секция киоска может потерять стол, пока гость в корзине: старый
-    // ответ ещё лежит, а заказ ушёл бы без table_id.
+    // Без стола оплаты у официанта нет: заказ некуда нести. Секция киоска
+    // может потерять стол, пока гость в корзине, — старый ответ ещё лежит,
+    // а заказ ушёл бы без table_id.
     if (effectiveTableId == null) return null;
     final preview = checkoutPreview;
     if (preview?.payAtVenueReady != true) return null;
@@ -839,9 +931,12 @@ class QrMenuVm extends ViewModel {
   bool payAtVenueLoading = false;
 
   /// Создаёт заказ с оплатой на месте и сразу ведёт на билет с номером:
-  /// ждать оплату здесь нечего — гость платит на кассе. Успех решает
+  /// ждать оплату здесь нечего — гость платит официанту. Успех решает
   /// status_raw в ответе: new / inprogress — заказ принят, иначе он не
   /// дошёл до кассы, и гостю нужен официант.
+  ///
+  /// Каждый вызов — новое нажатие «Заказать», а значит новый запрос с новым
+  /// Idempotency-Key. Повторы внутри вызова идут с тем же ключом.
   Future<void> tabletPayAtVenue(
     BuildContext context, {
     int indexType = 1,
@@ -877,26 +972,25 @@ class QrMenuVm extends ViewModel {
     payAtVenueLoading = true;
     notifyListeners();
 
-    PayModel? payData;
-    String? error;
+    Result<PayModel>? result;
     try {
-      final result = await sl<KioskRepository>().payKaspi(body: request);
-      result.when(
-        success: (response) => payData = response,
-        failure: (e) => error = e.msg,
+      result = await _sendPayAtVenue(
+        request,
+        isActive: () => context.mounted,
       );
     } on Object catch (e) {
       log('❌ pay at venue error: $e');
+    } finally {
+      payAtVenueLoading = false;
+      notifyListeners();
     }
-
-    payAtVenueLoading = false;
-    notifyListeners();
     if (!context.mounted) return;
 
-    final response = payData;
+    final response = result?.whenOrNull(success: (response) => response);
     if (response == null) {
-      log('❌ pay at venue failed: $error');
-      _showPaymentError(context, error ?? 'Не удалось оформить заказ');
+      final error = result?.whenOrNull(failure: (error) => error);
+      log('❌ pay at venue failed: ${error?.msg}, reason: ${error?.reason}');
+      _showPaymentError(context, _payAtVenueErrorText(error));
       return;
     }
 
@@ -906,10 +1000,7 @@ class QrMenuVm extends ViewModel {
     final orderId = response.data?.id;
     if (orderId == null || !_payAtVenueAcceptedStatuses.contains(status)) {
       log('❌ pay at venue not accepted: status=$status, orderId=$orderId');
-      _showPaymentError(
-        context,
-        'Не удалось передать заказ, позовите официанта',
-      );
+      _showPaymentError(context, LocaleKeys.payAtVenueCallWaiter.tr());
       return;
     }
 
@@ -917,6 +1008,54 @@ class QrMenuVm extends ViewModel {
       id: orderId,
       orderWaitTime: menuData?.organization?.orderWaitTime ?? 0,
     ));
+  }
+
+  /// Шлёт один и тот же [request] — с тем же Idempotency-Key, — пока касса
+  /// занята или нет связи. Гость ушёл из корзины ([isActive]) — не повторяем.
+  Future<Result<PayModel>> _sendPayAtVenue(
+    MenuCheckoutRequest request, {
+    required bool Function() isActive,
+  }) async {
+    var busyRetries = 0;
+    var networkRetries = 0;
+    while (true) {
+      final result = await sl<KioskRepository>().payKaspi(body: request);
+      final error = result.whenOrNull(failure: (error) => error);
+      if (error == null || !isActive()) return result;
+
+      final Duration delay;
+      if (error.reason == ApiErrorCodes.payAtVenueBusy &&
+          busyRetries < _payAtVenueBusyRetries) {
+        busyRetries++;
+        delay = _payAtVenueBusyDelay;
+      } else if (error.isNoResponse &&
+          networkRetries < _payAtVenueNetworkRetries) {
+        networkRetries++;
+        delay = _payAtVenueNetworkDelay;
+      } else {
+        return result;
+      }
+
+      log('pay at venue: ${error.reason ?? 'no response'}, '
+          'retrying with the same Idempotency-Key');
+      await Future<void>.delayed(delay);
+      if (!isActive()) return result;
+    }
+  }
+
+  String _payAtVenueErrorText(NetworkException? error) {
+    if (error == null) return LocaleKeys.orderNotPlaced.tr();
+    switch (error.reason) {
+      case ApiErrorCodes.payAtVenuePosFailed:
+      case ApiErrorCodes.payAtVenueRoundUnknown:
+        return LocaleKeys.payAtVenueCallWaiter.tr();
+      case ApiErrorCodes.payAtVenueBusy:
+        // Касса так и не освободилась.
+        return _guestErrorText(error, LocaleKeys.payAtVenueCallWaiter.tr());
+    }
+    // Заказ мог создаться — пусть гость проверит «Заказы стола».
+    if (error.isNoResponse) return LocaleKeys.payAtVenueNoConnection.tr();
+    return _guestErrorText(error, LocaleKeys.orderNotPlaced.tr());
   }
 
   void _showPaymentError(BuildContext context, String message) {

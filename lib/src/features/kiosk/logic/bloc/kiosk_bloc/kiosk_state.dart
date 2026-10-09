@@ -26,5 +26,8 @@ class KioskState with _$KioskState {
   const factory KioskState.failed({
     @Default('Произошла ошибка') String message,
     int? errorCode,
+
+    /// Машинный код из тела ответа (`online_payment_disabled` …).
+    String? reason,
   }) = _Failed;
 }

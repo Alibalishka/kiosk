@@ -109,6 +109,7 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
           KioskState.failed(
             message: error.msg ?? 'Ошибка загурзки данных',
             errorCode: error.errorCode,
+            reason: error.reason,
           ),
         ),
       );

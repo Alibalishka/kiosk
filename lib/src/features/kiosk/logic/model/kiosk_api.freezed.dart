@@ -27,6 +27,8 @@ mixin _$KioskApi {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -40,6 +42,7 @@ mixin _$KioskApi {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -52,6 +55,7 @@ mixin _$KioskApi {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -65,6 +69,7 @@ mixin _$KioskApi {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -77,6 +82,7 @@ mixin _$KioskApi {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -89,6 +95,7 @@ mixin _$KioskApi {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -184,6 +191,8 @@ class _$RegisterImpl extends _Register {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) {
     return register(body);
   }
@@ -200,6 +209,7 @@ class _$RegisterImpl extends _Register {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) {
     return register?.call(body);
   }
@@ -215,6 +225,7 @@ class _$RegisterImpl extends _Register {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) {
     if (register != null) {
@@ -234,6 +245,7 @@ class _$RegisterImpl extends _Register {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) {
     return register(this);
   }
@@ -249,6 +261,7 @@ class _$RegisterImpl extends _Register {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) {
     return register?.call(this);
   }
@@ -264,6 +277,7 @@ class _$RegisterImpl extends _Register {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) {
     if (register != null) {
@@ -357,6 +371,8 @@ class _$CheckKioskImpl extends _CheckKiosk {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) {
     return checkKiosk(deviceId);
   }
@@ -373,6 +389,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) {
     return checkKiosk?.call(deviceId);
   }
@@ -388,6 +405,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) {
     if (checkKiosk != null) {
@@ -407,6 +425,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) {
     return checkKiosk(this);
   }
@@ -422,6 +441,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) {
     return checkKiosk?.call(this);
   }
@@ -437,6 +457,7 @@ class _$CheckKioskImpl extends _CheckKiosk {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) {
     if (checkKiosk != null) {
@@ -541,6 +562,8 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) {
     return sendStatusKiosk(body, deviceId);
   }
@@ -557,6 +580,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) {
     return sendStatusKiosk?.call(body, deviceId);
   }
@@ -572,6 +596,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) {
     if (sendStatusKiosk != null) {
@@ -591,6 +616,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) {
     return sendStatusKiosk(this);
   }
@@ -606,6 +632,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) {
     return sendStatusKiosk?.call(this);
   }
@@ -621,6 +648,7 @@ class _$SendStatusKioskImpl extends _SendStatusKiosk {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) {
     if (sendStatusKiosk != null) {
@@ -718,6 +746,8 @@ class _$DisconnectKioskImpl extends _DisconnectKiosk {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) {
     return disconnectKiosk(deviceId);
   }
@@ -734,6 +764,7 @@ class _$DisconnectKioskImpl extends _DisconnectKiosk {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) {
     return disconnectKiosk?.call(deviceId);
   }
@@ -749,6 +780,7 @@ class _$DisconnectKioskImpl extends _DisconnectKiosk {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) {
     if (disconnectKiosk != null) {
@@ -768,6 +800,7 @@ class _$DisconnectKioskImpl extends _DisconnectKiosk {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) {
     return disconnectKiosk(this);
   }
@@ -783,6 +816,7 @@ class _$DisconnectKioskImpl extends _DisconnectKiosk {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) {
     return disconnectKiosk?.call(this);
   }
@@ -798,6 +832,7 @@ class _$DisconnectKioskImpl extends _DisconnectKiosk {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) {
     if (disconnectKiosk != null) {
@@ -891,6 +926,8 @@ class _$PayKaspiImpl extends _PayKaspi {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) {
     return payKaspi(body);
   }
@@ -907,6 +944,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) {
     return payKaspi?.call(body);
   }
@@ -922,6 +960,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) {
     if (payKaspi != null) {
@@ -941,6 +980,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) {
     return payKaspi(this);
   }
@@ -956,6 +996,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) {
     return payKaspi?.call(this);
   }
@@ -971,6 +1012,7 @@ class _$PayKaspiImpl extends _PayKaspi {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) {
     if (payKaspi != null) {
@@ -1065,6 +1107,8 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) {
     return checkKapiPayStatus(orderId);
   }
@@ -1081,6 +1125,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) {
     return checkKapiPayStatus?.call(orderId);
   }
@@ -1096,6 +1141,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) {
     if (checkKapiPayStatus != null) {
@@ -1115,6 +1161,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) {
     return checkKapiPayStatus(this);
   }
@@ -1130,6 +1177,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) {
     return checkKapiPayStatus?.call(this);
   }
@@ -1145,6 +1193,7 @@ class _$CheckKapiPayStatusImpl extends _CheckKapiPayStatus {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) {
     if (checkKapiPayStatus != null) {
@@ -1240,6 +1289,8 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) {
     return fetchScreenSavers(deviceId);
   }
@@ -1256,6 +1307,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) {
     return fetchScreenSavers?.call(deviceId);
   }
@@ -1271,6 +1323,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) {
     if (fetchScreenSavers != null) {
@@ -1290,6 +1343,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) {
     return fetchScreenSavers(this);
   }
@@ -1305,6 +1359,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) {
     return fetchScreenSavers?.call(this);
   }
@@ -1320,6 +1375,7 @@ class _$FetchScreenSaversImpl extends _FetchScreenSavers {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) {
     if (fetchScreenSavers != null) {
@@ -1387,6 +1443,8 @@ class _$TechWorkImpl extends _TechWork {
     required TResult Function(int orderId) checkKapiPayStatus,
     required TResult Function(String deviceId) fetchScreenSavers,
     required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
   }) {
     return techWork();
   }
@@ -1403,6 +1461,7 @@ class _$TechWorkImpl extends _TechWork {
     TResult? Function(int orderId)? checkKapiPayStatus,
     TResult? Function(String deviceId)? fetchScreenSavers,
     TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
   }) {
     return techWork?.call();
   }
@@ -1418,6 +1477,7 @@ class _$TechWorkImpl extends _TechWork {
     TResult Function(int orderId)? checkKapiPayStatus,
     TResult Function(String deviceId)? fetchScreenSavers,
     TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
     required TResult orElse(),
   }) {
     if (techWork != null) {
@@ -1437,6 +1497,7 @@ class _$TechWorkImpl extends _TechWork {
     required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
     required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
     required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
   }) {
     return techWork(this);
   }
@@ -1452,6 +1513,7 @@ class _$TechWorkImpl extends _TechWork {
     TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
   }) {
     return techWork?.call(this);
   }
@@ -1467,6 +1529,7 @@ class _$TechWorkImpl extends _TechWork {
     TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
     TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
     TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
     required TResult orElse(),
   }) {
     if (techWork != null) {
@@ -1479,4 +1542,206 @@ class _$TechWorkImpl extends _TechWork {
 abstract class _TechWork extends KioskApi {
   const factory _TechWork() = _$TechWorkImpl;
   const _TechWork._() : super._();
+}
+
+/// @nodoc
+abstract class _$$TableOrdersImplCopyWith<$Res> {
+  factory _$$TableOrdersImplCopyWith(
+          _$TableOrdersImpl value, $Res Function(_$TableOrdersImpl) then) =
+      __$$TableOrdersImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({int venueId, String tableId, String? etag});
+}
+
+/// @nodoc
+class __$$TableOrdersImplCopyWithImpl<$Res>
+    extends _$KioskApiCopyWithImpl<$Res, _$TableOrdersImpl>
+    implements _$$TableOrdersImplCopyWith<$Res> {
+  __$$TableOrdersImplCopyWithImpl(
+      _$TableOrdersImpl _value, $Res Function(_$TableOrdersImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? venueId = null,
+    Object? tableId = null,
+    Object? etag = freezed,
+  }) {
+    return _then(_$TableOrdersImpl(
+      venueId: null == venueId
+          ? _value.venueId
+          : venueId // ignore: cast_nullable_to_non_nullable
+              as int,
+      tableId: null == tableId
+          ? _value.tableId
+          : tableId // ignore: cast_nullable_to_non_nullable
+              as String,
+      etag: freezed == etag
+          ? _value.etag
+          : etag // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$TableOrdersImpl extends _TableOrders {
+  const _$TableOrdersImpl(
+      {required this.venueId, required this.tableId, this.etag})
+      : super._();
+
+  @override
+  final int venueId;
+  @override
+  final String tableId;
+  @override
+  final String? etag;
+
+  @override
+  String toString() {
+    return 'KioskApi.tableOrders(venueId: $venueId, tableId: $tableId, etag: $etag)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$TableOrdersImpl &&
+            (identical(other.venueId, venueId) || other.venueId == venueId) &&
+            (identical(other.tableId, tableId) || other.tableId == tableId) &&
+            (identical(other.etag, etag) || other.etag == etag));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, venueId, tableId, etag);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$TableOrdersImplCopyWith<_$TableOrdersImpl> get copyWith =>
+      __$$TableOrdersImplCopyWithImpl<_$TableOrdersImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(KioskRequest body) register,
+    required TResult Function(String deviceId) checkKiosk,
+    required TResult Function(KioskStatusRequest body, String deviceId)
+        sendStatusKiosk,
+    required TResult Function(String deviceId) disconnectKiosk,
+    required TResult Function(MenuCheckoutRequest body) payKaspi,
+    required TResult Function(int orderId) checkKapiPayStatus,
+    required TResult Function(String deviceId) fetchScreenSavers,
+    required TResult Function() techWork,
+    required TResult Function(int venueId, String tableId, String? etag)
+        tableOrders,
+  }) {
+    return tableOrders(venueId, tableId, etag);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(KioskRequest body)? register,
+    TResult? Function(String deviceId)? checkKiosk,
+    TResult? Function(KioskStatusRequest body, String deviceId)?
+        sendStatusKiosk,
+    TResult? Function(String deviceId)? disconnectKiosk,
+    TResult? Function(MenuCheckoutRequest body)? payKaspi,
+    TResult? Function(int orderId)? checkKapiPayStatus,
+    TResult? Function(String deviceId)? fetchScreenSavers,
+    TResult? Function()? techWork,
+    TResult? Function(int venueId, String tableId, String? etag)? tableOrders,
+  }) {
+    return tableOrders?.call(venueId, tableId, etag);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(KioskRequest body)? register,
+    TResult Function(String deviceId)? checkKiosk,
+    TResult Function(KioskStatusRequest body, String deviceId)? sendStatusKiosk,
+    TResult Function(String deviceId)? disconnectKiosk,
+    TResult Function(MenuCheckoutRequest body)? payKaspi,
+    TResult Function(int orderId)? checkKapiPayStatus,
+    TResult Function(String deviceId)? fetchScreenSavers,
+    TResult Function()? techWork,
+    TResult Function(int venueId, String tableId, String? etag)? tableOrders,
+    required TResult orElse(),
+  }) {
+    if (tableOrders != null) {
+      return tableOrders(venueId, tableId, etag);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Register value) register,
+    required TResult Function(_CheckKiosk value) checkKiosk,
+    required TResult Function(_SendStatusKiosk value) sendStatusKiosk,
+    required TResult Function(_DisconnectKiosk value) disconnectKiosk,
+    required TResult Function(_PayKaspi value) payKaspi,
+    required TResult Function(_CheckKapiPayStatus value) checkKapiPayStatus,
+    required TResult Function(_FetchScreenSavers value) fetchScreenSavers,
+    required TResult Function(_TechWork value) techWork,
+    required TResult Function(_TableOrders value) tableOrders,
+  }) {
+    return tableOrders(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Register value)? register,
+    TResult? Function(_CheckKiosk value)? checkKiosk,
+    TResult? Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult? Function(_DisconnectKiosk value)? disconnectKiosk,
+    TResult? Function(_PayKaspi value)? payKaspi,
+    TResult? Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
+    TResult? Function(_FetchScreenSavers value)? fetchScreenSavers,
+    TResult? Function(_TechWork value)? techWork,
+    TResult? Function(_TableOrders value)? tableOrders,
+  }) {
+    return tableOrders?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Register value)? register,
+    TResult Function(_CheckKiosk value)? checkKiosk,
+    TResult Function(_SendStatusKiosk value)? sendStatusKiosk,
+    TResult Function(_DisconnectKiosk value)? disconnectKiosk,
+    TResult Function(_PayKaspi value)? payKaspi,
+    TResult Function(_CheckKapiPayStatus value)? checkKapiPayStatus,
+    TResult Function(_FetchScreenSavers value)? fetchScreenSavers,
+    TResult Function(_TechWork value)? techWork,
+    TResult Function(_TableOrders value)? tableOrders,
+    required TResult orElse(),
+  }) {
+    if (tableOrders != null) {
+      return tableOrders(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _TableOrders extends KioskApi {
+  const factory _TableOrders(
+      {required final int venueId,
+      required final String tableId,
+      final String? etag}) = _$TableOrdersImpl;
+  const _TableOrders._() : super._();
+
+  int get venueId;
+  String get tableId;
+  String? get etag;
+  @JsonKey(ignore: true)
+  _$$TableOrdersImplCopyWith<_$TableOrdersImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

@@ -15,4 +15,8 @@ abstract class BaseClientGenerator {
   Map<String, dynamic>? get headers => null;
   int? get sendTimeout => _sendTimeOut;
   int? get receiveTimeOut => _receiveTimeOut;
+
+  /// Статусы, которые считаются ответом, а не ошибкой. Маршрут с
+  /// If-None-Match добавляет сюда 304.
+  bool isSuccessStatus(int status) => status >= 200 && status <= 300;
 }

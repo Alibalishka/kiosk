@@ -20,11 +20,15 @@ class QrMenuSliverAppBar extends StatelessWidget {
     required this.viewModel,
     required this.currentLanguageCode,
     required this.onLanguageTap,
+    this.ordersButton,
   });
 
   final QrMenuVm viewModel;
   final String currentLanguageCode;
   final VoidCallback onLanguageTap;
+
+  /// «Заказы стола» — только в режиме киоска.
+  final Widget? ordersButton;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +94,7 @@ class QrMenuSliverAppBar extends StatelessWidget {
         ),
       ),
       actions: [
+        if (ordersButton != null) ordersButton!,
         KioskTableBadge(
           groupName: viewModel.kioskSection?.groupName,
           number: viewModel.kioskSection?.number,

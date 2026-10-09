@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,9 +9,7 @@ import 'package:qr_pay_app/src/core/formatters/price_formats.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
-import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
-import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
@@ -53,16 +50,8 @@ class _KioskKaspiPayPageState extends State<KioskKaspiPayPage>
         bloc: viewModel.kioskBloc,
         listener: (context, state) => state.maybeWhen(
           orElse: () => null,
-          failed: (error, _) {
-            showTopSnackBar(
-              Overlay.of(context),
-              CustomSnackBar.error(
-                textAlign: TextAlign.start,
-                message: error,
-              ),
-              dismissType: DismissType.onSwipe,
-            );
-            context.router.pop();
+          failed: (error, _, reason) {
+            leaveFailedOnlinePayment(context, message: error, reason: reason);
             return null;
           },
           successPayData: (response) => viewModel.saveData(response),

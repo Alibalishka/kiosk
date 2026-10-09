@@ -54,9 +54,7 @@ class NetworkExecuter {
         final response = await _creator.request(
           route: route,
           options: options,
-          dio: sl<HostStorage>().hasHost()
-              ? sl<DioSettings>().dioKiosk
-              : sl<DioSettings>().dio,
+          dio: _dio,
         );
         if (responseType != null) {
           final data = _decoder.decode<K, T>(
@@ -104,4 +102,25 @@ class NetworkExecuter {
       return Result<K>.failure(const NetworkException.connectivity());
     }
   }
+
+  /// Как [execute], но без декодирования: отдаёт сам ответ, когда кроме
+  /// тела нужны статус и заголовки (ETag, Retry-After).
+  Future<Result<Response<dynamic>>> executeRaw({
+    required BaseClientGenerator route,
+  }) async {
+    if (!await _connectionChecker.status) {
+      return const Result.failure(NetworkException.connectivity());
+    }
+    try {
+      return Result.success(await _creator.request(route: route, dio: _dio));
+    } on DioException catch (err) {
+      return Result.failure(NetworkException.request(error: err));
+    } on Object catch (e) {
+      return Result.failure(NetworkException.type(error: e.toString()));
+    }
+  }
+
+  Dio get _dio => sl<HostStorage>().hasHost()
+      ? sl<DioSettings>().dioKiosk
+      : sl<DioSettings>().dio;
 }

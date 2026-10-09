@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:qr_pay_app/src/core/server/interfaces/base_client_generator.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/requests/menu_checkout.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_request.dart';
@@ -33,6 +35,13 @@ abstract class KioskApi extends BaseClientGenerator with _$KioskApi {
 
   const factory KioskApi.techWork() = _TechWork;
 
+  /// Заказы стола. [etag] уходит в If-None-Match.
+  const factory KioskApi.tableOrders({
+    required int venueId,
+    required String tableId,
+    String? etag,
+  }) = _TableOrders;
+
   @override
   dynamic get body => whenOrNull(
         register: (body) => body.toJson(),
@@ -60,14 +69,37 @@ abstract class KioskApi extends BaseClientGenerator with _$KioskApi {
         checkKapiPayStatus: (orderId) => '/orders/$orderId/kaspi',
         fetchScreenSavers: (deviceId) => '/kiosks/$deviceId/screensavers',
         techWork: () => '/tech-works',
+        tableOrders: (_, __, ___) => '/orders/table',
       );
 
   /// Параметры запросов
   @override
-  Map<String, dynamic>? get queryParameters => whenOrNull();
+  Map<String, dynamic>? get queryParameters => whenOrNull(
+        tableOrders: (venueId, tableId, _) => {'i': venueId, 't': tableId},
+      );
 
   @override
   Map<String, dynamic>? get headers => whenOrNull(
         payKaspi: (body) => {'Idempotency-Key': body.idempotencyKey},
+        tableOrders: (_, __, etag) =>
+            etag == null ? null : {'If-None-Match': etag},
+      );
+
+  /// Таймаут по умолчанию — почти три часа. Подвисший опрос заказов стола
+  /// остановил бы следующий, а подвисший pay-order — повтор с тем же
+  /// Idempotency-Key.
+  @override
+  int? get receiveTimeOut => maybeWhen(
+        tableOrders: (_, __, ___) => 20000,
+        payKaspi: (_) => 60000,
+        orElse: () => super.receiveTimeOut,
+      );
+
+  /// 304 на If-None-Match — не ошибка: данные не изменились.
+  @override
+  bool isSuccessStatus(int status) => maybeWhen(
+        tableOrders: (_, __, ___) =>
+            status == HttpStatus.notModified || super.isSuccessStatus(status),
+        orElse: () => super.isSuccessStatus(status),
       );
 }

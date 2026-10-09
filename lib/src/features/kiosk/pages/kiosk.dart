@@ -322,7 +322,7 @@ class _KioskRegisterState extends State<KioskRegister>
         bloc: viewModel.kioskBloc,
         listener: (context, state) => state.maybeWhen(
           orElse: () => null,
-          failed: (error, _) {
+          failed: (error, _, __) {
             _logUserMessage('topSnack (kiosk bloc): $error');
 
             showTopSnackBar(

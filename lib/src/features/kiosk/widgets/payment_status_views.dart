@@ -13,7 +13,10 @@ import 'package:qr_pay_app/src/core/resources/app_lottie.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
+import 'package:qr_pay_app/src/core/server/api_error_codes.dart';
+import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
+import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/row_spacer.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
@@ -21,6 +24,32 @@ import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 
 /// Общие состояния экранов оплаты — карта и Kaspi отличаются только блоком
 /// с QR, остальное у них совпадало слово в слово.
+
+/// pay-order за Kaspi или картой не прошёл: текст ошибки и назад в корзину.
+///
+/// online_payment_disabled — онлайн-оплату выключили, пока гость выбирал:
+/// показываем текст сервера, а кнопки Kaspi и карты в корзине убираем.
+void leaveFailedOnlinePayment(
+  BuildContext context, {
+  required String message,
+  String? reason,
+}) {
+  final disabled = reason == ApiErrorCodes.onlinePaymentDisabled;
+  if (disabled) context.read<QrMenuVm>().disableOnlinePayments();
+
+  showTopSnackBar(
+    Overlay.of(context),
+    CustomSnackBar.error(
+      textAlign: TextAlign.start,
+      // Вместо текста может прийти голый код — его гостю не показываем.
+      message: disabled && ApiErrorCodes.isKnown(message)
+          ? LocaleKeys.onlinePaymentDisabled.tr()
+          : message,
+    ),
+    dismissType: DismissType.onSwipe,
+  );
+  context.router.pop();
+}
 
 /// Центрирует содержимое и даёт прокрутить, если оно не помещается.
 ///

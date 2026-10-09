@@ -1,5 +1,10 @@
+import 'dart:developer';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:qr_pay_app/src/core/server/layers/network_executer.dart';
 import 'package:qr_pay_app/src/core/server/result.dart';
+import 'package:qr_pay_app/src/core/server/retry_after.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/requests/menu_checkout.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/kiosk_api.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_request.dart';
@@ -8,7 +13,9 @@ import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kaspi_status_
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/kiosk_status.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/screen_savers_response.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/model/response/table_orders_response.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/response/tech_work_response.dart';
+import 'package:qr_pay_app/src/features/kiosk/logic/model/table_orders_poll.dart';
 import 'package:qr_pay_app/src/features/qr/logic/models/responses/pay_model.dart';
 
 abstract class KioskRepository {
@@ -24,6 +31,11 @@ abstract class KioskRepository {
   Future<Result<ScreenSaversResponse>> fetchScreenSavers(
       {required String deviceId});
   Future<Result<TechWorkResponse>> techWork();
+  Future<TableOrdersPoll> fetchTableOrders({
+    required int venueId,
+    required String tableId,
+    String? etag,
+  });
 }
 
 class KioskRepositoryImpl implements KioskRepository {
@@ -98,5 +110,63 @@ class KioskRepositoryImpl implements KioskRepository {
       route: const KioskApi.techWork(),
       responseType: TechWorkResponse(),
     );
+  }
+
+  @override
+  Future<TableOrdersPoll> fetchTableOrders({
+    required int venueId,
+    required String tableId,
+    String? etag,
+  }) async {
+    final result = await client.executeRaw(
+      route: KioskApi.tableOrders(
+        venueId: venueId,
+        tableId: tableId,
+        etag: etag,
+      ),
+    );
+    return result.when(
+      success: _tableOrdersResponse,
+      failure: (error) => error.maybeWhen(
+        request: (error) => _tableOrdersFailure(error.response),
+        orElse: () => const TableOrdersPoll.failed(),
+      ),
+    );
+  }
+
+  TableOrdersPoll _tableOrdersResponse(Response<dynamic> response) {
+    if (response.statusCode == HttpStatus.notModified) {
+      return const TableOrdersPoll.notModified();
+    }
+    final body = response.data;
+    if (body is! Map<String, dynamic>) return const TableOrdersPoll.failed();
+    try {
+      final data = TableOrdersResponse.fromJson(body).data;
+      if (data == null) return const TableOrdersPoll.failed();
+      return TableOrdersPoll.loaded(
+        data: data,
+        etag: response.headers['etag']?.firstOrNull,
+      );
+    } on Object catch (e) {
+      log('table orders: unexpected body: $e');
+      return const TableOrdersPoll.failed();
+    }
+  }
+
+  TableOrdersPoll _tableOrdersFailure(Response<dynamic>? response) {
+    switch (response?.statusCode) {
+      case HttpStatus.tooManyRequests:
+        return TableOrdersPoll.rateLimited(
+          retryAfter: parseRetryAfter(
+            response?.headers['retry-after']?.firstOrNull,
+          ),
+        );
+      case HttpStatus.forbidden:
+        return const TableOrdersPoll.forbidden();
+      case HttpStatus.badRequest:
+        return const TableOrdersPoll.invalidTable();
+      default:
+        return const TableOrdersPoll.failed();
+    }
   }
 }

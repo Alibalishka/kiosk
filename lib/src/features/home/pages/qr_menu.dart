@@ -45,6 +45,8 @@ import 'package:qr_pay_app/src/features/home/widgets/qr_menu_header.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_layout.dart';
 import 'package:qr_pay_app/src/features/home/widgets/qr_menu_sliver_app_bar.dart';
 import 'package:qr_pay_app/src/features/home/widgets/shimmer_qr_menu.dart';
+import 'package:qr_pay_app/src/features/home/widgets/table_orders_button.dart';
+import 'package:qr_pay_app/src/features/home/widgets/table_orders_overlay.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
@@ -142,6 +144,9 @@ class QrMenuPageState extends State<QrMenuPage>
   QrMenuModel? _assistantMenu;
   OrderAssistant? _assistant;
 
+  /// Открыт экран «Заказы стола».
+  bool _ordersOpen = false;
+
   @override
   void initState() {
     super.initState();
@@ -156,6 +161,12 @@ class QrMenuPageState extends State<QrMenuPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       viewModel.syncAdVisibility(_lastAdVisible);
     });
+
+    if (viewModel.isKioskMode) {
+      viewModel.tableOrders
+        ..onForbidden = _reconnectKiosk
+        ..start();
+    }
   }
 
   /// Поворот: пересчитываем офсеты категорий под новую раскладку.
@@ -188,7 +199,25 @@ class QrMenuPageState extends State<QrMenuPage>
     _secretTapResetTimer?.cancel();
     _exitConfirmController.dispose();
     viewModel.clearSubscription();
+    if (viewModel.isKioskMode) {
+      final tableOrders = viewModel.tableOrders;
+      // Новая страница меню могла уже подписаться своим колбэком.
+      if (tableOrders.onForbidden == _reconnectKiosk) {
+        tableOrders.onForbidden = null;
+      }
+      tableOrders.stop();
+    }
     super.dispose();
+  }
+
+  /// Планшет больше не подключён (422 на статусе, 403 на заказах стола):
+  /// забываем токен и хост и возвращаемся к подключению.
+  void _reconnectKiosk() {
+    if (!mounted) return;
+    viewModel.kioskService.stopSendingStatusKiosk();
+    sl<KTokenStorage>().deleteToken();
+    sl<HostStorage>().deleteHost();
+    context.router.replaceAll([const KioskProviderRoute()]);
   }
 
   Future<dynamic> _onNativeCall(MethodCall call) async {
@@ -320,6 +349,16 @@ class QrMenuPageState extends State<QrMenuPage>
     setState(() => _assistantOpen = false);
   }
 
+  void _openOrders() {
+    viewModel.kioskService.onUserInteraction();
+    setState(() => _ordersOpen = true);
+  }
+
+  void _closeOrders() {
+    if (!_ordersOpen || !mounted) return;
+    setState(() => _ordersOpen = false);
+  }
+
   bool get _adOverlayVisible =>
       viewModel.isKioskMode &&
       viewModel.kioskService.isAdVisible &&
@@ -346,6 +385,13 @@ class QrMenuPageState extends State<QrMenuPage>
     if (_assistantOpen && (_adOverlayVisible || !assistantAvailable)) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _closeAssistant());
     }
+    // Из-под рекламы и заглушки гость возвращается в меню, а не к заказам.
+    final ordersAvailable = viewModel.hasTableOrders && _outage == null;
+    if (_ordersOpen && (_adOverlayVisible || !ordersAvailable)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _closeOrders());
+    }
+    final showAssistantLauncher =
+        assistantAvailable && !_assistantOpen && !_ordersOpen;
 
     return KioskInteractionListener(
       kioskService: viewModel.kioskService,
@@ -366,7 +412,7 @@ class QrMenuPageState extends State<QrMenuPage>
               backgroundColor: AppComponents.buttondockBgColorDefault,
               bottomNavigationBar:
                   dockInScaffold ? QrMenuBottomBar(viewModel: viewModel) : null,
-              floatingActionButton: assistantAvailable && !_assistantOpen
+              floatingActionButton: showAssistantLauncher
                   ? TickerMode(
                       // Под рекламой кнопку не видно — не крутим анимацию зря.
                       enabled: !_adOverlayVisible,
@@ -431,13 +477,9 @@ class QrMenuPageState extends State<QrMenuPage>
                         }
                         return null;
                       },
-                      failed: (_, errorCode) {
+                      failed: (_, errorCode, __) {
                         if (errorCode == 422) {
-                          viewModel.kioskService.stopSendingStatusKiosk();
-                          sl<KTokenStorage>().deleteToken();
-                          sl<HostStorage>().deleteHost();
-                          context.router
-                              .replaceAll([const KioskProviderRoute()]);
+                          _reconnectKiosk();
                         } else {
                           _registerFailure(
                             source: _statusSource,
@@ -518,6 +560,17 @@ class QrMenuPageState extends State<QrMenuPage>
                 ),
               ),
 
+            if (_ordersOpen)
+              Positioned.fill(
+                child: TableOrdersOverlay(
+                  service: viewModel.tableOrders,
+                  idleTimeout: viewModel.kioskService.idleDuration,
+                  groupName: viewModel.kioskSection?.groupName,
+                  tableNumber: viewModel.kioskSection?.number,
+                  onClose: _closeOrders,
+                ),
+              ),
+
             // --- ПОЛНОЭКРАННАЯ РЕКЛАМА НАД ВСЕМ ---
             if (_outage != null || _adOverlayVisible)
               Positioned.fill(
@@ -541,6 +594,12 @@ class QrMenuPageState extends State<QrMenuPage>
     return [
       QrMenuSliverAppBar(
         viewModel: viewModel,
+        ordersButton: viewModel.hasTableOrders
+            ? TableOrdersButton(
+                service: viewModel.tableOrders,
+                onTap: _openOrders,
+              )
+            : null,
         currentLanguageCode: getCurrentLanguageCode(context),
         onLanguageTap: () {
           // context.router.replace(KioskSuccessPageRoute(

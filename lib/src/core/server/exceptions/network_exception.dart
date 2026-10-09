@@ -1,6 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'package:qr_pay_app/src/core/constants/status_codes.dart';
+import 'package:qr_pay_app/src/core/server/api_error_codes.dart';
 import 'package:dio/dio.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -41,6 +42,21 @@ class NetworkException with _$NetworkException implements Exception {
         connectivity: (_) => null,
         timeOut: (_) => null,
         request: (error) => error.response?.statusCode,
+      );
+
+  /// Машинный код из тела ответа ([ApiErrorCodes]), если сервер его прислал.
+  String? get reason => maybeWhen(
+        request: (error) => ApiErrorCodes.find(error.response?.data),
+        orElse: () => null,
+      );
+
+  /// Ответа нет: связь пропала до запроса или во время него. Во втором
+  /// случае сервер мог успеть его обработать.
+  bool get isNoResponse => maybeWhen(
+        request: (error) => error.response == null,
+        connectivity: (_) => true,
+        timeOut: (_) => true,
+        orElse: () => false,
       );
 
   /// Возвращаем тексты в зависимости от статус кода
