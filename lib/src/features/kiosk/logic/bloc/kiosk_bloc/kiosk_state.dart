@@ -23,6 +23,11 @@ class KioskState with _$KioskState {
 
   const factory KioskState.successDisconnectKiosk() = _SuccessDisconnectKiosk;
 
+  /// kiosk-status ответил 422: сервер больше не знает этот планшет. Только
+  /// статус — 422 от остальных запросов приходит обычным [failed].
+  const factory KioskState.kioskDisconnected({String? message}) =
+      _KioskDisconnected;
+
   const factory KioskState.failed({
     @Default('Произошла ошибка') String message,
     int? errorCode,

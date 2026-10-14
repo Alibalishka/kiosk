@@ -57,19 +57,10 @@ class InstallResultReceiver : BroadcastReceiver() {
   }
 
   private fun scheduleOpenApp(context: Context) {
-    val launch = Intent(context, MainActivity::class.java).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-      addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    }
+    val launch = KioskLauncher.launchIntent(context)
 
     // Попытка открыть сразу
-    runCatching {
-      context.startActivity(launch)
-      Log.i("InstallResultReceiver", "Immediate startActivity OK")
-    }.onFailure {
-      Log.w("InstallResultReceiver", "Immediate startActivity failed: ${it.message}")
-    }
+    KioskLauncher.launch(context, "InstallResultReceiver")
 
     // Несколько fallback-алармов (1с, 3с, 6с)
     val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager

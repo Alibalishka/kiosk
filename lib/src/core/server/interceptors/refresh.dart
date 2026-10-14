@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io' show HttpStatus;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
@@ -7,7 +8,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/core/constants/app_url.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
+import 'package:qr_pay_app/src/core/logic/kiosk_disconnect_log.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:qr_pay_app/src/core/logic/locale_storage.dart';
 import 'package:qr_pay_app/src/features/app/router/app_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,10 +18,14 @@ class KioskAuthInterceptor extends Interceptor {
   final Dio _dio;
   late final Dio _refreshDio;
 
-  KioskAuthInterceptor(this._dio) {
+  /// [refreshAdapter] — транспорт refresh-запроса, подменяется в тестах.
+  KioskAuthInterceptor(this._dio, {HttpClientAdapter? refreshAdapter}) {
     _refreshDio = Dio(
       BaseOptions(
         baseUrl: _dio.options.baseUrl,
+        // Refresh ждут все запросы, получившие 401, — висеть он не должен.
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 20),
         headers: {
           'accept': 'application/json',
           if (sl<HostStorage>().hasHost() && AppUrls.isProd)
@@ -26,14 +33,20 @@ class KioskAuthInterceptor extends Interceptor {
           // 'Host': '${sl<HostStorage>().getHost()}.dev.qrpay.kz',
           // 'Host': '${sl<HostStorage>().getHost()}.admin.qrpay.kz',
 
-          // authorization ставится динамически в onRequest _refreshDio не используется напрямую
+          // authorization и Accept-Language уходят в самом refresh-запросе
         },
         validateStatus: (_) => true,
       ),
     );
+    if (refreshAdapter != null) _refreshDio.httpClientAdapter = refreshAdapter;
   }
 
   static const _retryKey = '__retry__';
+
+  /// Обновление токена, которое уже идёт. Параллельные 401 ждут его, а не
+  /// шлют свой refresh: старый токен сервер обменивает только один раз, и
+  /// второй refresh с ним разлогинивал бы планшет.
+  Future<String?>? _refreshing;
 
   /// [HostStorage] обновляется при регистрации, но [Dio.options.baseUrl]
   /// задаётся один раз в [DioSettings] — без синхронизации уходит старый tenant.
@@ -79,9 +92,7 @@ class KioskAuthInterceptor extends Interceptor {
     }
 
     // Динамически обновляем Accept-Language из SharedPreferences
-    final locale =
-        sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
-    options.headers['Accept-Language'] = locale;
+    options.headers['Accept-Language'] = apiLanguage(sl<SharedPreferences>());
 
     handler.next(options);
   }
@@ -111,52 +122,101 @@ DATA: ${req.data}
       return handler.next(err);
     }
 
+    final token = await _tokenForRetry(sentWith: _bearerOf(req));
+    if (token == null) return handler.next(err);
+
+    req.headers['authorization'] = 'Bearer $token';
+    req.extra[_retryKey] = true;
+
     try {
-      final newToken = await _refreshToken();
-      if (newToken == null) {
-        throw Exception('refresh failed');
-      }
-
-      await sl<KTokenStorage>().saveToken(newToken);
-      req.headers['authorization'] = 'Bearer $newToken';
-      req.extra[_retryKey] = true;
-
       return handler.resolve(await _dio.fetch(req));
-    } catch (_) {
-      try {
-        await sl<KioskAuthManager>().forceLogoutOnce();
-      } catch (e) {
-        log('[AUTH] forceLogoutOnce error: $e');
-      }
-      return handler.next(err);
+    } on DioException catch (e) {
+      // Повтор не прошёл (сеть, 5xx, снова 401) — это ошибка запроса, а не
+      // сессии: токен свежий, разлогинивать не за что.
+      return handler.next(e);
     }
   }
 
-  Future<String?> _refreshToken() async {
+  /// Токен для повтора запроса, получившего 401, или null — повторять нечем.
+  Future<String?> _tokenForRetry({required String? sentWith}) async {
+    final stored = sl<KTokenStorage>().getToken();
+    // Пока запрос был в пути, токен уже обновил другой запрос — повторяем
+    // с новым. Свой refresh со старым токеном сервер бы отклонил.
+    if (stored != null && stored.isNotEmpty && stored != sentWith) {
+      return stored;
+    }
+    return _refreshing ??= _refresh().whenComplete(() => _refreshing = null);
+  }
+
+  /// Один refresh на все запросы с 401. Новый токен сохраняем здесь же —
+  /// ожидающие получают его уже записанным.
+  Future<String?> _refresh() async {
+    final result = await _refreshToken();
+    final token = result.token;
+    if (token != null) {
+      try {
+        await sl<KTokenStorage>().saveToken(token);
+      } catch (e) {
+        log('[AUTH] save refreshed token failed: $e');
+      }
+      return token;
+    }
+
+    if (_isSessionRejected(result.status)) {
+      try {
+        await sl<KioskAuthManager>().forceLogoutOnce(
+          reason: 'refresh rejected with ${result.status}',
+        );
+      } catch (e) {
+        log('[AUTH] forceLogoutOnce error: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Сервер понял refresh и отказал: токен больше не обменять, сессия
+  /// кончилась. Сеть, таймаут, 429 и 5xx — временный сбой: сессия ещё жива,
+  /// и разлогинивать из-за него планшет нельзя — запрос просто не удался.
+  static bool _isSessionRejected(int? status) =>
+      status != null &&
+      status >= 400 &&
+      status < 500 &&
+      status != HttpStatus.requestTimeout &&
+      status != HttpStatus.tooManyRequests;
+
+  static String? _bearerOf(RequestOptions options) {
+    final header = options.headers['authorization'];
+    const prefix = 'Bearer ';
+    if (header is! String || !header.startsWith(prefix)) return null;
+    return header.substring(prefix.length);
+  }
+
+  /// Новый токен или null. [status] — код ответа refresh, null — ответа нет
+  /// (сеть, таймаут).
+  Future<({String? token, int? status})> _refreshToken() async {
     try {
       _syncHostsFromStorage();
 
-      // Подставляем актуальный токен перед refresh-запросом
+      // Токен и язык — в самом запросе, а не в общих заголовках: иначе
+      // при пустом хранилище ушёл бы токен прошлого refresh.
       final currentToken = sl<KTokenStorage>().getToken();
-      if (currentToken != null && currentToken.isNotEmpty) {
-        _refreshDio.options.headers['authorization'] = 'Bearer $currentToken';
-      }
-
-      // Обновляем Accept-Language для refresh-запроса
-      final locale =
-          sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru';
-      _refreshDio.options.headers['Accept-Language'] = locale;
+      final headers = <String, dynamic>{
+        'Accept-Language': apiLanguage(sl<SharedPreferences>()),
+        if (currentToken != null && currentToken.isNotEmpty)
+          'authorization': 'Bearer $currentToken',
+      };
 
       log('''
 ------ 🔁 REFRESH TOKEN REQUEST ------
 POST /auth/refresh
-Headers: ${_refreshDio.options.headers}
+Headers: ${{..._refreshDio.options.headers, ...headers}}
 --------------------------------------
 ''');
 
-      final res = await _refreshDio.post(
+      final res = await _refreshDio.post<dynamic>(
         '/auth/refresh',
         data: {}, // если есть body – тут покажем
+        options: Options(headers: headers),
       );
 
       log('''
@@ -167,14 +227,20 @@ DATA: ${res.data}
 ---------------------------------------
 ''');
 
-      if (res.statusCode == 200) {
-        return res.data['data'] as String?;
-      }
+      final status = res.statusCode;
+      if (status != 200) return (token: null, status: status);
 
-      return null;
+      final data = res.data;
+      final token = data is Map ? data['data'] : null;
+      if (token is String && token.isNotEmpty) {
+        return (token: token, status: status);
+      }
+      // 200 без токена — сломанный ответ, а не отказ: сессию не трогаем.
+      log('[AUTH] refresh 200 without token: $data');
+      return (token: null, status: null);
     } catch (e) {
       log('[AUTH] refresh request failed: $e');
-      return null;
+      return (token: null, status: null);
     }
   }
 
@@ -198,11 +264,11 @@ class KioskAuthManager {
     this.router,
   );
 
-  Future<void> forceLogoutOnce() async {
+  Future<void> forceLogoutOnce({required String reason}) async {
     if (_loggingOut) return;
     _loggingOut = true;
 
-    log('[KIOSK AUTH] force logout');
+    logKioskDisconnect(reason);
 
     tokens.deleteToken();
     hostStorage.deleteHost();

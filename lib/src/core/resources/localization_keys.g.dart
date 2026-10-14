@@ -387,5 +387,11 @@ abstract class  LocaleKeys {
   static const noPaymentMethods = 'noPaymentMethods';
   static const onlinePaymentDisabled = 'onlinePaymentDisabled';
   static const tableOrdersCallWaiter = 'tableOrdersCallWaiter';
+  static const skip = 'skip';
+  static const payByCard = 'payByCard';
+  static const trackOrderByQr = 'trackOrderByQr';
+  static const orderQrPhotoHint = 'orderQrPhotoHint';
+  static const contactManagerOrgProblem = 'contactManagerOrgProblem';
+  static const paymentMethodsNotFound = 'paymentMethodsNotFound';
 
 }

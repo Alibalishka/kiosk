@@ -10,6 +10,7 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:qr_pay_app/src/core/base/view_model.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:qr_pay_app/src/core/server/interceptors/refresh.dart';
 import 'package:qr_pay_app/src/core/utils/device_display_name.dart';
 import 'package:qr_pay_app/src/core/utils/t_snack_bar.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_snack_bar.dart';
@@ -165,6 +166,9 @@ class KioskVm extends ViewModel {
     if (save) {
       await sl<KTokenStorage>().saveToken(response.data?.token ?? '');
     }
+    // Планшет снова подключён: следующий отказ refresh должен разлогинить
+    // его заново, а не упереться в флаг прошлого выхода.
+    sl<KioskAuthManager>().reset();
 
     context.router.replaceAll([
       QrMenuProviderRoute(

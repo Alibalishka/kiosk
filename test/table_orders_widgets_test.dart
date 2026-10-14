@@ -456,7 +456,7 @@ void main() {
         );
 
         expect(find.text('Kaspi QR'), findsNothing);
-        expect(find.text('Оплата картой |'), findsOneWidget);
+        expect(find.text('${LocaleKeys.payByCard} |'), findsOneWidget);
         expect(find.text(LocaleKeys.payWithCash), findsOneWidget);
       });
     }
@@ -468,7 +468,7 @@ void main() {
       );
 
       expect(find.text('Kaspi QR'), findsNothing);
-      expect(find.text('Оплата картой |'), findsNothing);
+      expect(find.text('${LocaleKeys.payByCard} |'), findsNothing);
       expect(find.text(LocaleKeys.noPaymentMethods), findsOneWidget);
     });
   });

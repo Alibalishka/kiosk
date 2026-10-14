@@ -92,6 +92,7 @@ mixin MainRunner {
                 Locale('ru', 'RU'),
                 Locale('kk', 'KK'),
                 Locale('en', 'US'),
+                Locale('zh', 'CN'),
               ],
               path:
                   'assets/translations', // <-- change the path of the translation files
@@ -115,6 +116,8 @@ Locale getLocale(String locale) {
     return const Locale('kk', 'KK');
   } else if (locale.contains(AppLanguages.ru)) {
     return const Locale('ru', 'RU');
+  } else if (locale.contains(AppLanguages.zh)) {
+    return const Locale('zh', 'CN');
   } else {
     return const Locale('en', 'US');
   }

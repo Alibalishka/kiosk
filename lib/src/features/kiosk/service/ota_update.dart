@@ -1,11 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_pay_app/src/core/constants/app_url.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 const _dpc = MethodChannel('dpc');
+
+/// Код ошибки: APK по ссылке не новее установленного.
+const otaNotNewerCode = 'OTA_NOT_NEWER';
 
 // ─────────────────── OTA Status ───────────────────
 
@@ -46,7 +50,11 @@ class OtaUpdateService {
 
   /// Скачивает APK и устанавливает через DPC.
   /// Уведомляет UI о прогрессе через [status].
-  Future<void> downloadAndInstall() async {
+  ///
+  /// [onlyIfNewer] — для автообновления: APK ставится, только если он новее
+  /// установленного. Иначе, если версия на сервере опередила APK по ссылке,
+  /// киоск переустанавливал одну и ту же сборку после каждого перезапуска.
+  Future<void> downloadAndInstall({bool onlyIfNewer = false}) async {
     if (_busy) return;
     _busy = true;
 
@@ -83,6 +91,8 @@ class OtaUpdateService {
       debugPrint('OTA downloaded to: $filePath');
       debugPrint('OTA realUri: ${resp.realUri}');
 
+      await _checkApk(filePath, onlyIfNewer: onlyIfNewer);
+
       // Стадия: установка
       status.value = const OtaStatus.installing();
 
@@ -106,6 +116,45 @@ class OtaUpdateService {
       // (ошибка загрузки, ошибка установки, таймаут polling).
       status.value = const OtaStatus.idle();
       _busy = false;
+    }
+  }
+
+  /// Проверяет скачанный APK до установки. Device Owner ставит молча любой
+  /// пакет, поэтому чужой APK по ссылке установился бы как отдельное
+  /// приложение.
+  Future<void> _checkApk(String filePath, {required bool onlyIfNewer}) async {
+    final info = await _dpc.invokeMethod<Map<dynamic, dynamic>?>(
+      'getApkInfo',
+      {'path': filePath},
+    );
+    if (info == null) {
+      throw PlatformException(
+        code: 'OTA_INVALID_APK',
+        message: 'Скачанный файл не читается как APK',
+      );
+    }
+
+    final packageName = info['packageName'] as String?;
+    final apkVersion = (info['versionCode'] as num?)?.toInt() ?? -1;
+    final installedVersion = (info['installedVersionCode'] as num?)?.toInt();
+    debugPrint('OTA apk: $packageName ${info['versionName']} ($apkVersion), '
+        'installed: $installedVersion');
+
+    final ownPackage = (await PackageInfo.fromPlatform()).packageName;
+    if (packageName != ownPackage) {
+      throw PlatformException(
+        code: 'OTA_WRONG_PACKAGE',
+        message: 'APK другого приложения: $packageName',
+      );
+    }
+    if (onlyIfNewer &&
+        installedVersion != null &&
+        apkVersion <= installedVersion) {
+      throw PlatformException(
+        code: otaNotNewerCode,
+        message: 'APK не новее установленного '
+            '($apkVersion <= $installedVersion)',
+      );
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:io' show HttpStatus;
+
 import 'package:bloc/bloc.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/requests/menu_checkout.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/model/requests/kiosk_status_request.dart';
@@ -85,10 +87,14 @@ class KioskBloc extends Bloc<KioskEvent, KioskState> {
       result.when(
         success: (response) =>
             emit(KioskState.successKioskStatus(response: response)),
-        failure: (error) => emit(KioskState.failed(
-          message: error.msg ?? 'Ошибка загурзки данных',
-          errorCode: error.errorCode,
-        )),
+        failure: (error) => emit(
+          error.errorCode == HttpStatus.unprocessableEntity
+              ? KioskState.kioskDisconnected(message: error.msg)
+              : KioskState.failed(
+                  message: error.msg ?? 'Ошибка загурзки данных',
+                  errorCode: error.errorCode,
+                ),
+        ),
       );
     } on Object {
       emit(const KioskState.failed());

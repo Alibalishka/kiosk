@@ -6,7 +6,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sizer/sizer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
+import 'package:qr_pay_app/src/core/logic/locale_storage.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
@@ -24,11 +27,17 @@ class LanguagePopupDialog {
     required QrMenuVm viewModel,
     required VoidCallback onSecretTap,
   }) async {
-    final languages = const [
-      Language(languageCode: AppLanguages.kk),
-      Language(languageCode: AppLanguages.ru),
-      Language(languageCode: AppLanguages.en),
+    final languages = [
+      const Language(languageCode: AppLanguages.kk),
+      const Language(languageCode: AppLanguages.ru),
+      const Language(languageCode: AppLanguages.en),
+      if (AppLanguages.zhMenuIds.contains(viewModel.menuId))
+        const Language(languageCode: AppLanguages.zh),
     ];
+    // Китайский переводит только интерфейс: язык запросов при нём не
+    // меняется, и меню с бэкенда перезапрашивать незачем.
+    final prefs = sl<SharedPreferences>();
+    final apiLanguageBefore = apiLanguage(prefs);
 
     await showDialog<void>(
       context: context,
@@ -45,7 +54,9 @@ class LanguagePopupDialog {
                 state.maybeWhen(
                   changeSuccess: () {
                     context.router.pop(true);
-                    viewModel.fetchMenu();
+                    if (apiLanguage(prefs) != apiLanguageBefore) {
+                      viewModel.fetchMenu();
+                    }
                   },
                   orElse: () {},
                 );

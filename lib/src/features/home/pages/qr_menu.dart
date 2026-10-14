@@ -9,10 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:qr_pay_app/src/core/base/view_model_mixin.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
+import 'package:qr_pay_app/src/core/logic/kiosk_disconnect_log.dart';
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:qr_pay_app/src/core/logic/locale_storage.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
 import 'package:qr_pay_app/src/core/resources/app_components.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
@@ -50,7 +53,9 @@ import 'package:qr_pay_app/src/features/home/widgets/table_orders_overlay.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/repository/kiosk_repository.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/dpc_calls.dart';
 import 'package:qr_pay_app/src/features/kiosk/widgets/kiosk_Interaction_listener.dart';
+import 'package:qr_pay_app/src/features/profile/logic/bloc/language_bloc/language_bloc.dart';
 import 'package:qr_pay_app/src/features/profile/logic/bloc/bank_cart_bloc/bank_cart_bloc.dart';
 
 /// Причина, по которой меню закрыто заглушкой.
@@ -150,7 +155,7 @@ class QrMenuPageState extends State<QrMenuPage>
   @override
   void initState() {
     super.initState();
-    _dpc.setMethodCallHandler(_onNativeCall);
+    DpcCalls.listen(this, _onNativeCall);
     try {
       _appVersion = sl<PackageInfo>().version;
     } catch (_) {
@@ -160,13 +165,29 @@ class QrMenuPageState extends State<QrMenuPage>
     _lastAdVisible = viewModel.adVisible;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       viewModel.syncAdVisibility(_lastAdVisible);
+      _dropUnavailableLanguage();
     });
 
     if (viewModel.isKioskMode) {
+      viewModel.onShowTableOrders = _openOrders;
       viewModel.tableOrders
-        ..onForbidden = _reconnectKiosk
+        ..onForbidden = _verifyKioskConnection
         ..start();
     }
+  }
+
+  /// Китайский есть не у каждого меню. Если он остался от другого, в
+  /// списке языков его не будет и выключить его гость не сможет —
+  /// возвращаем язык, на котором и так уходят запросы.
+  void _dropUnavailableLanguage() {
+    if (!mounted) return;
+    if (context.locale.languageCode != AppLanguages.zh) return;
+    if (AppLanguages.zhMenuIds.contains(viewModel.menuId)) return;
+    BlocProvider.of<LanguageBloc>(context).add(
+      LanguageEvent.languageChangeTappedMenu(
+        apiLanguage(sl<SharedPreferences>()),
+      ),
+    );
   }
 
   /// Поворот: пересчитываем офсеты категорий под новую раскладку.
@@ -195,14 +216,17 @@ class QrMenuPageState extends State<QrMenuPage>
 
   @override
   void dispose() {
-    _dpc.setMethodCallHandler(null);
+    DpcCalls.cancel(this);
     _secretTapResetTimer?.cancel();
     _exitConfirmController.dispose();
     viewModel.clearSubscription();
     if (viewModel.isKioskMode) {
       final tableOrders = viewModel.tableOrders;
       // Новая страница меню могла уже подписаться своим колбэком.
-      if (tableOrders.onForbidden == _reconnectKiosk) {
+      if (viewModel.onShowTableOrders == _openOrders) {
+        viewModel.onShowTableOrders = null;
+      }
+      if (tableOrders.onForbidden == _verifyKioskConnection) {
         tableOrders.onForbidden = null;
       }
       tableOrders.stop();
@@ -210,10 +234,20 @@ class QrMenuPageState extends State<QrMenuPage>
     super.dispose();
   }
 
-  /// Планшет больше не подключён (422 на статусе, 403 на заказах стола):
-  /// забываем токен и хост и возвращаемся к подключению.
-  void _reconnectKiosk() {
+  /// Заказы стола ответили 403. Это ещё не значит, что планшет отключён
+  /// (403 отдаёт и прокси, и сервер за чужой стол), поэтому не разлогиниваем,
+  /// а сразу спрашиваем статус: если сервер планшет не знает, статус ответит
+  /// 422 и сработает [_reconnectKiosk].
+  void _verifyKioskConnection() {
     if (!mounted) return;
+    viewModel.kioskService.sendStatusKiosk();
+  }
+
+  /// Планшет больше не подключён (kiosk-status ответил 422): забываем токен
+  /// и хост и возвращаемся к подключению.
+  void _reconnectKiosk(String reason) {
+    if (!mounted) return;
+    logKioskDisconnect(reason);
     viewModel.kioskService.stopSendingStatusKiosk();
     sl<KTokenStorage>().deleteToken();
     sl<HostStorage>().deleteHost();
@@ -221,6 +255,7 @@ class QrMenuPageState extends State<QrMenuPage>
   }
 
   Future<dynamic> _onNativeCall(MethodCall call) async {
+    if (!mounted) return null;
     if (call.method != 'managedConfigChanged') return null;
     final args = call.arguments;
     if (args is! Map) return null;
@@ -306,6 +341,7 @@ class QrMenuPageState extends State<QrMenuPage>
     if (_exitInProgress) return;
     setState(() => _exitInProgress = true);
     try {
+      logKioskDisconnect('exit from the device info dialog');
       viewModel.kioskService.stopSendingStatusKiosk();
       sl<KTokenStorage>().deleteToken();
       sl<HostStorage>().deleteHost();
@@ -324,6 +360,8 @@ class QrMenuPageState extends State<QrMenuPage>
       return AppLanguages.kk;
     } else if (code.contains(AppLanguages.ru)) {
       return AppLanguages.ru;
+    } else if (code.contains(AppLanguages.zh)) {
+      return AppLanguages.zh;
     } else {
       return AppLanguages.en;
     }
@@ -366,6 +404,10 @@ class QrMenuPageState extends State<QrMenuPage>
 
   @override
   Widget build(BuildContext context) {
+    // LocaleKeys.tr() без контекста на смену языка не подписывает, а меню при
+    // китайском не перезапрашивается — без явной подписки кнопка помощника и
+    // док заказа оставались на старом языке до следующего notifyListeners.
+    final languageCode = getCurrentLanguageCode(context);
     final layout = QrMenuLayout.of(
       context,
       hasRecommend: viewModel.menuData?.effectiveRecommend.isNotEmpty ?? false,
@@ -477,15 +519,17 @@ class QrMenuPageState extends State<QrMenuPage>
                         }
                         return null;
                       },
+                      // Только kiosk-status: 422 от техработ, рекламы и
+                      // прочих запросов — обычная ошибка ниже.
+                      kioskDisconnected: (message) {
+                        _reconnectKiosk('kiosk-status 422: $message');
+                        return null;
+                      },
                       failed: (_, errorCode, __) {
-                        if (errorCode == 422) {
-                          _reconnectKiosk();
-                        } else {
-                          _registerFailure(
-                            source: _statusSource,
-                            errorCode: errorCode,
-                          );
-                        }
+                        _registerFailure(
+                          source: _statusSource,
+                          errorCode: errorCode,
+                        );
                         return null;
                       },
                     ),
@@ -535,7 +579,7 @@ class QrMenuPageState extends State<QrMenuPage>
                               key: const ValueKey('content'),
                               viewModel: viewModel,
                               layout: layout,
-                              slivers: _buildSlivers(context),
+                              slivers: _buildSlivers(context, languageCode),
                             )
                           : const SizedBox.shrink(key: ValueKey('empty')),
                     ),
@@ -590,7 +634,7 @@ class QrMenuPageState extends State<QrMenuPage>
     );
   }
 
-  List<Widget> _buildSlivers(BuildContext context) {
+  List<Widget> _buildSlivers(BuildContext context, String languageCode) {
     return [
       QrMenuSliverAppBar(
         viewModel: viewModel,
@@ -600,10 +644,10 @@ class QrMenuPageState extends State<QrMenuPage>
                 onTap: _openOrders,
               )
             : null,
-        currentLanguageCode: getCurrentLanguageCode(context),
+        currentLanguageCode: languageCode,
         onLanguageTap: () {
           // context.router.replace(KioskSuccessPageRoute(
-          //   id: 150660,
+          //   id: 156741,
           //   orderWaitTime: 2,
           // ));
           viewModel.kioskService.onUserInteraction();

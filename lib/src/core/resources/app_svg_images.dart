@@ -38,6 +38,7 @@ class AppSvgImages {
   static const String chevronBack = 'assets/images/svg/chevronBack.svg';
   static const String chevronForward = 'assets/images/svg/chevronForward.svg';
   static const String chevronDown = 'assets/images/svg/chevron_down.svg';
+  static const String china = 'assets/images/svg/china.svg';
   static const String circleButton = 'assets/images/svg/circleButton.svg';
   static const String circledIcon = 'assets/images/svg/circledIcon.svg';
   static const String clipboard = 'assets/images/svg/clipboard.svg';

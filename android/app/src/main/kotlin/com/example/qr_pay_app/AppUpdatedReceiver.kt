@@ -8,6 +8,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 
@@ -31,25 +32,18 @@ class AppUpdatedReceiver : BroadcastReceiver() {
       )
 
       dpm.setLockTaskPackages(admin, arrayOf(context.packageName))
-      dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_NONE)
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_NONE)
+      }
     } catch (e: Throwable) {
       Log.w("AppUpdatedReceiver", "DPC restore failed: ${e.message}")
     }
 
-    // 2) Intent на запуск
-    val launch = Intent(context, MainActivity::class.java).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-      addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    }
+    // 2) Intent на запуск (HOME в киоске — без второй копии MainActivity)
+    val launch = KioskLauncher.launchIntent(context)
 
     // 3) Попытка открыть сразу
-    runCatching {
-      context.startActivity(launch)
-      Log.i("AppUpdatedReceiver", "Immediate startActivity OK")
-    }.onFailure {
-      Log.w("AppUpdatedReceiver", "Immediate startActivity failed: ${it.message}")
-    }
+    KioskLauncher.launch(context, "AppUpdatedReceiver")
 
     // 4) Несколько отложенных fallback-ов через AlarmManager (1с, 3с, 6с)
     //    Разные requestCode чтобы не перезаписывать друг друга.

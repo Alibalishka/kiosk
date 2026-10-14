@@ -207,15 +207,38 @@ void main() {
     service.dispose();
   });
 
-  testWidgets('403: опрос встаёт и просит переподключение', (tester) async {
+  testWidgets('403: просит проверить подключение, опрос идёт медленнее',
+      (tester) async {
+    var forbidden = 0;
+    final server = _Server()
+      ..reply(_loaded(orders: [_order()]))
+      ..reply(const TableOrdersPoll.forbidden());
+    final service = _polling(server)..onForbidden = () => forbidden++;
+    await tester.pump();
+    await _wait(tester, 15);
+
+    expect(forbidden, 1);
+    expect(service.orders, hasLength(1), reason: 'данные прежние');
+    expect(service.stale, isTrue);
+
+    await _wait(tester, 59);
+    expect(server.requests, hasLength(2), reason: 'после 403 — минута');
+    await _wait(tester, 1);
+    expect(server.requests, hasLength(3), reason: 'опрос не встал');
+    expect(service.stale, isFalse);
+    expect(forbidden, 1);
+
+    service.dispose();
+  });
+
+  testWidgets('403: страница после переподключения спрашивает сразу',
+      (tester) async {
     var forbidden = 0;
     final server = _Server()..reply(const TableOrdersPoll.forbidden());
     final service = _polling(server)..onForbidden = () => forbidden++;
     await tester.pump();
     expect(forbidden, 1);
-
-    await _wait(tester, 600);
-    expect(server.requests, hasLength(1));
+    expect(service.status, TableOrdersStatus.unavailable);
 
     // Страница меню после переподключения — новый токен, спросим сразу.
     service
@@ -223,7 +246,27 @@ void main() {
       ..start();
     await tester.pump();
     expect(server.requests, hasLength(2));
+    expect(service.status, TableOrdersStatus.ready);
     expect(forbidden, 1);
+
+    service.dispose();
+  });
+
+  testWidgets('403 про прежний стол подключение не проверяет',
+      (tester) async {
+    var forbidden = 0;
+    final server = _Server()..hold = Completer<TableOrdersPoll>();
+    final service = _polling(server)..onForbidden = () => forbidden++;
+    await tester.pump();
+
+    service.setTable(venueId: 7, tableId: '14');
+    final held = server.hold!;
+    server.hold = null;
+    held.complete(const TableOrdersPoll.forbidden());
+    await tester.pump();
+
+    expect(forbidden, 0, reason: 'стол уже другой');
+    expect(service.status, TableOrdersStatus.loading);
 
     service.dispose();
   });
@@ -344,6 +387,68 @@ void main() {
 
     service.stop();
     await _wait(tester, 120);
+    expect(server.requests, hasLength(2));
+
+    service.dispose();
+  });
+
+  testWidgets('после заказа спрашиваем сразу, не дожидаясь poll_after',
+      (tester) async {
+    final server = _Server()
+      ..reply(_loaded(pollAfter: 60))
+      ..reply(_loaded(pollAfter: 15, orders: [_order()]));
+    final service = _polling(server);
+    await tester.pump();
+    expect(server.requests, hasLength(1));
+
+    await _wait(tester, 5);
+    service.refresh();
+    await tester.pump();
+    expect(server.requests, hasLength(2));
+    expect(service.orders, hasLength(1));
+
+    await _wait(tester, 14);
+    expect(server.requests, hasLength(2), reason: 'дальше — темп сервера');
+    await _wait(tester, 1);
+    expect(server.requests, hasLength(3));
+
+    service.dispose();
+  });
+
+  testWidgets('заказ во время запроса — спрашиваем ещё раз сразу после',
+      (tester) async {
+    final server = _Server()..hold = Completer<TableOrdersPoll>();
+    final service = _polling(server);
+    await tester.pump();
+
+    service.refresh();
+    await tester.pump();
+    expect(server.requests, hasLength(1), reason: 'запрос ещё в пути');
+
+    final held = server.hold!;
+    server
+      ..hold = null
+      ..reply(_loaded(orders: [_order()]));
+    held.complete(_loaded(pollAfter: 60));
+    await tester.pump();
+    expect(server.requests, hasLength(2));
+    expect(service.orders, hasLength(1));
+
+    service.dispose();
+  });
+
+  testWidgets('после 429 заказ срок не сокращает', (tester) async {
+    final server = _Server()
+      ..reply(const TableOrdersPoll.rateLimited(
+        retryAfter: Duration(seconds: 40),
+      ));
+    final service = _polling(server);
+    await tester.pump();
+
+    service.refresh();
+    await tester.pump();
+    expect(server.requests, hasLength(1), reason: 'Retry-After: 40');
+    await _wait(tester, 40);
     expect(server.requests, hasLength(2));
 
     service.dispose();

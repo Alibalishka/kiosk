@@ -1,4 +1,5 @@
 import 'package:qr_pay_app/src/core/logic/kiosk_token_storage.dart';
+import 'package:qr_pay_app/src/core/logic/locale_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qr_pay_app/src/core/constants/app_url.dart';
@@ -27,8 +28,7 @@ class DioSettings {
         'accept': 'application/json',
         "content-type": "application/json",
         'authorization': 'Bearer ${sl<ITokenStorage>().getToken() ?? ''}',
-        'Accept-Language':
-            sl<SharedPreferences>().getString('locale')?.split('_')[0] ?? 'ru',
+        'Accept-Language': apiLanguage(sl<SharedPreferences>()),
         'X-App-Version': sl<PackageInfo>().version,
       },
     )
@@ -53,9 +53,7 @@ class DioSettings {
           'accept': 'application/json',
           "content-type": "application/json",
           // authorization ставится динамически в KioskAuthInterceptor.onRequest
-          'Accept-Language':
-              sl<SharedPreferences>().getString('locale')?.split('_')[0] ??
-                  'ru',
+          'Accept-Language': apiLanguage(sl<SharedPreferences>()),
           'X-App-Version': sl<PackageInfo>().version,
           'X-Keyboard-Version': null,
         },

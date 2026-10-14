@@ -7,12 +7,14 @@ class Language {
     AppLanguages.kk: AppSvgImages.kazakhstan,
     AppLanguages.ru: AppSvgImages.russia,
     AppLanguages.en: AppSvgImages.usa,
+    AppLanguages.zh: AppSvgImages.china,
   };
 
   static final names = <String, String>{
     AppLanguages.kk: 'Қазақша',
     AppLanguages.ru: 'Русский',
     AppLanguages.en: 'English',
+    AppLanguages.zh: '中文',
   };
 
   final String languageCode;

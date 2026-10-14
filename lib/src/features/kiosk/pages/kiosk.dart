@@ -18,6 +18,8 @@ import 'package:qr_pay_app/src/core/widgets/column_spacer.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_loader.dart';
 import 'package:qr_pay_app/src/core/widgets/custom_text_field.dart';
 import 'package:qr_pay_app/src/features/kiosk/logic/bloc/kiosk_bloc/kiosk_bloc.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/device_info_text.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/dpc_calls.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/ota_update.dart';
 import 'package:qr_pay_app/src/features/kiosk/vm/kiosk_vm.dart';
 import 'package:qr_pay_app/src/features/qr/widgets/custom_appbar.dart';
@@ -62,7 +64,7 @@ class _KioskRegisterState extends State<KioskRegister>
   @override
   void initState() {
     super.initState();
-    _dpc.setMethodCallHandler(_onNativeCall);
+    DpcCalls.listen(this, _onNativeCall);
     _internetListener = () {
       if (viewModel.hasInternet.value) {
         _tryAutoRegisterFromManagedConfig();
@@ -79,7 +81,7 @@ class _KioskRegisterState extends State<KioskRegister>
 
   @override
   void dispose() {
-    _dpc.setMethodCallHandler(null);
+    DpcCalls.cancel(this);
     viewModel.hasInternet.removeListener(_internetListener);
     _confirmController.dispose();
     viewModel.disposeVm(); // ✅ важно: закрываем подписки на сеть/таймеры
@@ -227,8 +229,11 @@ class _KioskRegisterState extends State<KioskRegister>
     );
   }
 
-  Future<void> _showClearDeviceOwnerDialog() async {
+  Future<void> _showAdminDialog() async {
     _confirmController.clear();
+    final deviceInfo = deviceInfoText(
+      locale: Localizations.localeOf(context).toLanguageTag(),
+    );
 
     await showDialog<void>(
       context: context,
@@ -236,10 +241,20 @@ class _KioskRegisterState extends State<KioskRegister>
       builder: (ctx) {
         return AlertDialog(
           title: const Text('Админ действия'),
+          // С клавиатурой (ввод CLEAR) в альбоме иначе не помещается.
+          scrollable: true,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              FutureBuilder<String>(
+                future: deviceInfo,
+                builder: (context, snapshot) => SelectableText(
+                  snapshot.data ?? 'Загружаем сведения о планшете…',
+                  style: AppTextStyles.bodyS,
+                ),
+              ),
+              const SizedBox(height: 16),
               const Text(
                 'Снятие Device Owner отключит полноценный киоск для этого приложения. '
                 'После этого устройство можно будет настроить заново или удалить приложение.\n\n'
@@ -352,8 +367,7 @@ class _KioskRegisterState extends State<KioskRegister>
                       children: [
                         // ✅ Логотип с hidden admin action
                         GestureDetector(
-                          onLongPress:
-                              _clearingDo ? null : _showClearDeviceOwnerDialog,
+                          onLongPress: _clearingDo ? null : _showAdminDialog,
                           child: Image.asset(
                             AppWebpImages.logo,
                             height: 100,

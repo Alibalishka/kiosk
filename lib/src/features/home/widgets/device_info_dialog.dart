@@ -1,18 +1,17 @@
 import 'dart:io' show Platform;
 
 import 'package:auto_route/auto_route.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 
-import 'package:qr_pay_app/src/core/utils/device_display_name.dart';
 import 'package:qr_pay_app/src/features/home/vm/qr_menu_vm.dart';
 import 'package:qr_pay_app/src/features/home/widgets/kiosk_exit_confirm_dialog.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/ota_update.dart';
 import 'package:qr_pay_app/src/features/kiosk/service/device_id_service.dart';
+import 'package:qr_pay_app/src/features/kiosk/service/device_info_text.dart';
 import 'package:qr_pay_app/src/core/resources/app_text_style.dart';
 import 'package:qr_pay_app/src/core/resources/localization_keys.g.dart';
 
@@ -31,43 +30,11 @@ class DeviceInfoDialog {
   }) async {
     var otaRunning = false;
     var lockRunning = false;
-    final deviceInfo = DeviceInfoPlugin();
+    final locale = context.locale.toLanguageTag();
     final deviceId = await const DeviceIdService().getOrCreate();
     final org = viewModel.menuData?.organization;
 
-    String displayName = '';
-    String deviceModel = '';
-    String osVersion = '';
-
-    try {
-      if (Platform.isAndroid) {
-        final info = await deviceInfo.androidInfo;
-        displayName = await androidDeviceDisplayNameResolved(info);
-        deviceModel = androidBuildPropModel(info);
-        osVersion =
-            'Android ${info.version.release} (SDK ${info.version.sdkInt})';
-      } else if (Platform.isIOS) {
-        final info = await deviceInfo.iosInfo;
-        displayName = iosDeviceDisplayName(info);
-        deviceModel = info.utsname.machine;
-        osVersion = '${info.systemName} ${info.systemVersion}';
-      }
-    } catch (_) {
-      // ignore: avoid_catches_without_on_clauses
-    }
-
-    displayName = displayName.trim();
-    if (displayName.isEmpty) displayName = '-';
-    deviceModel = deviceModel.trim();
-    if (deviceModel.isEmpty) deviceModel = '-';
-
-    final platform = Platform.isAndroid
-        ? 'Android'
-        : Platform.isIOS
-            ? 'iOS'
-            : 'Unknown';
-
-    final locale = context.locale.toLanguageTag();
+    final device = await deviceInfoText(locale: locale, appVersion: appVersion);
 
     final text = StringBuffer()
       ..writeln('--- Organization ---')
@@ -76,14 +43,7 @@ class DeviceInfoDialog {
       ..writeln('iiko_org_id (org_id): ${org?.orgId ?? '-'}')
       ..writeln('pos_org_id: ${org?.posOrgId ?? '-'}')
       ..writeln()
-      ..writeln('--- Device ---')
-      ..writeln('Platform: $platform')
-      ..writeln('OS: $osVersion')
-      ..writeln('Device ID: $deviceId')
-      ..writeln('Name: $displayName')
-      ..writeln('Model: $deviceModel')
-      ..writeln('App version: ${appVersion ?? '-'}')
-      ..writeln('Locale: $locale');
+      ..write(device);
 
     if (!context.mounted) return;
 

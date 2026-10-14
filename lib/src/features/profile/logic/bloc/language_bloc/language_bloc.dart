@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:qr_pay_app/src/core/logic/locale_storage.dart';
 import 'package:qr_pay_app/src/core/resources/resources.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,12 +34,14 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
     Emitter<LanguageState> emit,
   ) {
     emit(const LanguageState.changeLoading());
-    _sharedPreferences.setString('locale', event.code);
+    saveLocale(_sharedPreferences, event.code);
 
     if (event.code == AppLanguages.kk) {
       _context.setLocale(const Locale('kk', 'KK'));
     } else if (event.code == AppLanguages.ru) {
       _context.setLocale(const Locale('ru', 'RU'));
+    } else if (event.code == AppLanguages.zh) {
+      _context.setLocale(const Locale('zh', 'CN'));
     } else {
       _context.setLocale(const Locale('en', 'US'));
     }
@@ -50,12 +53,14 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
     _LanguageChangeTapped event,
     Emitter<LanguageState> emit,
   ) {
-    _sharedPreferences.setString('locale', event.code);
+    saveLocale(_sharedPreferences, event.code);
 
     if (event.code == AppLanguages.kk) {
       _context.setLocale(const Locale('kk', 'KK'));
     } else if (event.code == AppLanguages.ru) {
       _context.setLocale(const Locale('ru', 'RU'));
+    } else if (event.code == AppLanguages.zh) {
+      _context.setLocale(const Locale('zh', 'CN'));
     } else {
       _context.setLocale(const Locale('en', 'US'));
     }

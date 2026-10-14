@@ -23,6 +23,7 @@
 		<string>en</string>
 		<string>kk</string>
 		<string>ru</string>
+		<string>zh</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>qr_pay_app</string>

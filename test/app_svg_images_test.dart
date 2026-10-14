@@ -35,6 +35,7 @@ void main() {
     expect(File(AppSvgImages.chevronBack).existsSync(), isTrue);
     expect(File(AppSvgImages.chevronForward).existsSync(), isTrue);
     expect(File(AppSvgImages.chevronDown).existsSync(), isTrue);
+    expect(File(AppSvgImages.china).existsSync(), isTrue);
     expect(File(AppSvgImages.circleButton).existsSync(), isTrue);
     expect(File(AppSvgImages.circledIcon).existsSync(), isTrue);
     expect(File(AppSvgImages.clipboard).existsSync(), isTrue);

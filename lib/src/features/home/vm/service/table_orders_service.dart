@@ -51,8 +51,10 @@ class TableOrdersService extends ChangeNotifier {
   KioskRepository get _repository =>
       _repositoryOverride ?? sl<KioskRepository>();
 
-  /// Сервер ответил 403: планшет отключён или токен чужой. Опрос встаёт до
-  /// следующего [start].
+  /// Сервер ответил 403 про текущий стол. Само по себе это не значит, что
+  /// планшет отключён: 403 отдаёт и прокси, и сервер за стол, который уже
+  /// закрепили за другим планшетом. Подключение перепроверяет страница меню
+  /// статусом киоска, а опрос идёт дальше в темпе пустого стола.
   VoidCallback? onForbidden;
 
   int? _venueId;
@@ -76,7 +78,17 @@ class TableOrdersService extends ChangeNotifier {
   /// вызвать [start] раньше, чем старая — [stop].
   int _clients = 0;
   bool _onScreen = true;
+
+  /// Последний ответ — 403. Следующий [start] — скорее всего страница меню
+  /// после переподключения с новым токеном: спросим сразу, без паузы.
   bool _forbidden = false;
+
+  /// Последний ответ — 429: [refresh] срок не сокращает.
+  bool _rateLimited = false;
+
+  /// [refresh] пришёл, пока запрос в пути: ответ на него мог уйти с сервера
+  /// ещё до заказа — спросим ещё раз сразу после.
+  bool _refreshQueued = false;
   bool _disposed = false;
   AppLifecycleListener? _lifecycle;
 
@@ -128,7 +140,12 @@ class TableOrdersService extends ChangeNotifier {
     _clients++;
     if (_clients > 1) return;
 
-    _forbidden = false;
+    if (_forbidden && !_inFlight) {
+      _forbidden = false;
+      _wait?.cancel();
+      _wait = null;
+      _due = true;
+    }
     _onScreen = _isOnScreen(WidgetsBinding.instance.lifecycleState);
     _lifecycle = AppLifecycleListener(onShow: _onShow, onHide: _onHide);
     _pollIfDue();
@@ -143,6 +160,21 @@ class TableOrdersService extends ChangeNotifier {
 
     _lifecycle?.dispose();
     _lifecycle = null;
+  }
+
+  /// Гость только что заказал, и ему открывают экран заказов: спрашиваем
+  /// сразу, не дожидаясь poll_after — у пустого стола это минута, и нового
+  /// заказа на экране долго не было бы. После 429 ждём, как просил сервер.
+  void refresh() {
+    if (_disposed || _rateLimited) return;
+    if (_inFlight) {
+      _refreshQueued = true;
+      return;
+    }
+    _wait?.cancel();
+    _wait = null;
+    _due = true;
+    _pollIfDue();
   }
 
   @override
@@ -167,7 +199,7 @@ class TableOrdersService extends ChangeNotifier {
 
   void _pollIfDue() {
     if (!_due || _inFlight || _clients == 0 || !_onScreen) return;
-    if (_forbidden || _disposed) return;
+    if (_disposed) return;
     final venueId = _venueId;
     final tableId = _tableId;
     if (venueId == null || tableId == null) return;
@@ -195,16 +227,24 @@ class TableOrdersService extends ChangeNotifier {
 
     final forbidden =
         result.maybeWhen(forbidden: () => true, orElse: () => false);
-    if (forbidden) {
-      // Новый токен после переподключения — спросим сразу.
-      _forbidden = true;
-      _due = true;
-      onForbidden?.call();
-      return;
-    }
+    _forbidden = forbidden;
+    _rateLimited =
+        result.maybeWhen(rateLimited: (_) => true, orElse: () => false);
 
     // Ответ про прежний стол не показываем, но темп сервера соблюдаем.
-    if (generation == _generation) _apply(result);
+    // 403 про прежний стол тоже ничего не говорит о подключении.
+    if (generation == _generation) {
+      _apply(result);
+      if (forbidden) onForbidden?.call();
+    }
+
+    final refreshQueued = _refreshQueued && !_rateLimited;
+    _refreshQueued = false;
+    if (refreshQueued) {
+      _due = true;
+      _pollIfDue();
+      return;
+    }
     _waitFor(_delayAfter(result));
   }
 
@@ -228,16 +268,22 @@ class TableOrdersService extends ChangeNotifier {
         _status = TableOrdersStatus.invalidTable;
         _stale = false;
       },
-      failed: () {
-        if (_status == TableOrdersStatus.loading) {
-          _status = TableOrdersStatus.unavailable;
-        } else if (_status == TableOrdersStatus.ready) {
-          _stale = true;
-        }
-      },
+      failed: _markFailed,
+      // Данных в ответе нет — как при сбое.
+      forbidden: _markFailed,
       orElse: () {},
     );
     notifyListeners();
+  }
+
+  /// Ответ без данных: до первого ответа — «недоступно», после — прежние
+  /// данные с пометкой.
+  void _markFailed() {
+    if (_status == TableOrdersStatus.loading) {
+      _status = TableOrdersStatus.unavailable;
+    } else if (_status == TableOrdersStatus.ready) {
+      _stale = true;
+    }
   }
 
   /// Не чаще, чем просит сервер. После 429 ждём и Retry-After, и обычный
@@ -249,6 +295,7 @@ class TableOrdersService extends ChangeNotifier {
           return wait > _pollAfter ? wait : _pollAfter;
         },
         invalidTable: () => _slowPollAfter,
+        forbidden: () => _slowPollAfter,
         orElse: () => _pollAfter,
       );
 

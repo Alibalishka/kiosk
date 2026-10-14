@@ -3,10 +3,12 @@ package dd.qrPay
 import android.app.PendingIntent
 import android.app.admin.DevicePolicyManager
 import android.app.ActivityManager
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageInfo
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.content.RestrictionsManager
@@ -40,6 +42,10 @@ class MainActivity : FlutterActivity() {
       instance?.pushManagedConfigChanged()
         ?: Log.i("MainActivity", "Managed config changed, but activity is not active")
     }
+
+    fun isKioskDisabled(context: Context): Boolean =
+      context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .getBoolean(KEY_KIOSK_DISABLED, false)
 
     fun clearDeviceOwnerFromAnyContext(context: Context) {
       val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
@@ -100,20 +106,38 @@ class MainActivity : FlutterActivity() {
     }
   }
 
-  private fun isKioskDisabled(): Boolean =
-    getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_KIOSK_DISABLED, false)
+  private fun isKioskDisabled(): Boolean = isKioskDisabled(this)
 
   private fun setKioskDisabled(v: Boolean) {
     getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_KIOSK_DISABLED, v).apply()
+  }
+
+  // APPLICATION_RESTRICTIONS_CHANGED доставляется только динамическим
+  // ресиверам — ресивер из манифеста его никогда не получал.
+  private val restrictionsReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+      Log.i("MainActivity", "APPLICATION_RESTRICTIONS_CHANGED received")
+      pushManagedConfigChanged()
+    }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     DeviceOwnerPermissionHelper.grantWifiPermissionsIfDeviceOwner(applicationContext)
     instance = this
+
+    val filter = IntentFilter(Intent.ACTION_APPLICATION_RESTRICTIONS_CHANGED)
+    runCatching {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        registerReceiver(restrictionsReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+      } else {
+        registerReceiver(restrictionsReceiver, filter)
+      }
+    }.onFailure { Log.w("MainActivity", "restrictions receiver not registered: ${it.message}") }
   }
 
   override fun onDestroy() {
+    runCatching { unregisterReceiver(restrictionsReceiver) }
     if (instance === this) instance = null
     super.onDestroy()
   }
@@ -249,6 +273,12 @@ class MainActivity : FlutterActivity() {
             result.success(readDeviceMetrics())
           }
 
+          // Что за APK скачал OTA — до установки.
+          "getApkInfo" -> {
+            val path = call.argument<String>("path")
+            result.success(if (path.isNullOrBlank()) null else readApkInfo(path))
+          }
+
           else -> result.notImplemented()
         }
       }
@@ -303,13 +333,27 @@ class MainActivity : FlutterActivity() {
     }
   }
 
+  // Вызывается из onResume: любое исключение здесь — падение приложения при
+  // каждом показе экрана. Поэтому только для Device Owner и каждый вызов
+  // отдельно: без DO политики бросают SecurityException,
+  // setLockTaskFeatures до Android 9 не существует (NoSuchMethodError).
   private fun applyDpcPolicies() {
     val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
     val admin = ComponentName(this, DeviceAdminReceiver::class.java)
 
+    val isDeviceOwner = runCatching { dpm.isDeviceOwnerApp(packageName) }.getOrDefault(false)
+    if (!isDeviceOwner) {
+      Log.w("MainActivity", "Not Device Owner: kiosk policies skipped")
+      return
+    }
+
     // 1) lock task только наш пакет (в обычном режиме)
-    dpm.setLockTaskPackages(admin, arrayOf(packageName))
-    dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_NONE)
+    dpcCall("setLockTaskPackages") { dpm.setLockTaskPackages(admin, arrayOf(packageName)) }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      dpcCall("setLockTaskFeatures") {
+        dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_NONE)
+      }
+    }
 
     // 2) делаем приложение “домом” на уровне DPC (чтобы HOME возвращал сюда)
     //    Важно: в Manifest у MainActivity должен быть HOME intent-filter.
@@ -317,15 +361,21 @@ class MainActivity : FlutterActivity() {
       addCategory(Intent.CATEGORY_HOME)
       addCategory(Intent.CATEGORY_DEFAULT)
     }
-    dpm.addPersistentPreferredActivity(
-      admin,
-      filter,
-      ComponentName(this, MainActivity::class.java)
-    )
+    dpcCall("addPersistentPreferredActivity") {
+      dpm.addPersistentPreferredActivity(
+        admin,
+        filter,
+        ComponentName(this, MainActivity::class.java)
+      )
+    }
 
     // 3) убираем системные элементы
-    try { dpm.setStatusBarDisabled(admin, true) } catch (_: Throwable) {}
-    try { dpm.setKeyguardDisabled(admin, true) } catch (_: Throwable) {}
+    dpcCall("setStatusBarDisabled") { dpm.setStatusBarDisabled(admin, true) }
+    dpcCall("setKeyguardDisabled") { dpm.setKeyguardDisabled(admin, true) }
+  }
+
+  private inline fun dpcCall(name: String, block: () -> Unit) {
+    try { block() } catch (e: Throwable) { Log.w("MainActivity", "$name failed: ${e.message}") }
   }
 
   private fun enterLockTaskIfPermitted() {
@@ -409,6 +459,29 @@ class MainActivity : FlutterActivity() {
     return result
   }
 
+  private fun readApkInfo(path: String): HashMap<String, Any?>? {
+    return try {
+      val apk = packageManager.getPackageArchiveInfo(path, 0) ?: return null
+      val installed = packageManager.getPackageInfo(packageName, 0)
+      hashMapOf(
+        "packageName" to apk.packageName,
+        "versionName" to apk.versionName,
+        "versionCode" to versionCodeOf(apk),
+        "installedVersionCode" to versionCodeOf(installed)
+      )
+    } catch (_: Throwable) {
+      null
+    }
+  }
+
+  private fun versionCodeOf(info: PackageInfo): Long =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      info.longVersionCode
+    } else {
+      @Suppress("DEPRECATION")
+      info.versionCode.toLong()
+    }
+
   // ✅ Тихая установка APK через PackageInstaller session (Device Owner)
   private fun installApkSilently(apkPath: String) {
     val apkFile = File(apkPath)
@@ -420,28 +493,34 @@ class MainActivity : FlutterActivity() {
     val sessionId = installer.createSession(params)
     val session = installer.openSession(sessionId)
 
-    apkFile.inputStream().use { input ->
-      session.openWrite("ota.apk", 0, apkFile.length()).use { out ->
-        input.copyTo(out)
-        session.fsync(out)
+    try {
+      apkFile.inputStream().use { input ->
+        session.openWrite("ota.apk", 0, apkFile.length()).use { out ->
+          input.copyTo(out)
+          session.fsync(out)
+        }
       }
+
+      // Важно: InstallResultReceiver должен быть зарегистрирован в Manifest:
+      // <receiver android:name=".InstallResultReceiver" android:exported="false" />
+      val intent = Intent(this, InstallResultReceiver::class.java)
+      val pending = PendingIntent.getBroadcast(
+        this,
+        sessionId,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+      )
+
+      // Выходим из lock task перед установкой, чтобы PackageInstaller
+      // не был заблокирован. AppUpdatedReceiver вернёт lock task после обновления.
+      try { stopLockTask() } catch (_: Throwable) {}
+
+      session.commit(pending.intentSender)
+      session.close()
+    } catch (e: Throwable) {
+      // Брошенная сессия держит копию APK на диске до перезагрузки.
+      runCatching { session.abandon() }
+      throw e
     }
-
-    // Важно: InstallResultReceiver должен быть зарегистрирован в Manifest:
-    // <receiver android:name=".InstallResultReceiver" android:exported="false" />
-    val intent = Intent(this, InstallResultReceiver::class.java)
-    val pending = PendingIntent.getBroadcast(
-      this,
-      sessionId,
-      intent,
-      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-    )
-
-    // Выходим из lock task перед установкой, чтобы PackageInstaller
-    // не был заблокирован. AppUpdatedReceiver вернёт lock task после обновления.
-    try { stopLockTask() } catch (_: Throwable) {}
-
-    session.commit(pending.intentSender)
-    session.close()
   }
 }

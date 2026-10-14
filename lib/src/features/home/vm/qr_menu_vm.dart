@@ -28,6 +28,7 @@ import 'package:qr_pay_app/src/features/profile/logic/model/responses/payment_me
 import 'package:qr_pay_app/src/features/profile/logic/repository/auth_repository.dart';
 import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_pay_app/src/core/base/view_model.dart';
 import 'package:qr_pay_app/src/core/dependencies/injection_container.dart';
 import 'package:qr_pay_app/src/core/resources/app_colors.dart';
@@ -145,6 +146,13 @@ class QrMenuVm extends ViewModel {
 
   String? lastServerVersionTried;
 
+  /// До какого времени не повторять OTA на [lastServerVersionTried].
+  /// Статус приходит каждые 30 секунд: без паузы неудачное обновление
+  /// перекачивало APK (~70 МБ) и закрывало меню оверлеем на каждом статусе.
+  DateTime? _otaRetryAt;
+
+  static const _otaRetryInterval = Duration(minutes: 30);
+
   @override
   void init() {
     super.init();
@@ -190,8 +198,11 @@ class QrMenuVm extends ViewModel {
     if (serverVersion == null || serverVersion.trim().isEmpty) return;
     if (otaChecking) return;
 
-    // анти-спам: если уже пытались обновиться на эту версию — не повторяем
-    if (lastServerVersionTried == serverVersion) return;
+    // анти-спам: эту версию уже пробовали — ждём паузу (null — до перезапуска)
+    if (lastServerVersionTried == serverVersion) {
+      final retryAt = _otaRetryAt;
+      if (retryAt == null || DateTime.now().isBefore(retryAt)) return;
+    }
 
     otaChecking = true;
     try {
@@ -202,9 +213,15 @@ class QrMenuVm extends ViewModel {
       // cmp < 0 => текущая меньше => надо обновиться
       if (cmp < 0) {
         log('[OTA] current=$current server=$serverVersion -> starting update');
-        await sl<OtaUpdateService>().downloadAndInstall();
         lastServerVersionTried = serverVersion;
+        _otaRetryAt = DateTime.now().add(_otaRetryInterval);
+        await sl<OtaUpdateService>().downloadAndInstall(onlyIfNewer: true);
       }
+    } on PlatformException catch (e) {
+      log('[OTA] update failed: ${e.code} ${e.message}');
+      // APK по ссылке не новее: повтор скачает то же самое. Ждём, пока
+      // сервер объявит другую версию.
+      if (e.code == otaNotNewerCode) _otaRetryAt = null;
     } catch (e) {
       log('[OTA] update failed: $e');
     } finally {
@@ -239,6 +256,10 @@ class QrMenuVm extends ViewModel {
   /// Экран «Заказы стола» есть только у киоска, закреплённого за столом.
   bool get hasTableOrders => isKioskMode && effectiveTableId != null;
 
+  /// Открывает «Заказы стола». Задаёт страница меню: экран живёт в её
+  /// стеке, под рекламой.
+  VoidCallback? onShowTableOrders;
+
   /// table_id для pay-order: из QR-параметров, иначе из секции киоска
   /// (kiosk-status → section.tableId). null, если нигде нет.
   String? get effectiveTableId {
@@ -262,7 +283,9 @@ class QrMenuVm extends ViewModel {
 
   void fetchMenu() {
     bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
-    // _menuTimer?.cancel();
+    // Иначе каждый вызов (смена menuEtag, конец техработ) добавлял ещё один
+    // таймер: за недели работы киоска они копились.
+    _menuTimer?.cancel();
     if (isKioskMode) {
       _menuTimer = Timer.periodic(const Duration(hours: 5), (_) {
         bloc.add(QrMenuEvent.fetchQrMenu(menuId!, 'kiosk'));
@@ -813,10 +836,9 @@ class QrMenuVm extends ViewModel {
       log('❌ iikoOrgId is null, checkout blocked');
       showTopSnackBar(
         Overlay.of(context),
-        const CustomSnackBar.error(
+        CustomSnackBar.error(
           textAlign: TextAlign.start,
-          message:
-              'Пожалуйста, обратитесь к менеджеру, чтобы уведомить организацию о проблеме',
+          message: LocaleKeys.contactManagerOrgProblem.tr(),
         ),
         dismissType: DismissType.onSwipe,
       );
@@ -827,9 +849,9 @@ class QrMenuVm extends ViewModel {
       log('❌ paymentMethodData is empty, checkout blocked');
       showTopSnackBar(
         Overlay.of(context),
-        const CustomSnackBar.error(
+        CustomSnackBar.error(
           textAlign: TextAlign.start,
-          message: 'Не найдены способы оплаты. Обратитесь к менеджеру.',
+          message: LocaleKeys.paymentMethodsNotFound.tr(),
         ),
         dismissType: DismissType.onSwipe,
       );
@@ -848,9 +870,9 @@ class QrMenuVm extends ViewModel {
       log('❌ payment method not found for provider: $provider');
       showTopSnackBar(
         Overlay.of(context),
-        const CustomSnackBar.error(
+        CustomSnackBar.error(
           textAlign: TextAlign.start,
-          message: 'Не найдены способы оплаты. Обратитесь к менеджеру.',
+          message: LocaleKeys.paymentMethodsNotFound.tr(),
         ),
         dismissType: DismissType.onSwipe,
       );
@@ -930,8 +952,9 @@ class QrMenuVm extends ViewModel {
   /// тап не создал второй заказ.
   bool payAtVenueLoading = false;
 
-  /// Создаёт заказ с оплатой на месте и сразу ведёт на билет с номером:
-  /// ждать оплату здесь нечего — гость платит официанту. Успех решает
+  /// Создаёт заказ с оплатой на месте и сразу ведёт в «Заказы стола» (без
+  /// них — на билет с номером): ждать оплату здесь нечего — гость платит
+  /// официанту. Успех решает
   /// status_raw в ответе: new / inprogress — заказ принят, иначе он не
   /// дошёл до кассы, и гостю нужен официант.
   ///
@@ -948,10 +971,7 @@ class QrMenuVm extends ViewModel {
     if (orgId == null || paymentMethodId == null) {
       log('❌ pay at venue blocked: orgId=$orgId, '
           'paymentMethodId=$paymentMethodId');
-      _showPaymentError(
-        context,
-        'Пожалуйста, обратитесь к менеджеру, чтобы уведомить организацию о проблеме',
-      );
+      _showPaymentError(context, LocaleKeys.contactManagerOrgProblem.tr());
       return;
     }
 
@@ -1001,6 +1021,19 @@ class QrMenuVm extends ViewModel {
     if (orderId == null || !_payAtVenueAcceptedStatuses.contains(status)) {
       log('❌ pay at venue not accepted: status=$status, orderId=$orderId');
       _showPaymentError(context, LocaleKeys.payAtVenueCallWaiter.tr());
+      return;
+    }
+
+    // У киоска за столом номер и этап заказа видны в «Заказах стола» —
+    // билет с QR гостю не нужен.
+    final showTableOrders = onShowTableOrders;
+    if (hasTableOrders && showTableOrders != null) {
+      context.router.popUntil(
+          (route) => route.settings.name == QrMenuProviderRoute.name);
+      clearBasket();
+      fetchMenu();
+      tableOrders.refresh();
+      showTableOrders();
       return;
     }
 

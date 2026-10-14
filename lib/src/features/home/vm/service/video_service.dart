@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:qr_pay_app/src/features/home/logic/models/responses/qr_menu_model.dart';
 import 'package:video_player/video_player.dart';
@@ -17,6 +19,19 @@ class VideoPreviewService with WidgetsBindingObserver {
 
   String? _currentUrl;
   String? _lastUrlBeforeSuspend;
+
+  /// Номер последнего запроса на видео. Загрузка, которую обогнал более
+  /// новый запрос (смена слайда, реклама, dispose), видит чужой номер и
+  /// освобождает свой контроллер. Без этого шапка и syncData после загрузки
+  /// меню грузили видео одновременно: проигравший контроллер оставался без
+  /// ссылки и крутил видео в фоне, удерживая аппаратный декодер.
+  int _generation = 0;
+
+  /// URL, который грузится прямо сейчас (null — ничего не грузится).
+  String? _loadingUrl;
+
+  /// Поверх показана реклама: декодер отдан ей, шапка ждёт [resume].
+  bool _suspended = false;
 
   bool get isInitialized => _controller?.value.isInitialized ?? false;
 
@@ -50,55 +65,89 @@ class VideoPreviewService with WidgetsBindingObserver {
       return;
     }
 
-    // если url тот же и уже готово — просто убедимся что играет
-    if (_currentUrl == url && (_controller?.value.isInitialized ?? false)) {
-      _controller?.play();
+    // Пока поверх реклама, декодер не трогаем — только запоминаем, что
+    // показать после resume(). Иначе перестройка шапки под рекламой
+    // заводила второй декодер рядом с рекламным.
+    if (_suspended) {
+      _lastUrlBeforeSuspend = url;
       return;
+    }
+
+    if (_currentUrl == url) {
+      // если url тот же и уже готово — просто убедимся что играет
+      if (_controller?.value.isInitialized ?? false) {
+        _controller?.play();
+        return;
+      }
+      // уже грузится — второй контроллер не нужен
+      if (_loadingUrl == url) return;
     }
 
     await _setControllerForUrl(url);
   }
 
   Future<void> _setControllerForUrl(String url) async {
+    final generation = ++_generation;
     _currentUrl = url;
+    _loadingUrl = url;
     isVideo = true;
 
     final old = _controller;
     _controller = null;
     await old?.dispose();
 
+    VideoPlayerController? controller;
     try {
       final file = await VideoCache.I.getFile(url);
+      if (generation != _generation) return;
 
-      final controller = (file != null)
+      controller = (file != null)
           ? VideoPlayerController.file(file)
           : VideoPlayerController.networkUrl(Uri.parse(url));
 
-      controller
+      final created = controller
         ..setLooping(true)
         ..setVolume(0);
 
-      controller.addListener(() {
-        final v = controller.value;
+      created.addListener(() {
+        final v = created.value;
         if (v.hasError) {
           log('Header video error ($url): ${v.errorDescription}');
         }
       });
 
-      await controller.initialize();
-      _controller = controller;
-      controller.play();
+      await created.initialize();
+      if (generation != _generation) {
+        unawaited(created.dispose());
+        return;
+      }
+      _controller = created;
+      created.play();
     } catch (e) {
       log('Header video init failed ($url): $e');
+      // Освобождаем свой контроллер, а не _controller — тот мог уже
+      // поставить более новый запрос. Не ждём: dispose после неудачного
+      // initialize может не завершиться.
+      unawaited(controller?.dispose());
+      if (generation != _generation) return;
       isVideo = false;
       _currentUrl = null;
-      await _controller?.dispose();
-      _controller = null;
+    } finally {
+      if (generation == _generation) _loadingUrl = null;
     }
+  }
+
+  /// Отменяет загрузку, которая сейчас идёт: по завершении она освободит
+  /// свой контроллер сама.
+  void _cancelLoading() {
+    _generation++;
+    _loadingUrl = null;
   }
 
   /// ВАЖНО: освобождаем декодер, когда поверх появляется AdFullScreen
   Future<void> suspend() async {
+    _suspended = true;
+    _cancelLoading();
     _lastUrlBeforeSuspend = _currentUrl;
     final c = _controller;
     _controller = null;
@@ -107,6 +156,7 @@ class VideoPreviewService with WidgetsBindingObserver {
 
   /// Возвращаем видео после скрытия рекламы (уже из кеша)
   Future<void> resume() async {
+    _suspended = false;
     final url = _lastUrlBeforeSuspend;
     if (url == null || url.isEmpty) return;
     if (_controller != null) return;
@@ -115,8 +165,10 @@ class VideoPreviewService with WidgetsBindingObserver {
   }
 
   Future<void> _clearControllerOnly() async {
+    _cancelLoading();
     isVideo = false;
     _currentUrl = null;
+    _lastUrlBeforeSuspend = null;
 
     final c = _controller;
     _controller = null;
@@ -126,6 +178,7 @@ class VideoPreviewService with WidgetsBindingObserver {
   /// Финальный dispose (когда экран реально закрыли)
   void disposeService() {
     WidgetsBinding.instance.removeObserver(this);
+    _cancelLoading();
     _controller?.dispose();
     _controller = null;
     isVideo = false;

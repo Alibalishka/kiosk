@@ -143,8 +143,14 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
               final basket = value.basketService.basket;
 
               if (basket.isEmpty) {
+                // Только если корзина ещё на экране. После заказа наличными
+                // её уже закрыли и опустошили: pop ушёл бы в меню и закрыл
+                // открытые там «Заказы стола».
+                final route = ModalRoute.of(context);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (context.mounted) context.router.pop();
+                  if (context.mounted && (route?.isCurrent ?? true)) {
+                    context.router.pop();
+                  }
                 });
               }
 
@@ -658,7 +664,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                                   _pay(_pendingPayMethod);
                                                 },
                                           child: Text(
-                                            'Сохранить',
+                                            LocaleKeys.save.tr(),
                                             style: AppTextStyles.bodyM.copyWith(
                                               fontSize: 18,
                                               color: AppColors
@@ -677,7 +683,7 @@ class _TabletCheckoutPageState extends State<TabletCheckoutPage>
                                             _pay(_pendingPayMethod);
                                           },
                                           child: Text(
-                                            'Пропустить',
+                                            LocaleKeys.skip.tr(),
                                             style: AppTextStyles.bodyM.copyWith(
                                               fontSize: 18,
                                               color: AppComponents
@@ -1099,7 +1105,7 @@ class _CheckoutSummaryPanel extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('Оплата картой |',
+                Text('${LocaleKeys.payByCard.tr()} |',
                     textAlign: TextAlign.center, style: labelStyle),
                 SvgPicture.asset(
                   AppSvgImages.gPayLight,

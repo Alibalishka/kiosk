@@ -119,6 +119,8 @@ Locale getLocale(String locale) {
     return const Locale('kk', 'KK');
   } else if (locale.contains(AppLanguages.ru)) {
     return const Locale('ru', 'RU');
+  } else if (locale.contains(AppLanguages.zh)) {
+    return const Locale('zh', 'CN');
   } else {
     return const Locale('en', 'US');
   }

@@ -212,7 +212,7 @@ class _KioskSuccessPageState extends State<KioskSuccessPage>
                 const _TicketSeparator(),
                 const SizedBox(height: 28),
                 Text(
-                  '*чек вы получите вместе с заказом',
+                  '*${LocaleKeys.checkWithOrder.tr()}',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyM.copyWith(
                     fontSize: 24,
@@ -271,7 +271,7 @@ class _KioskSuccessPageState extends State<KioskSuccessPage>
   }
 
   Widget _watchHint(TextAlign align) => Text(
-        'Следите за статусом заказа через QR',
+        LocaleKeys.trackOrderByQr.tr(),
         textAlign: align,
         style: AppTextStyles.bodyM.copyWith(
           fontSize: 28,
@@ -280,7 +280,7 @@ class _KioskSuccessPageState extends State<KioskSuccessPage>
       );
 
   Widget _photoHint(TextAlign align) => Text(
-        'или сфотографируйте экран\nс QR и покажите на кассе\nили\nуточните время ожидания на кассе',
+        LocaleKeys.orderQrPhotoHint.tr(),
         textAlign: align,
         style: AppTextStyles.bodyM.copyWith(
           fontSize: 28,

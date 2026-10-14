@@ -383,5 +383,11 @@
     "checkoutFailed": "Couldn't calculate the order",
     "noPaymentMethods": "Payment isn't available here right now. Please call the waiter",
     "onlinePaymentDisabled": "Online payment is unavailable right now",
-    "tableOrdersCallWaiter": "Call the waiter"
+    "tableOrdersCallWaiter": "Call the waiter",
+    "skip": "Skip",
+    "payByCard": "Pay by card",
+    "trackOrderByQr": "Track your order status via the QR",
+    "orderQrPhotoHint": "or take a photo of the screen\nwith the QR and show it at the till\nor\nask at the till how long to wait",
+    "contactManagerOrgProblem": "Please contact the manager to let the venue know about the problem",
+    "paymentMethodsNotFound": "No payment methods found. Please contact the manager."
 }
