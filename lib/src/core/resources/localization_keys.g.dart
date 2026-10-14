@@ -282,6 +282,7 @@ abstract class  LocaleKeys {
   static const qrPaymentTitle = 'qrPaymentTitle';
   static const qrPaymentDescription = 'qrPaymentDescription';
   static const payWithCash = 'payWithCash';
+  static const confirmOrder = 'confirmOrder';
   static const alcoholWarningTitle = 'alcoholWarningTitle';
   static const alcoholWarningMessage = 'alcoholWarningMessage';
   static const alcoholWarningConfirm = 'alcoholWarningConfirm';

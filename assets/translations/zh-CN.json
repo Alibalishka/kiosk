@@ -278,6 +278,7 @@
     "qrPaymentTitle": "扫码支付",
     "qrPaymentDescription": "将相机对准二维码即可支付订单",
     "payWithCash": "现金支付",
+    "confirmOrder": "提交订单",
     "alcoholWarningTitle": "酒精饮品",
     "alcoholWarningMessage": "您选择了含酒精饮品。\n\n继续操作即表示您确认已达到可点酒精饮品的法定年龄（21 岁），并对本订单承担责任。",
     "alcoholWarningConfirm": "我已年满 21 岁",

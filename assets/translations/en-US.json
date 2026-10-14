@@ -279,6 +279,7 @@
     "qrPaymentTitle": "Pay by QR",
     "qrPaymentDescription": "Point your camera at the QR code to pay for your order",
     "payWithCash": "Cash payment",
+    "confirmOrder": "Confirm order",
     "alcoholWarningTitle": "Alcoholic beverage",
     "alcoholWarningMessage": "You have selected an alcoholic drink.\n\nBy continuing, you confirm that you have reached the legal age to order alcohol (21) and accept responsibility for your order.",
     "alcoholWarningConfirm": "I'm 21 or older",

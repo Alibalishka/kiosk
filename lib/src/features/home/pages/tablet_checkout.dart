@@ -1157,7 +1157,7 @@ class _CheckoutSummaryPanel extends StatelessWidget {
                   ),
                 const RowSpacer(1.2),
                 Text(
-                  LocaleKeys.payWithCash.tr(),
+                  LocaleKeys.confirmOrder.tr(),
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyMStrong.copyWith(
                     fontSize: isTablet ? 15.sp : null,
